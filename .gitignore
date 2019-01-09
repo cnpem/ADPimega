@@ -1,0 +1,17 @@
+bin
+include
+db
+dbd
+*_BAK.adl
+documentation.html
+cdCommands*
+dllPath*
+auto_settings.sav*
+configure/*.local
+O.*/
+*~
+*.swp
+.project
+.settings
+.cproject
+external/

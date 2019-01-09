@@ -1,0 +1,442 @@
+# pimega.template
+# Medipix Area Detector extensions
+#
+#
+# Parameters:
+#% macro, P,        EPICS name prefix
+#% macro, R,        EPICS name suffix
+#% macro, PORT,     Asyn port
+#% macro, ADDR,     Asyn Address
+#% macro, TIMEOUT,  Asyn communications timeout
+#% macro, XSIZE,    Maximum size of X histograms
+#% macro, YSIZE,    Maximum size of Y histograms
+
+# This associates the template with an edm screen
+# % gui, $(PORT), edmtab, pimegaDetector.edl, P=$(P),R=$(R)
+##  gdatag, template, pimega, $(PORT)_pimega, pimega detector
+
+include "ADBase.template"
+
+
+# We redefine the states for the TriggerMode records defined in ADBase.template
+record(mbbo,"$(P)$(R)TriggerMode") {
+    field(DESC,"Trigger mode")
+    field(ZRVL,"0")
+    field(ZRST,"Debug Push Button")
+    field(ONVL,"1")
+    field(ONST,"External I/O")
+    field(TWVL,"2")
+    field(TWST,"MCU GPIO (in-system)")
+    field(IVOA, "Don't drive outputs")
+
+ 
+}
+
+record(mbbi,"$(P)$(R)TriggerMode_RBV") {
+    field(DESC,"Trigger mode")
+    field(ZRVL,"0")
+    field(ZRST,"Debug Push Button")
+    field(ONVL,"1")
+    field(ONST,"External I/O")
+    field(TWVL,"2")
+    field(TWST,"MCU GPIO (in-system)")
+}
+
+
+record(ao, "$(P)$(R)MyPV")
+{
+   field(PINI, "YES")
+   field(DTYP, "asynFloat64")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SIM_MYPV")
+   field(PREC, "2")
+   field(VAL,  "30")
+}
+
+record(ai, "$(P)$(R)MyPV_RBV")
+{
+	field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SIM_MYPV")
+    field(PREC, "2")
+    field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)MedipixBoard")
+{
+	field(PINI, "YES")
+   	field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_BOARD")
+   	field(VAL,  "0")	
+}
+
+record(ai, "$(P)$(R)TemperatureActual")
+{
+	field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ACTUAL_TEMPERATURE")
+    field(PREC, "2")
+    field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)ImgChipNumberID")
+{
+	field(PINI, "YES")
+   	field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_CHIP")
+   	field(VAL,  "0")	
+}
+
+record(ai, "$(P)$(R)TemperatureActual")
+{
+	field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ACTUAL_TEMPERATURE")
+    field(PREC, "2")
+    field(SCAN, "I/O Intr")
+}
+
+
+
+record(bo, "$(P)$(R)Reset")
+{
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET")
+	field(ZNAM, "0")
+	field(ONAM, "1")
+}
+
+record(ai, "$(P)$(R)DAC_ThresholdEnergy0_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD0")
+	field(DESC, "Threshold 0 for photon detection")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_ThresholdEnergy0")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD0")
+	field(DESC, "Threshold 0 for photon detection")
+	field(VAL,  "77")
+	field(DRVL, 0)
+	field(DRVH, 511)
+}
+
+record(ai, "$(P)$(R)DAC_ThresholdEnergy1_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD1")
+	field(DESC, "Threshold 0 for photon detection")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_ThresholdEnergy1")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD1")
+	field(DESC, "Threshold 0 for photon detection")
+	field(VAL,  "77")
+	field(DRVL, 0)
+	field(DRVH, 511)
+}
+
+record(ai, "$(P)$(R)DAC_Preamp_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))PREAMP")
+	field(DESC, "Preamplifier current")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_Preamp")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))PREAMP")
+	field(DESC, "Preamplifier current")
+	field(VAL,  "100")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_IKrum_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))IKRUM")
+	field(DESC, "Krummenacher current")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_IKrum")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))IKRUM")
+	field(DESC, "Krummenacher current")
+	field(VAL,  "5")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_Shaper_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SHAPER")
+	field(DESC, "Shaper current")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_Shaper")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SHAPER")
+	field(DESC, "Shaper current")
+	field(VAL,  "125")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_Disc_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC")
+	field(DESC, "Discriminator current")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_Disc")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC")
+	field(DESC, "Discriminator current")
+	field(VAL,  "125")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_DiscLS_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_LS")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_DiscLS")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_LS")
+	field(VAL,  "100")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_DiscL_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_L")
+	field(SCAN, "I/O Intr")
+	field(DESC, "Low discriminator current")
+}
+
+record(ao, "$(P)$(R)DAC_DiscL")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_L")
+	field(DESC, "Low discriminator current")
+	field(VAL,  "68")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_Delay_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DELAY")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_Delay")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DELAY")
+	field(VAL,  "30")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_TPBufferIn_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_BUFFER_IN")
+	field(DESC, "Test pulse input buffer current")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_TPBufferIn")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_BUFFER_IN")
+	field(DESC, "Test pulse input buffer current")
+	field(VAL,  "128")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_TPBufferOut_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_BUFFER_OUT")
+	field(DESC, "Test pulse output buffer current")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_TPBufferOut")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_BUFFER_OUT")
+	field(DESC, "Test pulse output buffer current")
+	field(VAL,  "4")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_RPZ_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))RPZ")
+	field(DESC, "Shaper pole zero voltage")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_RPZ")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))RPZ")
+	field(DESC, "Shaper pole zero voltage")
+	field(VAL,  "255")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_GND_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))GND")
+	field(DESC, "Preamplifier virtual ground voltage")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_GND")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))GND")
+	field(DESC, "Preamplifier virtual ground voltage")
+	field(VAL,  "133")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_TPRef_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF")
+	field(DESC, "Test pulses 1 and 2 reference voltage")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_TPRef")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF")
+	field(DESC, "Test pulses 1 and 2 reference voltage")
+	field(VAL,  "120")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_FBK_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FBK")
+	field(DESC, "Preamplifier feedback voltage")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_FBK")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FBK")
+	field(DESC, "Preamplifier feedback voltage")
+	field(VAL,  "171")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_CAS_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAS")
+	field(DESC, "DAC cascode bias")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_CAS")
+{
+	field(PINI, "YES")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAS")
+	field(DESC, "DAC cascode bias")
+	field(VAL,  "175")
+	#field(DRVL, 0)
+	#field(DRVH, 255)
+}
+
+record(ai, "$(P)$(R)DAC_TPRefA_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF_A")
+	field(DESC, "Test pulse 1 voltage")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_TPRefA")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF_A")
+	field(DESC, "Test pulse 1 voltage")
+	field(VAL,  "311")
+	field(DRVL, 0)
+	field(DRVH, 511)
+}
+
+record(ai, "$(P)$(R)DAC_TPRefB_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF_B")
+	field(DESC, "Test pulse 2 voltage")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DAC_TPRefB")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF_B")
+	field(DESC, "Test pulse 2 voltage")
+	field(VAL,  "311")
+	field(DRVL, 0)
+	field(DRVH, 511)
+}
+
+record(ai, "$(P)$(R)DAC_DiscH_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_H")
+	field(SCAN, "I/O Intr")
+	field(DESC, "High discriminator current")
+}
+
+record(ao, "$(P)$(R)DAC_DiscH")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_H")
+	field(DESC, "High discriminator current")
+	field(VAL,  "72")
+	field(DRVL, 0)
+	field(DRVH, 255)
+}
