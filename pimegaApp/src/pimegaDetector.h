@@ -7,9 +7,6 @@
 
 #include <epicsEvent.h>
 
-
-
-
 /** Messages to/from Labview command channel */
 #define MAX_MESSAGE_SIZE 256
 #define MAX_FILENAME_LEN 256
@@ -21,25 +18,25 @@
 #define FILE_READ_DELAY .01
 
 #define DIMS 2
-
-
 #define DEFAULT_POLL_TIME 2
 
-
 static const char *driverName = "pimegaDetector";
-
-
-
 
 #define error(fmt, ...) asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, \
         "%s:%d " fmt, __FILE__, __LINE__, __VA_ARGS__)
                                   
-#define SimMyPVString                   "SIM_MYPV"
 
 #define pimegaMedipixBoardString        "MEDIPIX_BOARD"
 #define pimegaMedipixChipString         "MEDIPIX_CHIP"
 #define pimegaActualTempString          "ACTUAL_TEMPERATURE"
-
+#define pimegaPixeModeString            "PIXEL_MODE"
+#define pimegaContinuosRWString         "CONTINUOUSRW"
+#define pimegaPolarityString            "POLARITY"
+#define pimegaDiscriminatorString       "DISCRIMINATOR"
+#define pimegaTestPulseString           "TEST_PULSE"
+#define pimegaCounterDepthString        "COUNTER_DEPTH"
+#define pimegaEqualizationString        "EQUALIZATION"
+#define pimegaGainString                "GAIN_MODE"
 #define pimegaDacCasString              "CAS"
 #define pimegaDacDelayString            "DELAY"
 #define pimegaDacDiscString             "DISC"
@@ -61,31 +58,35 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDacTPRefBString           "TP_REF_B"
 #define pimegaResetString               "RESET"
 
-
-
 class pimegaDetector: public ADDriver
 {
 public:
     pimegaDetector(const char *portName, const char *address, int port, int maxSizeX, int maxSizeY,
-                int maxBuffers, size_t maxMemory, int priority, int stackSize);
-
+                int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize);
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+    //virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
 
     virtual void report(FILE *fp, int details);
-
     virtual void pollerThread(void);
     virtual void acqTask(void);
 
 
 protected:
-    int SimMyPV;
-    #define FIRST_PIMEGA_PARAM SimMyPV
+    int PimegaReset;
+    #define FIRST_PIMEGA_PARAM PimegaReset
     int PimegaActualTemp;
     int PimegaMedipixBoard;
     int PimegaMedipixChip;
-    int PimegaReset;
+    int PimegaContinuosRW;
+    int PimegaPolarity;
+    int PimegaDiscriminator;
+    int PimegaPixelMode;
+    int PimegaTestPulse;
+    int PimegaCounterDepth;
+    int PimegaEqualization;
+    int PimegaGain;
     int PimegaCas;
     int PimegaDelay;
     int PimegaDisc;
@@ -110,18 +111,15 @@ protected:
 private:
 
     // ***** poller control variables ****
-
     double pollTime_;
     int forceCallback_;
-
     // ***********************************
 
     epicsEventId startEventId_;
     epicsEventId stopEventId_;
 
-
-
     pimega_t *pimega;
+    pimega_detector_model_t detModel;
 
     void panic(const char *msg);
     void connect(const char *address, unsigned short port);
@@ -134,13 +132,23 @@ private:
     void getParameter(int index, double *value);
 
     void setDefaults(void);
+    void prepareScan(unsigned board);
 
-    asynStatus imgChipID(uint8_t chip_id);
     asynStatus triggerMode(int trigger);
     asynStatus reset(short action);
     asynStatus setDACValue(pimega_dac_t dac, int value, int parameter);
+    asynStatus imgChipID(uint8_t chip_id);
     asynStatus medipixBoard(uint8_t board_id);
-
+    asynStatus numExposures(unsigned number);
+    asynStatus pixelMode(int mode);
+    asynStatus continuosRW(int mode);
+    asynStatus polarity(int mode);
+    asynStatus discriminator(int mode);
+    asynStatus enableTP(int mode);
+    asynStatus counterDepth(int mode);
+    asynStatus equalization(int mode);
+    asynStatus gain_mode(int mode);
+    asynStatus acq_time(float acquire_time_s);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
