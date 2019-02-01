@@ -187,7 +187,7 @@ void pimegaDetector::pollerThread()
         forceCallback_ = 0;
 
         _i++;
-        setDoubleParam(PimegaActualTemp, actualtemp);
+        setParameter(PimegaActualTemp, actualtemp);
 
         callParamCallbacks();
         unlock();
@@ -226,7 +226,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         setIntegerParam(ADStatus, ADStatusAborted);
       }
     }
-    callParamCallbacks();
  
     /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
      * status at the end, but that's OK */
@@ -244,6 +243,9 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             setStringParam(ADStatusMessage, "Acquisition aborted");
         }
     }
+
+    else if (function == PimegaOmrOPMode)
+        status |= omr_opmode(value);
 
     else if (function == ADNumExposures)
         status |=  numExposures(value);
@@ -315,24 +317,23 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |=  setDACValue(HS_TPRefA, value, function);
     else if (function == PimegaTpRefB) 
         status |=  setDACValue(HS_TPRefB, value, function);
-
     else 
     {
         if (function < FIRST_PIMEGA_PARAM) 
                 status = ADDriver::writeInt32(pasynUser, value);    
     }
 
-     /* Update any changed parameters */
-    status |= callParamCallbacks();
-
     if (status) 
         asynPrint(pasynUser, ASYN_TRACE_ERROR, 
               "%s:%s: error, status=%d function=%d, value=%d\n", 
               driverName, functionName, status, function, value);
-    else        
+    else {     
+         /* Update any changed parameters */
+        callParamCallbacks();   
         asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
               "%s:%s: function=%d, value=%d\n", 
               driverName, functionName, function, value);
+    }
 
     return((asynStatus)status); 
 
@@ -345,15 +346,12 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     const char *paramName;
     const char *functionName = "writeFloat64";
 
-
     getParamName(function, &paramName);
-
     printf("Valor de function: %d\n", function);
     printf("Nome da funcao: %s\n", paramName);
     printf("Valor de value: %f\n", value);
 
     callParamCallbacks();
-
     status |= setDoubleParam(function, value);
 
     if (function == ADAcquireTime)
@@ -364,40 +362,33 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
         if (function < FIRST_PIMEGA_PARAM) status = ADDriver::writeFloat64(pasynUser, value);
     }   
 
-    /* Do callbacks so higher layers see any changes */
-    status |= callParamCallbacks();
-
     if (status)
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:writeFloat64 error, status=%d function=%d, value=%f\n",
               driverName, status, function, value);
-    else
+    else{
+        /* Do callbacks so higher layers see any changes */
+        callParamCallbacks();
         asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
               "%s:writeFloat64: function=%d, value=%f\n",
               driverName, function, value);
+    }
 
     return((asynStatus)status);
 }
 
+
 /*
 asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 {
+
     int function = pasynUser->reason;
     int status=0;
-    const char *paramName;
-    float temp_atual;
-
     static const char *functionName = "readFloat64";
-
-    getParamName(function, &paramName);
     
-    // Analog input function
     if (function == PimegaActualTemp) {
         US_TemperatureActual(pimega);
-        printf("temp atual: %f\n", pimega->cached_result.actual_temperature); 
-        temp_atual = pimega->cached_result.actual_temperature;
-        setParameter(PimegaActualTemp,temp_atual);
-
+        *value = pimega->cached_result.actual_temperature;
     }
     //Other functions we call the base class method
     else {
@@ -459,7 +450,6 @@ pimegaDetector::pimegaDetector(const char *portName,
                 forceCallback_(1)
 
 {
-    
     int status = asynSuccess;
     const char *functionName = "pimegaDetector";
 
@@ -477,7 +467,6 @@ pimegaDetector::pimegaDetector(const char *portName,
         return;
     }
     
-    
     detModel = (pimega_detector_model_t) detectorModel;
     pimega = pimega_new(detModel);
     connect(address, port);
@@ -494,8 +483,8 @@ pimegaDetector::pimegaDetector(const char *portName,
     
     //reset(1);    
 
+    
     /*
-
     epicsThreadCreate("pimega_test_poller",epicsThreadPriorityMedium,
                         epicsThreadGetStackSize(epicsThreadStackMedium),
                         (EPICSTHREADFUNC)pollerThreadC,
@@ -513,7 +502,6 @@ pimegaDetector::pimegaDetector(const char *portName,
     }
 
     */
-
 
 }
 
@@ -579,6 +567,10 @@ static bool validate_gain_mode(int v)
     return (v >= 0 && v < PIMEGA_GAIN_MODE_ENUM_END);
 }
 
+static bool validate_operation_mode(int v)
+{
+    return (v >= 0 && v < PIMEGA_OPERATION_MODE_ENUM_END);
+}
 
 /************************************************************************************/
 
@@ -659,6 +651,7 @@ status = getDoubleParam(index, value);
 
 void pimegaDetector::createParameters(void)
 {
+    createParam(pimegaOmrOPModeString,      asynParamInt32,     &PimegaOmrOPMode);
     createParam(pimegaActualTempString,     asynParamFloat64,   &PimegaActualTemp);
     createParam(pimegaMedipixBoardString,   asynParamInt32,     &PimegaMedipixBoard);
     createParam(pimegaMedipixChipString,    asynParamInt32,     &PimegaMedipixChip);
@@ -819,7 +812,10 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
         error("Invalid number of boards: %s\n", pimega_error_string(rc));
         return asynError;
     }
-    setParameter(PimegaMedipixBoard, board_id);
+
+    puts("passei por aqui");
+
+    //setParameter(PimegaMedipixBoard, board_id);
     return asynSuccess;
 
 
@@ -850,6 +846,22 @@ asynStatus pimegaDetector::numExposures(unsigned number)
     }
     setParameter(ADNumExposures, (int)number);
     return asynSuccess;
+}
+
+asynStatus pimegaDetector::omr_opmode(int mode)
+{
+    int rc;
+    
+    if(!validate_operation_mode(mode)){
+        error("Invalid OMR operation mode value: %d\n", mode); return asynError; 
+    }
+    
+    rc = US_OmrOMSelec(pimega, (pimega_operation_mode_t)mode);
+    if (rc != PIMEGA_SUCCESS){ return asynError;
+    }
+
+    setParameter(PimegaOmrOPMode, mode);
+    return asynSuccess;   
 }
 
 asynStatus pimegaDetector::pixelMode(int mode)
