@@ -59,10 +59,13 @@ record(ao, "$(P)$(R)AcquireTime")
 	field(DRVL, "1e-6")
 }
 
-record(ai, "$(P)$(R)AcquireTime_RBV")
+
+#e-Fuse chip ID
+record(ai, "$(P)$(R)eFuseID_RBV")
 {
-	field(DRVH, "1000")
-	field(DRVL, "1e-6")
+	field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EFUSE_ID")
+    field(SCAN, "I/O Intr")
 }
 
 
@@ -71,7 +74,7 @@ record(mbbo,"$(P)$(R)OmrOMSelec") {
 	field(PINI, "YES")
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OMR_OP_MODE")
-	field(DESC, "OMR register operation mode selection")
+	field(DESC, "OMR operation mode selection")
     field(ZRVL,"0")
     field(ONVL,"1")
     field(TWVL,"2")
@@ -87,14 +90,14 @@ record(mbbo,"$(P)$(R)OmrOMSelec") {
     field(FRST, "Read Counter High")
     field(FVST, "Load CTPR")
     field(SXST, "Load Counter High")
-    field(SVST, "Read OMD and ID")
+    field(SVST, "Read OMR and ID")
     field(VAL, "1")
 }
 
 record(mbbi,"$(P)$(R)OmrOMSelec_RBV") {
    	field(DTYP, "asynInt32")
    	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OMR_OP_MODE")
-    field(DESC, "OMR register operation mode selection readback")
+    field(DESC, "OMR  operation mode selection readback")
     field(ZRVL,"0")
     field(ONVL,"1")
     field(TWVL,"2")
@@ -110,14 +113,14 @@ record(mbbi,"$(P)$(R)OmrOMSelec_RBV") {
     field(FRST, "Read Counter High")
     field(FVST, "Load CTPR")
     field(SXST, "Load Counter High")
-    field(SVST, "Read OMD and ID")
+    field(SVST, "Read OMR and ID")
    	field(SCAN, "I/O Intr")
 }
 
 
 
 # Gain mode - Selects the sensor gain mode
-record(mbbo,"$(P)$(R)Gain_Mode") {
+record(mbbo,"$(P)$(R)GainMode") {
    	field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_MODE")
@@ -132,7 +135,7 @@ record(mbbo,"$(P)$(R)Gain_Mode") {
     field(THST, "Super Low gain")
 }
 
-record(mbbi,"$(P)$(R)Gain_Mode_RBV") {
+record(mbbi,"$(P)$(R)GainMode_RBV") {
    	field(DTYP, "asynInt32")
    	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_MODE")
     field(DESC, "Sensor gain mode readback")
@@ -228,7 +231,7 @@ record(bo,"$(P)$(R)Discriminator") {
 record(bi,"$(P)$(R)Discriminator_RBV") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISCRIMINATOR")
-    field(DESC, "Select energy discriminator output Readback")
+    field(DESC, "Select energy discriminator output RBV")
     field(ZNAM, "Discriminator LOW")
     field(ONAM, "Discriminator HIGH")
     field(SCAN, "I/O Intr")
@@ -298,16 +301,16 @@ record(bo,"$(P)$(R)Equalization") {
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EQUALIZATION")
     field(DESC, "Threshold Equalization mode")
-    field(ZNAM, "off")
-    field(ONAM, "on")
+    field(ZNAM, "Equalization OFF")
+    field(ONAM, "Equalization ON")
 }
 
 record(bi,"$(P)$(R)Equalization_RBV") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EQUALIZATION")
     field(DESC, "Threshold Equalization mode readback")
-    field(ZNAM, "off")
-    field(ONAM, "on")
+    field(ZNAM, "Equalization OFF")
+    field(ONAM, "Equalization ON")
     field(SCAN, "I/O Intr")
 }
 

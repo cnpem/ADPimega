@@ -66,7 +66,6 @@ void pimegaDetector::acqTask()
     int acquire=0;
     double acquireTime, acquirePeriod;
 
-    ADStatus_t acquiring;
     int statusParam = 0;
 
     const char *functionName = "acqTask";
@@ -74,26 +73,17 @@ void pimegaDetector::acqTask()
     this->lock();
 
     /* Loop forever */
-    while (1) {
-        /* Is acquisition active? */
-        getIntegerParam(ADAcquire, &acquire);
-        
-        printf("\n\n\n\nvalor de acquire: %d\n\n\n", acquire);
-        
+    while (1) { 
+
         if (!acquire)  {
-            setIntegerParam(ADStatus, ADStatusIdle);
-            callParamCallbacks();
-
-            setStringParam(ADStatusMessage, "Waiting for acquire command");
-            callParamCallbacks();
-
-            /* Release the lock while we wait for an event that says acquire has started, then lock again */
+            // Release the lock while we wait for an event that says acquire has started, then lock again
             this->unlock();
             asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, 
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
-            status = epicsEventWait(startEventId_);   
+            status = epicsEventWait(startEventId_);
+            setStringParam(ADStatusMessage, "Acquiring data");   
             this->lock();
-            acquire = 1;   
+            acquire = 1;  
         }
 
         /* We are acquiring. */
@@ -103,68 +93,57 @@ void pimegaDetector::acqTask()
         getDoubleParam(ADAcquireTime, &acquireTime);
         getDoubleParam(ADAcquirePeriod, &acquirePeriod);
 
-        /* Get the acquisition parameters */
+        /* Open the shutter */
+        setShutter(ADShutterOpen);
 
-        acquiring = ADStatusAcquire;
-        setIntegerParam(ADStatus, ADStatusAcquire);
-
-        setStringParam(ADStatusMessage, "Starting exposure");
         // TODO: test acquire
-       
         for (int j = 0; j < 2; j++) 
             {
-                  // informs the detector that it are ready to recive a trigger signal
+                medipixBoard(j);
+                imgChipID(0);          // all chips
+                US_AcquireTime(pimega, acquireTime);    // set acquire time
+                US_NumExposures(pimega, 1);             // set number of exposures
+                US_Acquire(pimega, 1); // informs the detector that it are ready to recive a trigger signal
             }
     
         Set_Trigger(pimega, 1);
         Set_Trigger(pimega, 0);
 
-        while (acquire) {
-            setStringParam(ADStatusMessage, "Waiting for finish response");
-            US_DetectorState_RBV(pimega);
+        setStringParam(ADStatusMessage, "Acquiring data");
+        setIntegerParam(ADStatus, ADStatusAcquire);
+        callParamCallbacks();
 
+        while (acquire) {
+            US_DetectorState_RBV(pimega);
             this->unlock();
             eventStatus = epicsEventWaitWithTimeout(this->stopEventId_, 0);
             this->lock();
+
             if (eventStatus == epicsEventWaitOK) {
+                US_Acquire(pimega,0);
+                acquire=0;
                 setStringParam(ADStatusMessage, "Acquisition aborted");
                 setIntegerParam(ADStatus, ADStatusAborted);
+                callParamCallbacks();
                 break;
             }
-
             if (!strcmp(pimega->cached_result.detector_state,"Done")) 
             {
                 acquire=0;
+                setIntegerParam(ADStatus, ADStatusIdle);
+                setStringParam(ADStatusMessage, "Acquisition finished");
                 continue;
             }
 
         }
-
-        /* If everything was ok, set the status back to idle */
-        getIntegerParam(ADStatus, &statusParam);
-        if (!status) {
-            setIntegerParam(ADStatus, ADStatusIdle);
-        } else {
-            if (statusParam != ADStatusAborted) {
-                setIntegerParam(ADStatus, ADStatusError);
-            }
-        }
-
-        /* Call the callbacks to update any changes */
-        callParamCallbacks();
-
         setShutter(0);
         setIntegerParam(ADAcquire, 0);
 
         /* Call the callbacks to update any changes */
         callParamCallbacks();        
-        
     }
 
 }
-
-
-
 
 void pimegaDetector::pollerThread()
 {
@@ -215,17 +194,23 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
+
+    /*
     if (function == ADAcquire) {
+
+        printf("valor de adstatus: %d\n", adstatus);
+
       if (value && ((adstatus == ADStatusIdle) || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
         setStringParam(ADStatusMessage, "Acquiring data");
         setIntegerParam(ADStatus, ADStatusAcquire);
       }
-      if (!value){ // && (adstatus == ADStatusAcquire)) {
-        US_Acquire(pimega, 0); 
+      if ((!value)  && (adstatus == ADStatusAcquire)) { 
         setStringParam(ADStatusMessage, "Acquisition aborted");
         setIntegerParam(ADStatus, ADStatusAborted);
       }
     }
+
+    */
  
     /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
      * status at the end, but that's OK */
@@ -239,13 +224,12 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (!value && (adstatus == ADStatusAcquire)) {
           /* This was a command to stop acquisition */
             epicsEventSignal(this->stopEventId_);
-            epicsThreadSleep(1);
-            setStringParam(ADStatusMessage, "Acquisition aborted");
+            epicsThreadSleep(.1);
         }
     }
 
     else if (function == PimegaOmrOPMode)
-        status |= omr_opmode(value);
+        status |= omrOpMode(value);
 
     else if (function == ADNumExposures)
         status |=  numExposures(value);
@@ -276,7 +260,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaEqualization)
         status |= equalization(value);
     else if (function == PimegaGain)
-        status |= gain_mode(value);
+        status |= gainMode(value);
 
     //DACS functions
     else if (function == PimegaCas)
@@ -355,7 +339,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     status |= setDoubleParam(function, value);
 
     if (function == ADAcquireTime)
-        status |= acq_time(value);
+        status |= acqTime(value);
 
     else {
     /* If this parameter belongs to a base class call its method */
@@ -490,7 +474,7 @@ pimegaDetector::pimegaDetector(const char *portName,
                         (EPICSTHREADFUNC)pollerThreadC,
                         this); 
 
-    /* Create the thread that runs acquisition 
+    /* Create the thread that runs acquisition */
     status = (epicsThreadCreate("pimegaDetTask", epicsThreadPriorityMedium,
             epicsThreadGetStackSize(epicsThreadStackMedium),
             (EPICSTHREADFUNC) acquisitionTaskC, this) == NULL); 
@@ -500,8 +484,6 @@ pimegaDetector::pimegaDetector(const char *portName,
                 functionName);
         return;
     }
-
-    */
 
 }
 
@@ -633,8 +615,6 @@ void pimegaDetector::getParameter(int index, int *value)
 {
     asynStatus status;
 
-    puts("chamou a getParameter int");
-
     status = getIntegerParam(index, value);
     if (status != asynSuccess)
         panic("getIntegerParam failed.");
@@ -651,6 +631,7 @@ status = getDoubleParam(index, value);
 
 void pimegaDetector::createParameters(void)
 {
+    createParam(pimegaefuseIDString,        asynParamFloat64,   &PimegaefuseID);
     createParam(pimegaOmrOPModeString,      asynParamInt32,     &PimegaOmrOPMode);
     createParam(pimegaActualTempString,     asynParamFloat64,   &PimegaActualTemp);
     createParam(pimegaMedipixBoardString,   asynParamInt32,     &PimegaMedipixBoard);
@@ -813,9 +794,7 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
         return asynError;
     }
 
-    puts("passei por aqui");
-
-    //setParameter(PimegaMedipixBoard, board_id);
+    setParameter(PimegaMedipixBoard, board_id);
     return asynSuccess;
 
 
@@ -824,6 +803,8 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
 asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
 {
     int rc;
+    int OmrOp;
+    epicsFloat64 _efuseID;
 
     rc = US_ImgChipNumberID(pimega, chip_id);
     if (rc != PIMEGA_SUCCESS) {
@@ -831,6 +812,16 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
         return asynError;
     }
     setParameter(PimegaMedipixChip, chip_id);
+
+    /*Get OMR operation mode */
+    getParameter(PimegaOmrOPMode,&OmrOp);
+
+    /* Get e-fuseID from selected chip_id */
+    rc = US_efuseID_RBV(pimega);
+    if (rc != PIMEGA_SUCCESS) return asynError;
+    _efuseID = pimega->cached_result.efuseID;
+    setParameter(PimegaefuseID, _efuseID);
+
     return asynSuccess;
 
 }
@@ -848,7 +839,7 @@ asynStatus pimegaDetector::numExposures(unsigned number)
     return asynSuccess;
 }
 
-asynStatus pimegaDetector::omr_opmode(int mode)
+asynStatus pimegaDetector::omrOpMode(int mode)
 {
     int rc;
     
@@ -978,7 +969,7 @@ asynStatus pimegaDetector::equalization(int mode)
     return asynSuccess;   
 }
 
-asynStatus pimegaDetector::gain_mode(int mode)
+asynStatus pimegaDetector::gainMode(int mode)
 {
     int rc;
     
@@ -994,7 +985,7 @@ asynStatus pimegaDetector::gain_mode(int mode)
     return asynSuccess;   
 }
 
-asynStatus pimegaDetector::acq_time(float acquire_time_s)
+asynStatus pimegaDetector::acqTime(float acquire_time_s)
 {
     int rc;
     rc = US_AcquireTime(pimega, acquire_time_s);

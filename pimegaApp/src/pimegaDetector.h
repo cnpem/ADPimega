@@ -26,6 +26,7 @@ static const char *driverName = "pimegaDetector";
         "%s:%d " fmt, __FILE__, __LINE__, __VA_ARGS__)
                                   
 
+#define pimegaefuseIDString             "EFUSE_ID"
 #define pimegaOmrOPModeString           "OMR_OP_MODE"
 #define pimegaMedipixBoardString        "MEDIPIX_BOARD"
 #define pimegaMedipixChipString         "MEDIPIX_CHIP"
@@ -77,6 +78,7 @@ public:
 protected:
     int PimegaReset;
     #define FIRST_PIMEGA_PARAM PimegaReset
+    int PimegaefuseID;
     int PimegaOmrOPMode;
     int PimegaActualTemp;
     int PimegaMedipixBoard;
@@ -149,9 +151,9 @@ private:
     asynStatus enableTP(int mode);
     asynStatus counterDepth(int mode);
     asynStatus equalization(int mode);
-    asynStatus gain_mode(int mode);
-    asynStatus acq_time(float acquire_time_s);
-    asynStatus omr_opmode(int mode);
+    asynStatus gainMode(int mode);
+    asynStatus acqTime(float acquire_time_s);
+    asynStatus omrOpMode(int mode);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
