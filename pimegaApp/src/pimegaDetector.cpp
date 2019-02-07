@@ -166,7 +166,7 @@ void pimegaDetector::pollerThread()
         forceCallback_ = 0;
 
         _i++;
-        setParameter(PimegaActualTemp, actualtemp);
+        setParameter(ADTemperatureActual, actualtemp);
 
         callParamCallbacks();
         unlock();
@@ -633,7 +633,6 @@ void pimegaDetector::createParameters(void)
 {
     createParam(pimegaefuseIDString,        asynParamFloat64,   &PimegaefuseID);
     createParam(pimegaOmrOPModeString,      asynParamInt32,     &PimegaOmrOPMode);
-    createParam(pimegaActualTempString,     asynParamFloat64,   &PimegaActualTemp);
     createParam(pimegaMedipixBoardString,   asynParamInt32,     &PimegaMedipixBoard);
     createParam(pimegaMedipixChipString,    asynParamInt32,     &PimegaMedipixChip);
     createParam(pimegaPixeModeString,       asynParamInt32,     &PimegaPixelMode);
@@ -701,8 +700,8 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFileNumCapture, 0);
     setParameter(NDFileNumCaptured, 0);
     setParameter(NDFileDeleteDriverFile, 0);
-    setParameter(ADTemperature, NAN);
-    setParameter(ADTemperatureActual, NAN);
+    setParameter(ADTemperature, 30.0);
+    setParameter(ADTemperatureActual, 30.0);
     setParameter(ADBinX, 1);
     setParameter(ADBinY, 1);
     setParameter(ADMinX, 0);

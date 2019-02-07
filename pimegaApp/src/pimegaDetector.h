@@ -30,7 +30,6 @@ static const char *driverName = "pimegaDetector";
 #define pimegaOmrOPModeString           "OMR_OP_MODE"
 #define pimegaMedipixBoardString        "MEDIPIX_BOARD"
 #define pimegaMedipixChipString         "MEDIPIX_CHIP"
-#define pimegaActualTempString          "ACTUAL_TEMPERATURE"
 #define pimegaPixeModeString            "PIXEL_MODE"
 #define pimegaContinuosRWString         "CONTINUOUSRW"
 #define pimegaPolarityString            "POLARITY"
@@ -80,7 +79,6 @@ protected:
     #define FIRST_PIMEGA_PARAM PimegaReset
     int PimegaefuseID;
     int PimegaOmrOPMode;
-    int PimegaActualTemp;
     int PimegaMedipixBoard;
     int PimegaMedipixChip;
     int PimegaContinuosRW;

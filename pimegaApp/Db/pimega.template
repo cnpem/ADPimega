@@ -367,13 +367,6 @@ record(ai, "$(P)$(R)ImgChipNumberID_RBV")
    	field(SCAN,  "I/O Intr")	
 }
 
-record(ai, "$(P)$(R)TemperatureActual")
-{
-	field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ACTUAL_TEMPERATURE")
-    field(PREC, "2")
-    field(SCAN, "2")
-}
 
 record(bo, "$(P)$(R)Reset")
 {
