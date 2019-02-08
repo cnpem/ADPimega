@@ -39,8 +39,9 @@ extern "C" {
 
 #define PIMEGA_MAX_RETURN_TEXT 512
 
-#define PIMEGA_MAX_BOARDS 2
-#define PIMEGA_MAX_IMGCHIPS 6
+typedef enum pimega_detector_model_t{
+	mobipix, pimega540D
+} pimega_detector_model_t;
 
 
 typedef enum pimega_operation_mode_t {
@@ -243,6 +244,7 @@ typedef enum pimega_test_pulse_pattern_t {
 } pimega_test_pulse_pattern_t;
 
 typedef struct pimega_operation_register_t {
+	pimega_detector_model_t detModel;
 	pimega_operation_mode_t operation_mode; 	//US_OmrOMSelec
 	pimega_crw_srw_t crw_srw_mode;			    //US_ContinuousRW
 	pimega_polarity_t polarity;					//US_Polarity
@@ -269,6 +271,7 @@ typedef struct pimega_operation_register_t {
 	pimega_image_mode_t image_mode;
 	bool acquire_state;
 	char detector_state[512];
+	uint32_t efuseID;
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
 	uint32_t num_exposures;						//US_NumExposures
@@ -296,6 +299,8 @@ typedef struct __attribute__((__packed__)) {
 
 
 typedef struct pimega_t {
+	uint8_t max_num_boards;
+	uint8_t max_num_chips;
 	int pimega_socket;
 	FILE *data_server_in;
 	FILE *data_server_out;
@@ -306,11 +311,11 @@ typedef struct pimega_t {
 } pimega_t;
 
 
-
-pimega_t *pimega_new(void);
+pimega_t *pimega_new(pimega_detector_model_t detModel);
 
 
 int US_DetectorState_RBV(pimega_t *pimega);
+int US_efuseID_RBV(pimega_t *pimega);
 
 int US_TimeRemaining_RBV(pimega_t *pimega);
 int US_Reset(pimega_t *pimega, short action);

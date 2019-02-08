@@ -9,6 +9,8 @@ pimegaApp_registerRecordDeviceDriver(pdbbase)
 epicsEnvSet("PREFIX", "SOL7:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
+# The detector model (0:mobipix; 1:pimega540D)
+epicsEnvSet("DMODEL", "1");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
@@ -21,7 +23,8 @@ epicsEnvSet("NCHANS", "2048")
 epicsEnvSet("CBUFFS", "500")
 # The IP address of the Pimega system
 epicsEnvSet("PIMEGA_IP", "127.0.0.1")
-#epicsEnvSet("PIMEGA_IP", "10.0.27.32")
+#epicsEnvSet("PIMEGA_IP", "10.0.27.46")
+#epicsEnvSet("PIMEGA_IP", "10.2.101.61") 
 # The IP port for the command socket
 epicsEnvSet("PIMEGA_PORT", "60000")
 # The search path for database files
@@ -33,13 +36,14 @@ epicsEnvSet("EPICS_DB_INCLUDE_PATH", "$(ADCORE)/db")
 #              port,               # the number port of pimega detector
 #              maxSizeX,           # The size of the pimega detector in the X direction.
 #              maxSizeY,           # The size of the pimega detector in the Y direction.
+#			   detectorModel,      # Detector model, 0:mobipix; 1:pimega540D.
 #              maxBuffers,         # The maximum number of NDArray buffers that the NDArrayPool for this driver is
 #                                    allowed to allocate. Set this to 0 to allow an unlimited number of buffers.
 #              maxMemory,          # The maximum amount of memory that the NDArrayPool for this driver is
 #                                    allowed to allocate. Set this to 0 to allow an unlimited amount of memory.
 #              priority,           # The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
 #              stackSize,          # The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
-pimegaDetectorConfig("$(PORT)",$(PIMEGA_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), 0, 0, 0, 0)
+pimegaDetectorConfig("$(PORT)",$(PIMEGA_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0)
 
 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")

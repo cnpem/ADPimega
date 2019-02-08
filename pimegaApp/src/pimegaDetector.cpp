@@ -65,7 +65,6 @@ void pimegaDetector::acqTask()
     int imageMode;
     int acquire=0;
     double acquireTime, acquirePeriod;
-
     int statusParam = 0;
 
     const char *functionName = "acqTask";
@@ -74,7 +73,6 @@ void pimegaDetector::acqTask()
 
     /* Loop forever */
     while (1) { 
-
         if (!acquire)  {
             // Release the lock while we wait for an event that says acquire has started, then lock again
             this->unlock();
@@ -85,7 +83,6 @@ void pimegaDetector::acqTask()
             this->lock();
             acquire = 1;  
         }
-
         /* We are acquiring. */
         getIntegerParam(ADImageMode, &imageMode);
 
@@ -134,7 +131,6 @@ void pimegaDetector::acqTask()
                 setStringParam(ADStatusMessage, "Acquisition finished");
                 continue;
             }
-
         }
         setShutter(0);
         setIntegerParam(ADAcquire, 0);
@@ -153,8 +149,7 @@ void pimegaDetector::pollerThread()
     epicsInt32 _i=0;
 
     while(1) 
-    {
-        
+    {    
         lock();
         // Read the digital inputs
         US_TemperatureActual(pimega);
@@ -170,8 +165,7 @@ void pimegaDetector::pollerThread()
 
         callParamCallbacks();
         unlock();
-        epicsThreadSleep(pollTime_);
-        
+        epicsThreadSleep(pollTime_);   
     }
 }
 
@@ -194,23 +188,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
-
-    /*
-    if (function == ADAcquire) {
-
-        printf("valor de adstatus: %d\n", adstatus);
-
-      if (value && ((adstatus == ADStatusIdle) || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
-        setStringParam(ADStatusMessage, "Acquiring data");
-        setIntegerParam(ADStatus, ADStatusAcquire);
-      }
-      if ((!value)  && (adstatus == ADStatusAcquire)) { 
-        setStringParam(ADStatusMessage, "Acquisition aborted");
-        setIntegerParam(ADStatus, ADStatusAborted);
-      }
-    }
-
-    */
  
     /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
      * status at the end, but that's OK */
@@ -362,18 +339,27 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 }
 
 
-/*
+
 asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 {
 
     int function = pasynUser->reason;
     int status=0;
     static const char *functionName = "readFloat64";
-    
-    if (function == PimegaActualTemp) {
-        US_TemperatureActual(pimega);
+    int scanStatus;
+
+
+    getParameter(ADStatus,&scanStatus);
+    if (function == ADTemperatureActual) {
+        status = US_TemperatureActual(pimega);
         *value = pimega->cached_result.actual_temperature;
     }
+
+    else if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
+        status = US_TimeRemaining_RBV(pimega);
+        *value = pimega->cached_result.time_remaining;
+    }
+
     //Other functions we call the base class method
     else {
         status = asynPortDriver::readFloat64(pasynUser, value);
@@ -381,7 +367,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     callParamCallbacks();
     return (status==0) ? asynSuccess : asynError;      
 }
-*/
+
 
 /** Configuration command for Pimega driver; creates a new Pimega object.
   * \param[in] portName The name of the asyn port driver to be created.

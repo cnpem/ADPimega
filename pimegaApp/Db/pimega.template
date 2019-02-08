@@ -21,6 +21,13 @@ include "ADBase.template"
 # Disable records from ADBase etc. that we do not use for pimega
 ##########################################################################
 
+record(calcout,"$(P)$(R)UpdateScan")
+{
+	field(INPA, "$(P)$(R)Acquire CPP NMS")
+	field(CALC, "(A)==1?2:4")
+	field(OUT,  "$(P)$(R)TemperatureActual.SCAN PP")
+
+}
 record(ao, "$(P)$(R)Gain")
 {
 	#field(DISA, "1")  
@@ -29,6 +36,12 @@ record(ao, "$(P)$(R)Gain")
 record(ai, "$(P)$(R)Gain_RBV")
 {
 	#field(DISA, "1")   
+}
+
+record(ai, "$(P)$(R)TimeRemaining_RBV")
+{
+   field(SCAN, ".1 second")
+   field(EGU, "s")
 }
 
 # We redefine the states for the TriggerMode records defined in ADBase.template

@@ -67,7 +67,7 @@ public:
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
-    //virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
+    virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
 
     virtual void report(FILE *fp, int details);
     virtual void pollerThread(void);
