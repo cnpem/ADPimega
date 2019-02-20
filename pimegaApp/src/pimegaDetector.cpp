@@ -66,6 +66,7 @@ void pimegaDetector::acqTask()
     int acquire=0;
     double acquireTime, acquirePeriod;
     int statusParam = 0;
+    bool bufferOverflow=0;
 
     const char *functionName = "acqTask";
 
@@ -93,42 +94,50 @@ void pimegaDetector::acqTask()
         /* Open the shutter */
         setShutter(ADShutterOpen);
 
-        // TODO: test acquire
-        for (int j = 0; j < 2; j++) 
-            {
-                medipixBoard(j);
-                imgChipID(0);          // all chips
-                US_AcquireTime(pimega, acquireTime);    // set acquire time
-                US_NumExposures(pimega, 1);             // set number of exposures
-                US_Acquire(pimega, 1); // informs the detector that it are ready to recive a trigger signal
-            }
-    
-        Set_Trigger(pimega, 1);
-        Set_Trigger(pimega, 0);
+        executeAcquire(pimega);
+        bufferOverflow =0;
 
         setStringParam(ADStatusMessage, "Acquiring data");
         setIntegerParam(ADStatus, ADStatusAcquire);
         callParamCallbacks();
 
+
         while (acquire) {
-            US_DetectorState_RBV(pimega);
+            // Read detector state from K60
+            US_DetectorState_RBV(pimega);    
+            // Read detector state from backend
+            get_acqStatus_fromBackend(pimega);        
+            
             this->unlock();
             eventStatus = epicsEventWaitWithTimeout(this->stopEventId_, 0);
             this->lock();
 
+            if (pimega->acq_status_return.bufferUsed > 100)
+            {
+                setParameter(PimegaBackBuffer, pimega->acq_status_return.bufferUsed);
+                bufferOverflow = 1;
+                eventStatus = epicsEventWaitOK;
+            }
+
             if (eventStatus == epicsEventWaitOK) {
                 US_Acquire(pimega,0);
                 acquire=0;
-                setStringParam(ADStatusMessage, "Acquisition aborted");
+                if (bufferOverflow) setStringParam(ADStatusMessage, 
+                    "Acquisition aborted by buffer overflow");
+                else setStringParam(ADStatusMessage, "Acquisition aborted by user");
+                
+                send_stopAcquire_toBackend(pimega);
                 setIntegerParam(ADStatus, ADStatusAborted);
                 callParamCallbacks();
                 break;
             }
-            if (!strcmp(pimega->cached_result.detector_state,"Done")) 
+            if (!strcmp(pimega->acquireParam.detectorState,"Done")) 
             {
                 acquire=0;
                 setIntegerParam(ADStatus, ADStatusIdle);
                 setStringParam(ADStatusMessage, "Acquisition finished");
+                
+                setParameter(PimegaBackBuffer, 0);
                 continue;
             }
         }
@@ -169,7 +178,6 @@ void pimegaDetector::pollerThread()
     }
 }
 
-
 asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     int function = pasynUser->reason;
@@ -195,7 +203,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     if (function == ADAcquire) {
         if (value && (adstatus == ADStatusIdle || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
-            /* Send an event to wake up the Pilatus task.  */
+            /* Send an event to wake up the acq task.  */
             epicsEventSignal(this->startEventId_);
         } 
         if (!value && (adstatus == ADStatusAcquire)) {
@@ -284,18 +292,17 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
                 status = ADDriver::writeInt32(pasynUser, value);    
     }
 
-    if (status) 
+    if (status){
         asynPrint(pasynUser, ASYN_TRACE_ERROR, 
               "%s:%s: error, status=%d function=%d, value=%d\n", 
-              driverName, functionName, status, function, value);
-    else {     
+              driverName, functionName, status, function, value);}
+    else {   
          /* Update any changed parameters */
         callParamCallbacks();   
         asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
               "%s:%s: function=%d, value=%d\n", 
               driverName, functionName, function, value);
     }
-
     return((asynStatus)status); 
 
 }
@@ -312,7 +319,6 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     printf("Nome da funcao: %s\n", paramName);
     printf("Valor de value: %f\n", value);
 
-    callParamCallbacks();
     status |= setDoubleParam(function, value);
 
     if (function == ADAcquireTime)
@@ -357,17 +363,36 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
     else if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
         status = US_TimeRemaining_RBV(pimega);
-        *value = pimega->cached_result.time_remaining;
+        *value = pimega->acquireParam.timeRemaining;
     }
 
     //Other functions we call the base class method
     else {
         status = asynPortDriver::readFloat64(pasynUser, value);
     }
-    callParamCallbacks();
     return (status==0) ? asynSuccess : asynError;      
 }
 
+asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
+{
+    int function = pasynUser->reason;
+    int status=0;
+    static const char *functionName = "readInt32";
+    int scanStatus;
+
+    getParameter(ADStatus,&scanStatus);
+
+    if ((function == PimegaBackBuffer) && (scanStatus == ADStatusAcquire)) { 
+        *value = pimega->acq_status_return.bufferUsed;
+    }
+
+    //Other functions we call the base class method
+    else {
+        status = asynPortDriver::readInt32(pasynUser, value);
+    }
+    return (status==0) ? asynSuccess : asynError;    
+
+}
 
 /** Configuration command for Pimega driver; creates a new Pimega object.
   * \param[in] portName The name of the asyn port driver to be created.
@@ -439,7 +464,9 @@ pimegaDetector::pimegaDetector(const char *portName,
     
     detModel = (pimega_detector_model_t) detectorModel;
     pimega = pimega_new(detModel);
-    connect(address, port);
+
+    pimega_connect_backend(pimega, "127.0.0.1", 5412);
+    pimega_connect(pimega, address, port);
 
     //pimega->debug_out = fopen("log.txt", "w+");
     //report(pimega->debug_out, 1);
@@ -649,6 +676,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDacTPRefAString,      asynParamInt32,     &PimegaTpRefA);
     createParam(pimegaDacTPRefBString,      asynParamInt32,     &PimegaTpRefB);
     createParam(pimegaDacDiscHString,       asynParamInt32,     &PimegaDiscH);
+    createParam(pimegaBackendBufferString,  asynParamInt32,     &PimegaBackBuffer);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -705,6 +733,8 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFileTemplate, "");
     setParameter(NDFullFileName, "");
     setParameter(NDFileWriteMessage, "");
+    setParameter(PimegaBackBuffer, 0);
+
 }
 
 void pimegaDetector::prepareScan(unsigned board)
@@ -749,8 +779,8 @@ asynStatus pimegaDetector::setDACValue(pimega_dac_t dac, int value, int paramete
         error("Unable to change DAC value: %s\n", pimega_error_string(rc));
         return asynError;
     }
-    setParameter(parameter, value);
 
+    setParameter(parameter, value);
     return asynSuccess;
 }
 

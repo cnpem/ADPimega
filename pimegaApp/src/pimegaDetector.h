@@ -58,6 +58,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDacTPRefAString           "TP_REF_A"
 #define pimegaDacTPRefBString           "TP_REF_B"
 #define pimegaResetString               "RESET"
+#define pimegaBackendBufferString       "BACK_BUFFER"
 
 class pimegaDetector: public ADDriver
 {
@@ -67,6 +68,7 @@ public:
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+    virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
     virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
 
     virtual void report(FILE *fp, int details);
@@ -108,7 +110,8 @@ protected:
     int PimegaTpRef;
     int PimegaTpRefA;
     int PimegaTpRefB;
-    #define LAST_PIMEGA_PARAM PimegaTpRefB
+    int PimegaBackBuffer;
+    #define LAST_PIMEGA_PARAM PimegaBackBuffer
 
 private:
 

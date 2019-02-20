@@ -656,6 +656,8 @@ record(ao, "$(P)$(R)DAC_CAS")
 	field(DESC, "DAC cascode bias")
 	field(VAL,  "175")
 	field(PINI, "YES")
+	field(DRVL, 0)
+	field(DRVH, 255)
 }
 
 record(ai, "$(P)$(R)DAC_TPRefA_RBV")
@@ -709,4 +711,13 @@ record(ao, "$(P)$(R)DAC_DiscH")
 	field(DESC, "High discriminator current")
 	field(PINI, "YES")
 	field(VAL,  "72")
+}
+
+record(ai, "$(P)$(R)Backend_BufferUsed_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_BUFFER")
+	field(SCAN, ".1 second")
+	field(DESC, "Backend buffer used")
+	field(EGU, "%")
 }
