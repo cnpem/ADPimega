@@ -1,3 +1,5 @@
+#include <inttypes.h>
+
 #ifndef _PIMEGA_H_INCLUDED_
 #define _PIMEGA_H_INCLUDED_
 
@@ -39,10 +41,82 @@ extern "C" {
 
 #define PIMEGA_MAX_RETURN_TEXT 512
 
+#define STRUCT_SIZE 112
+
+/* Backend Structs */
+enum requestTypesEnum {
+    INIT_ARGS = 0,
+    ACQUIRE_ARGS = 1,
+    ACQUIRE_STATUS = 2,
+    FILES_READY = 3,
+    STOP_ACQUIRE = 4,
+};
+
+enum AckTypesEnum {
+    SIMPLE_ACK = 0,
+    DONE = 1,
+    NOT_DONE = 2,
+    ERROR = 10
+};
+
+enum bufferStateEnum {
+    BUFFER_OK = 0,
+    BUFFER_OVERFLOW = 1
+};
+
+//Size 1
+typedef struct __attribute__((__packed__)){
+      uint8_t  type;
+      uint8_t reserved[STRUCT_SIZE-1];
+} simpleArgs;
+
+//Size 110
+typedef struct __attribute__((__packed__)){
+      uint8_t  type;
+      uint64_t noOfFrames;
+      char fileName[100]; 
+      uint8_t reserved[STRUCT_SIZE-109];
+} acqArgs;
+
+
+//Size 12
+typedef struct __attribute__((__packed__)){
+      uint8_t  type;
+      uint64_t noOfFrames;
+      uint8_t  bufferUsed; /* This contains a percetage of the buffer usage */
+      uint8_t  bufferState;
+      uint8_t  done;
+      uint8_t reserved[STRUCT_SIZE-12];
+} acqStatusArgs;
+
+
+//Size 57
+typedef struct __attribute__((__packed__)){
+      uint8_t  type;
+      uint8_t SGID[16];
+      uint8_t DGID[16];
+      uint8_t DMAC[8];
+      uint8_t SMAC[8];
+      uint64_t VADDR;
+      uint32_t RKEY;
+      uint32_t QPN;
+      uint8_t reserved[STRUCT_SIZE-64];
+} initArgs;
+
+typedef enum backend_init_args_t{
+	BACKEND_SGID = 0,
+	BACKEND_DGID,
+	BACKEND_DMAC,
+	BACKEND_VADDR,
+	BACKEND_RKEY,
+	BACKEND_QPN,
+	BACKEND_ENUM_END,
+} backend_init_args_t;
+
+
 typedef enum pimega_detector_model_t{
 	mobipix, pimega540D
 } pimega_detector_model_t;
-
 
 typedef enum pimega_operation_mode_t {
 	PIMEGA_READ_COUNTER_L = 0,
@@ -259,85 +333,67 @@ typedef struct pimega_operation_register_t {
 	pimega_dac_t dac;							//US_Set/Get DAC
 	pimega_trigger_mode_t trigger_mode;			//US_TriggerMode
 	bool discard_data;							//US_DiscardData			
-	float time_remaining;						//US_TimeRemaining_RBV
-	float acquire_time_s;						//US_AcquireTime
 	float bias_voltage;
-	unsigned num_images;						//US_NumImages
-	uint32_t num_images_counter;				//US_NumImagesCounter_RBV
 	float temperature;
 	float actual_temperature;
-	float acq_period_time_s;
 	pimega_read_counter_t read_counter;
 	pimega_image_mode_t image_mode;
-	bool acquire_state;
-	char detector_state[512];
 	uint32_t efuseID;
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
-	uint32_t num_exposures;						//US_NumExposures
 } pimega_operation_register_t;
 
+typedef struct pimega_acquire_params_t {
+	unsigned numImages;						//US_NumImages
+	uint32_t numImagesCounter;				//US_NumImagesCounter_RBV
+	uint32_t numExposures;					//US_NumExposures
+	float acquireTime;						//US_AcquireTime
+	float acquirePeriod;					
+	bool acquireState;						//US_Acquire_RBV
+	char detectorState[512];				//US_DetectorState_RBV
+	float timeRemaining;					//US_TimeRemaining_RBV
 
-
-// *************** backend struct args ****************
-
-typedef struct __attribute__((__packed__)){
-	uint64_t noOfFrames;
-	char fileName[100];
-} requestToBackendArgs;
-
-typedef struct __attribute__((__packed__)) {
-	uint8_t  SGID[16];
-	uint8_t  DGID[16];
-	uint8_t  DMAC[8];
-	uint64_t VADDR;
-	uint32_t RKEY;
-	uint32_t QPN;
-} backendInitArgs;
-
-// ******************************************************
-
+}pimega_acquire_params_t;
 
 typedef struct pimega_t {
 	uint8_t max_num_boards;
 	uint8_t max_num_chips;
 	int pimega_socket;
-	FILE *data_server_in;
-	FILE *data_server_out;
+	int backend_socket;
 	FILE *debug_out;
 	pimega_operation_register_t cached_result;
+	pimega_acquire_params_t acquireParam;
 	pimega_dac_values_t dac_values;
 	char file_template[PIMEGA_MAX_FILE_NAME];
+	initArgs init_args;
+	simpleArgs ack;
+    simpleArgs req_args;
+    acqArgs acq_args;
+    acqStatusArgs acq_status_return; 
+
+
+
 } pimega_t;
 
 
 pimega_t *pimega_new(pimega_detector_model_t detModel);
-
 
 int US_DetectorState_RBV(pimega_t *pimega);
 int US_efuseID_RBV(pimega_t *pimega);
 
 int US_TimeRemaining_RBV(pimega_t *pimega);
 int US_Reset(pimega_t *pimega, short action);
-int US_Acquire(pimega_t *pimega, short  action);
-int pimega_acquire_with_callback(pimega_t *pimega, bool action,
-		bool (*callback)(const char *file_name, void *data), void *data);
+int US_Acquire(pimega_t *pimega, bool  action);
 int US_Acquire_RBV(pimega_t *pimega);
 
 // --------------- K60 functions exclusive -----------------------------------------
-
 int Send_Image(pimega_t *pimega, unsigned pattern);
-
 
 int Set_Trigger(pimega_t *pimega, bool set_trigger);
 int Set_Trigger_RBV(pimega_t *pimega);
 
 int Select_Board(pimega_t *pimega, int board_id);
 int Select_Board_RBV(pimega_t *pimega);
-
-
-
-
 // ---------------------------------------------------------------------------------
 
 // -------------- OMR Prototypes ---------------------------------------------------
@@ -366,9 +422,7 @@ int US_Gain(pimega_t *pimega, pimega_gain_mode_t gain_mode);
 int US_Gain_RBV(pimega_t *pimega);
 // ----------------------------------------------------------------------------------
 
-
 int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value);
-
 
 // ---------------- DAC Prototypes -------------------------------------------
 int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value);
@@ -409,35 +463,29 @@ int US_TemperatureActual(pimega_t *pimega);
 int US_DiscardData(pimega_t *pimega, bool discard_data);
 int US_DiscardData_RBV(pimega_t *pimega);
 
-
-
-
+int pimega_connect(pimega_t *pimega, const char *address, unsigned short port);
+int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short port);
+void pimega_disconnect(pimega_t *pimega);
+void pimega_disconnect_backend(pimega_t *pimega);
 void pimega_delete(pimega_t *pimega);
 
-int pimega_connect(pimega_t *pimega, const char *address, unsigned short port);
-void pimega_disconnect(pimega_t *pimega);
+int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
+int send_initArgs(pimega_t *pimega, backend_init_args_t init_args, const char *value);
+int send_allinitArgs(pimega_t *pimega);
 
-int pimega_set_data_server_address(pimega_t *pimega, const char *address);
-int pimega_set_data_server_port(pimega_t *pimega, unsigned short port);
+int send_acqArgs_toBackend(pimega_t *pimega);
+int get_acqStatus_fromBackend(pimega_t *pimega);
+int get_filesReady_fromBackend(pimega_t *pimega);
+int send_stopAcquire_toBackend(pimega_t *pimega);
 
-int pimega_set_row_select(pimega_t *pimega, bool enable);
-int pimega_set_row_count(pimega_t *pimega, pimega_row_count_t count);
-int pimega_set_column_select(pimega_t *pimega, bool enable);
-int pimega_set_column_number(pimega_t *pimega, pimega_column_t column);
+int executeAcquire(pimega_t *pimega);
+int prepareAcquire(pimega_t *pimega);
 
-int pimega_set_test_pulse_count(pimega_t *pimega, unsigned count);
-int pimega_set_test_pulse_period(pimega_t *pimega, unsigned period);
-int pimega_set_test_pulse_pattern(pimega_t *pimega,
-		pimega_test_pulse_pattern_t pattern);
-
-
-int pimega_connect_data_server(pimega_t *pimega, const char *address,
-		unsigned short port);
-void pimega_disconnect_data_server(pimega_t *pimega);
-int pimega_set_file_name_template(pimega_t *pimega, const char *name);
 const char *pimega_error_string(int error);
 void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
 
+
+int readSocket_Test(pimega_t *pimega);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -21,7 +21,6 @@
 #include <time.h>
 #include <stdint.h>
 
-// #include <epicsTime.h>
 #include <epicsThread.h>
 #include <epicsEvent.h>
 #include <epicsMutex.h>
@@ -62,7 +61,8 @@ void pimegaDetector::acqTask()
 {
     int status = asynSuccess;
     int eventStatus=0;
-    int imageMode;
+    int imageCounter, numImages;
+    int imageMode, numImagesCounter;
     int acquire=0;
     double acquireTime, acquirePeriod;
     int statusParam = 0;
@@ -74,78 +74,94 @@ void pimegaDetector::acqTask()
 
     /* Loop forever */
     while (1) { 
+
         if (!acquire)  {
             // Release the lock while we wait for an event that says acquire has started, then lock again
-            this->unlock();
             asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, 
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
-            status = epicsEventWait(startEventId_);
-            setStringParam(ADStatusMessage, "Acquiring data");   
-            this->lock();
-            acquire = 1;  
-        }
-        /* We are acquiring. */
-        getIntegerParam(ADImageMode, &imageMode);
-
-        /* Get the exposure parameters */
-        getDoubleParam(ADAcquireTime, &acquireTime);
-        getDoubleParam(ADAcquirePeriod, &acquirePeriod);
-
-        /* Open the shutter */
-        setShutter(ADShutterOpen);
-
-        executeAcquire(pimega);
-        bufferOverflow =0;
-
-        setStringParam(ADStatusMessage, "Acquiring data");
-        setIntegerParam(ADStatus, ADStatusAcquire);
-        callParamCallbacks();
-
-
-        while (acquire) {
-            // Read detector state from K60
-            US_DetectorState_RBV(pimega);    
-            // Read detector state from backend
-            get_acqStatus_fromBackend(pimega);        
-            
             this->unlock();
-            eventStatus = epicsEventWaitWithTimeout(this->stopEventId_, 0);
+            status = epicsEventWait(startEventId_);
             this->lock();
+            setStringParam(ADStatusMessage, "Acquiring data");   
+            setIntegerParam(ADNumImagesCounter, 0);
+            acquire = 1;
+            executeAcquire(pimega);
+            Set_Trigger(pimega, 1);
+            Set_Trigger(pimega, 0);
 
-            if (pimega->acq_status_return.bufferUsed > 100)
-            {
-                setParameter(PimegaBackBuffer, pimega->acq_status_return.bufferUsed);
-                bufferOverflow = 1;
-                eventStatus = epicsEventWaitOK;
-            }
+            /* We are acquiring. */
+            getIntegerParam(ADImageMode, &imageMode);
+            /* Get the exposure parameters */
+            getDoubleParam(ADAcquireTime, &acquireTime);
+            getDoubleParam(ADAcquirePeriod, &acquirePeriod);
 
-            if (eventStatus == epicsEventWaitOK) {
-                US_Acquire(pimega,0);
-                acquire=0;
-                if (bufferOverflow) setStringParam(ADStatusMessage, 
+            getIntegerParam(ADNumImages, &numImages);
+            getIntegerParam(ADNumImagesCounter, &numImagesCounter);
+
+            /* Open the shutter */
+            setShutter(ADShutterOpen);
+
+            setStringParam(ADStatusMessage, "Acquiring data");
+            setIntegerParam(ADStatus, ADStatusAcquire);
+            callParamCallbacks();
+
+        
+        bufferOverflow =0;
+        }
+        
+        if (acquire) {
+            
+            // Read detector state from K60
+            US_DetectorState_RBV(pimega);
+            // Read detector state from backend
+            get_acqStatus_fromBackend(pimega);
+        }
+
+        this->unlock();
+        eventStatus = epicsEventWaitWithTimeout(this->stopEventId_, 0);
+        this->lock();
+
+        if (eventStatus == epicsEventWaitOK) {
+
+            US_Acquire(pimega,0);
+            send_stopAcquire_toBackend(pimega);
+            setShutter(0);
+            setIntegerParam(ADAcquire, 0);
+            acquire=0;
+
+            if (bufferOverflow) setStringParam(ADStatusMessage, 
                     "Acquisition aborted by buffer overflow");
-                else setStringParam(ADStatusMessage, "Acquisition aborted by user");
-                
-                send_stopAcquire_toBackend(pimega);
-                setIntegerParam(ADStatus, ADStatusAborted);
-                callParamCallbacks();
-                break;
-            }
-            if (!strcmp(pimega->acquireParam.detectorState,"Done")) 
-            {
-                acquire=0;
+
+            if (imageMode == ADImageContinuous) {
                 setIntegerParam(ADStatus, ADStatusIdle);
                 setStringParam(ADStatusMessage, "Acquisition finished");
-                
-                setParameter(PimegaBackBuffer, 0);
-                continue;
+            } 
+            else {
+                setIntegerParam(ADStatus, ADStatusAborted);
+                setStringParam(ADStatusMessage, "Acquisition aborted by user");
+            } 
+            
+            callParamCallbacks();
+        }
+
+        if ((!strcmp(pimega->acquireParam.detectorState,"Done")) && (acquire)) {
+            
+            if (imageMode == ADImageSingle) {
+                acquire=0;
+                setIntegerParam(ADAcquire, 0);
+                setIntegerParam(ADStatus, ADStatusIdle);
+            }
+
+            else if (imageMode == ADImageContinuous) {
+                Set_Trigger(pimega, 1);
+                Set_Trigger(pimega, 0);
+                numImagesCounter++;
+                setStringParam(ADStatusMessage, "Acquisition finished");
+                setIntegerParam(ADNumImagesCounter, numImagesCounter);    
             }
         }
-        setShutter(0);
-        setIntegerParam(ADAcquire, 0);
-
         /* Call the callbacks to update any changes */
-        callParamCallbacks();        
+        callParamCallbacks();
     }
 
 }
@@ -154,6 +170,8 @@ void pimegaDetector::pollerThread()
 {
     /* This function runs in a separate thread. It waits for the poll time */
     static const char *functionName = "pollerThread";
+
+    /*
     epicsFloat64 actualtemp;
     epicsInt32 _i=0;
 
@@ -175,7 +193,7 @@ void pimegaDetector::pollerThread()
         callParamCallbacks();
         unlock();
         epicsThreadSleep(pollTime_);   
-    }
+    }*/
 }
 
 asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
@@ -193,7 +211,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     printf("Nome da funcao: %s\n", paramName);
     printf("Valor de value: %d\n", value);
        
-
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
  
@@ -215,21 +232,16 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     else if (function == PimegaOmrOPMode)
         status |= omrOpMode(value);
-
     else if (function == ADNumExposures)
         status |=  numExposures(value);
-
     else if (function == PimegaReset)
         status |=  reset(value);
-    
     else if (function == ADTriggerMode)
         status |=  triggerMode(value);
-    
     else if (function == PimegaMedipixBoard)
         status |= medipixBoard(value);
     else if (function == PimegaMedipixChip)
         status |= imgChipID(value);
-
     else if (function == PimegaPixelMode)
         status |= pixelMode(value);
     else if (function == PimegaContinuosRW)
@@ -356,6 +368,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
 
     getParameter(ADStatus,&scanStatus);
+
     if (function == ADTemperatureActual) {
         status = US_TemperatureActual(pimega);
         *value = pimega->cached_result.actual_temperature;
@@ -481,7 +494,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     //reset(1);    
 
     
-    /*
+    
     epicsThreadCreate("pimega_test_poller",epicsThreadPriorityMedium,
                         epicsThreadGetStackSize(epicsThreadStackMedium),
                         (EPICSTHREADFUNC)pollerThreadC,
@@ -734,6 +747,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFullFileName, "");
     setParameter(NDFileWriteMessage, "");
     setParameter(PimegaBackBuffer, 0);
+    setParameter(ADImageMode, ADImageSingle);
 
 }
 
