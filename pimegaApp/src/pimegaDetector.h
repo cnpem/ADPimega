@@ -126,6 +126,9 @@ private:
     pimega_t *pimega;
     pimega_detector_model_t detModel;
 
+    int p_imageSize = 256*256*36;
+    uint32_t *pimega_image; 
+
     void panic(const char *msg);
     void connect(const char *address, unsigned short port);
     void createParameters(void);

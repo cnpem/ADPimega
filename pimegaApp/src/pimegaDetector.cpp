@@ -64,9 +64,18 @@ void pimegaDetector::acqTask()
     int imageCounter, numImages;
     int imageMode, numImagesCounter;
     int acquire=0;
+    NDArray *pImage;
     double acquireTime, acquirePeriod;
     int statusParam = 0;
     bool bufferOverflow=0;
+
+    int arrayCallbacks;
+    size_t dims[2];
+    int itemp;
+
+    epicsTimeStamp startTime, endTime;
+
+
 
     const char *functionName = "acqTask";
 
@@ -82,6 +91,7 @@ void pimegaDetector::acqTask()
             this->unlock();
             status = epicsEventWait(startEventId_);
             this->lock();
+
             setStringParam(ADStatusMessage, "Acquiring data");   
             setIntegerParam(ADNumImagesCounter, 0);
             acquire = 1;
@@ -90,6 +100,9 @@ void pimegaDetector::acqTask()
             Set_Trigger(pimega, 0);
 
             /* We are acquiring. */
+            /* Get the current time */
+            epicsTimeGetCurrent(&startTime);
+
             getIntegerParam(ADImageMode, &imageMode);
             /* Get the exposure parameters */
             getDoubleParam(ADAcquireTime, &acquireTime);
@@ -103,10 +116,11 @@ void pimegaDetector::acqTask()
 
             setStringParam(ADStatusMessage, "Acquiring data");
             setIntegerParam(ADStatus, ADStatusAcquire);
+
             callParamCallbacks();
 
         
-        bufferOverflow =0;
+            bufferOverflow =0;
         }
         
         if (acquire) {
@@ -140,12 +154,35 @@ void pimegaDetector::acqTask()
                 setIntegerParam(ADStatus, ADStatusAborted);
                 setStringParam(ADStatusMessage, "Acquisition aborted by user");
             } 
-            
             callParamCallbacks();
         }
 
         if ((!strcmp(pimega->acquireParam.detectorState,"Done")) && (acquire)) {
-            
+
+            // simulate a image 
+            for(int i=0; i <= p_imageSize ;i++) {
+                pimega_image[i] = rand()%UINT16_MAX;
+                }
+            //*****************************************************
+
+            getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+            // Get an image buffer from the pool 
+            getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
+            getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
+
+            this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, p_imageSize * sizeof(uint32_t), pimega_image);
+
+            setIntegerParam(NDArraySizeX, dims[0]);
+            setIntegerParam(NDArraySizeY, dims[1]);
+
+            if (arrayCallbacks) {
+                // Call the NDArray callback 
+                asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                        "%s:%s: calling imageData callback\n", driverName, functionName);
+                doCallbacksGenericPointer(this->pArrays[0], NDArrayData, 0);
+                this->pArrays[0]->release();
+            }
+
             if (imageMode == ADImageSingle) {
                 acquire=0;
                 setIntegerParam(ADAcquire, 0);
@@ -461,6 +498,10 @@ pimegaDetector::pimegaDetector(const char *portName,
     int status = asynSuccess;
     const char *functionName = "pimegaDetector";
 
+    pimega_image = (uint32_t*)malloc(p_imageSize * sizeof(uint32_t));
+    // initialize random seed: 
+    srand (time(NULL));
+
     /* Create the epicsEvents for signaling to the simulate task when acquisition starts and stops */
     startEventId_ = epicsEventCreate(epicsEventEmpty);
     if (!startEventId_) {
@@ -698,16 +739,22 @@ void pimegaDetector::createParameters(void)
 
 void pimegaDetector::setDefaults(void)
 {
-    setParameter(NDArrayCallbacks, 0);
-    setParameter(NDDataType, NDUInt32);
-    setParameter(NDColorMode, NDColorModeMono);
-    setParameter(NDBayerPattern, NDBayerRGGB);
-    setParameter(NDNDimensions, 0);
-    setParameter(NDArraySizeX, 0);
-    setParameter(NDArraySizeY, 0);
-    setParameter(NDArraySizeZ, 0);
+
+    //TODO remove this variables after test
+    int maxSizeX = 1536;
+    int maxSizeY = 1536;
+
+
+    setParameter(ADMaxSizeX, maxSizeX);
+    setParameter(ADMaxSizeY, maxSizeY);
+    setParameter(ADSizeX, maxSizeX);
+    setParameter(ADSizeX, maxSizeX);
+    setParameter(ADSizeY, maxSizeY);
+    setParameter(NDArraySizeX, maxSizeX);
+    setParameter(NDArraySizeY, maxSizeY);
     setParameter(NDArraySize, 0);
-    setParameter(NDArrayCallbacks, 0);
+    setParameter(NDDataType,  NDUInt32);
+    setParameter(NDArrayCallbacks, 1);
     setParameter(NDArrayCounter, 0);
     setParameter(NDPoolMaxMemory, 0.1);
     setParameter(NDPoolUsedMemory, 0.0);

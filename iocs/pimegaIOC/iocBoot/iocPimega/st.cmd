@@ -14,9 +14,9 @@ epicsEnvSet("DMODEL", "1");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
-epicsEnvSet("XSIZE",  "512")
+epicsEnvSet("XSIZE",  "1536")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
-epicsEnvSet("YSIZE",  "512")
+epicsEnvSet("YSIZE",  "1536")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
@@ -29,6 +29,8 @@ epicsEnvSet("PIMEGA_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_PORT", "60000")
 # The search path for database files
 epicsEnvSet("EPICS_DB_INCLUDE_PATH", "$(ADCORE)/db")
+
+epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "99999999")
 
 # pimegaDetectorConfig(
 #              portName,           # The name of the asyn port to be created
@@ -49,9 +51,9 @@ pimegaDetectorConfig("$(PORT)",$(PIMEGA_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 # Create a standard arrays plugin, set it to get data from pimega driver.
-#NDStdArraysConfigure("Image1", 5, 0, "$(PORT)", 0, 0)
+NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 
-#dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int16,FTVL=SHORT,NELEMENTS=262144")
+dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=2359296")
 
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd

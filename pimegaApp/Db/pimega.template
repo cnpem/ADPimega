@@ -21,6 +21,12 @@ include "ADBase.template"
 # Disable records from ADBase etc. that we do not use for pimega
 ##########################################################################
 
+record(waveform, "$(P)$(R)ArrayData")
+{
+	field(SCAN, "2 second")
+}
+
+
 record(calcout,"$(P)$(R)UpdateScan")
 {
 	field(INPA, "$(P)$(R)Acquire CPP NMS")
