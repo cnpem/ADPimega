@@ -38,6 +38,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaCounterDepthString        "COUNTER_DEPTH"
 #define pimegaEqualizationString        "EQUALIZATION"
 #define pimegaGainString                "GAIN_MODE"
+#define pimegaDacBiasString             "DAC_BIAS"
 #define pimegaDacCasString              "CAS"
 #define pimegaDacDelayString            "DELAY"
 #define pimegaDacDiscString             "DISC"
@@ -91,6 +92,7 @@ protected:
     int PimegaCounterDepth;
     int PimegaEqualization;
     int PimegaGain;
+    int PimegaDacBias;
     int PimegaCas;
     int PimegaDelay;
     int PimegaDisc;

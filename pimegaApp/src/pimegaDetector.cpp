@@ -82,17 +82,17 @@ void pimegaDetector::acqTask()
     this->lock();
 
     /* Loop forever */
-    while (1) { 
+    while (1) {
 
         if (!acquire)  {
             // Release the lock while we wait for an event that says acquire has started, then lock again
-            asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, 
+            asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
             this->unlock();
             status = epicsEventWait(startEventId_);
             this->lock();
 
-            setStringParam(ADStatusMessage, "Acquiring data");   
+            setStringParam(ADStatusMessage, "Acquiring data");
             setIntegerParam(ADNumImagesCounter, 0);
             acquire = 1;
             executeAcquire(pimega);
@@ -119,12 +119,12 @@ void pimegaDetector::acqTask()
 
             callParamCallbacks();
 
-        
+
             bufferOverflow =0;
         }
-        
+
         if (acquire) {
-            
+
             // Read detector state from K60
             US_DetectorState_RBV(pimega);
             // Read detector state from backend
@@ -143,30 +143,30 @@ void pimegaDetector::acqTask()
             setIntegerParam(ADAcquire, 0);
             acquire=0;
 
-            if (bufferOverflow) setStringParam(ADStatusMessage, 
+            if (bufferOverflow) setStringParam(ADStatusMessage,
                     "Acquisition aborted by buffer overflow");
 
             if (imageMode == ADImageContinuous) {
                 setIntegerParam(ADStatus, ADStatusIdle);
                 setStringParam(ADStatusMessage, "Acquisition finished");
-            } 
+            }
             else {
                 setIntegerParam(ADStatus, ADStatusAborted);
                 setStringParam(ADStatusMessage, "Acquisition aborted by user");
-            } 
+            }
             callParamCallbacks();
         }
 
         if ((!strcmp(pimega->acquireParam.detectorState,"Done")) && (acquire)) {
 
-            // simulate a image 
+            // simulate a image
             for(int i=0; i <= p_imageSize ;i++) {
                 pimega_image[i] = rand()%UINT16_MAX;
                 }
             //*****************************************************
 
             getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-            // Get an image buffer from the pool 
+            // Get an image buffer from the pool
             getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
             getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
 
@@ -176,7 +176,7 @@ void pimegaDetector::acqTask()
             setIntegerParam(NDArraySizeY, dims[1]);
 
             if (arrayCallbacks) {
-                // Call the NDArray callback 
+                // Call the NDArray callback
                 asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
                         "%s:%s: calling imageData callback\n", driverName, functionName);
                 doCallbacksGenericPointer(this->pArrays[0], NDArrayData, 0);
@@ -194,7 +194,7 @@ void pimegaDetector::acqTask()
                 Set_Trigger(pimega, 0);
                 numImagesCounter++;
                 setStringParam(ADStatusMessage, "Acquisition finished");
-                setIntegerParam(ADNumImagesCounter, numImagesCounter);    
+                setIntegerParam(ADNumImagesCounter, numImagesCounter);
             }
         }
         /* Call the callbacks to update any changes */
@@ -212,8 +212,8 @@ void pimegaDetector::pollerThread()
     epicsFloat64 actualtemp;
     epicsInt32 _i=0;
 
-    while(1) 
-    {    
+    while(1)
+    {
         lock();
         // Read the digital inputs
         US_TemperatureActual(pimega);
@@ -229,7 +229,7 @@ void pimegaDetector::pollerThread()
 
         callParamCallbacks();
         unlock();
-        epicsThreadSleep(pollTime_);   
+        epicsThreadSleep(pollTime_);
     }*/
 }
 
@@ -247,10 +247,10 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     printf("Valor de function: %d\n", function);
     printf("Nome da funcao: %s\n", paramName);
     printf("Valor de value: %d\n", value);
-       
+
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
- 
+
     /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
      * status at the end, but that's OK */
     status |= setIntegerParam(function, value);
@@ -259,7 +259,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (value && (adstatus == ADStatusIdle || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
             /* Send an event to wake up the acq task.  */
             epicsEventSignal(this->startEventId_);
-        } 
+        }
         if (!value && (adstatus == ADStatusAcquire)) {
           /* This was a command to stop acquisition */
             epicsEventSignal(this->stopEventId_);
@@ -298,61 +298,61 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     //DACS functions
     else if (function == PimegaCas)
-        status |= setDACValue(HS_CAS, value, function);
-    else if (function == PimegaDelay) 
-        status |=  setDACValue(HS_Delay, value, function);
-    else if (function == PimegaDisc) 
-        status |=  setDACValue(HS_Disc, value, function);
-    else if (function == PimegaDiscH) 
-        status |=  setDACValue(HS_DiscH, value, function);
-    else if (function == PimegaDiscL) 
-        status |=  setDACValue(HS_DiscL, value, function);
-    else if (function == PimegaDiscLS) 
-        status |=  setDACValue(HS_DiscLS, value, function);
-    else if (function == PimegaFbk) 
-        status |=  setDACValue(HS_FBK, value, function);
-    else if (function == PimegaGnd) 
-        status |=  setDACValue(HS_GND, value, function);
-    else if (function == PimegaIkrum) 
-        status |=  setDACValue(HS_IKrum, value, function);
-    else if (function == PimegaPreamp) 
-        status |=  setDACValue(HS_Preamp, value, function);
-    else if (function == PimegaRpz) 
-        status |=  setDACValue(HS_RPZ, value, function);
-    else if (function == PimegaShaper) 
-        status |=  setDACValue(HS_Shaper, value, function);
-    else if (function == PimegaThreshold0) 
-        status |=  setDACValue(HS_ThresholdEnergy0, value, function);
-    else if (function == PimegaThreshold1) 
-        status |=  setDACValue(HS_ThresholdEnergy1, value, function);
-    else if (function == PimegaTpBufferIn) 
-        status |=  setDACValue(HS_TPBufferIn, value, function);
-    else if (function == PimegaTpBufferOut) 
-        status |=  setDACValue(HS_TPBufferOut, value, function);
-    else if (function == PimegaTpRef) 
-        status |=  setDACValue(HS_TPRef, value, function);
-    else if (function == PimegaTpRefA) 
-        status |=  setDACValue(HS_TPRefA, value, function);
-    else if (function == PimegaTpRefB) 
-        status |=  setDACValue(HS_TPRefB, value, function);
-    else 
+        status |= setDACValue(DAC_CAS, value, function);
+    else if (function == PimegaDelay)
+        status |=  setDACValue(DAC_Delay, value, function);
+    else if (function == PimegaDisc)
+        status |=  setDACValue(DAC_Disc, value, function);
+    else if (function == PimegaDiscH)
+        status |=  setDACValue(DAC_DiscH, value, function);
+    else if (function == PimegaDiscL)
+        status |=  setDACValue(DAC_DiscL, value, function);
+    else if (function == PimegaDiscLS)
+        status |=  setDACValue(DAC_DiscLS, value, function);
+    else if (function == PimegaFbk)
+        status |=  setDACValue(DAC_FBK, value, function);
+    else if (function == PimegaGnd)
+        status |=  setDACValue(DAC_GND, value, function);
+    else if (function == PimegaIkrum)
+        status |=  setDACValue(DAC_IKrum, value, function);
+    else if (function == PimegaPreamp)
+        status |=  setDACValue(DAC_Preamp, value, function);
+    else if (function == PimegaRpz)
+        status |=  setDACValue(DAC_RPZ, value, function);
+    else if (function == PimegaShaper)
+        status |=  setDACValue(DAC_Shaper, value, function);
+    else if (function == PimegaThreshold0)
+        status |=  setDACValue(DAC_ThresholdEnergy0, value, function);
+    else if (function == PimegaThreshold1)
+        status |=  setDACValue(DAC_ThresholdEnergy1, value, function);
+    else if (function == PimegaTpBufferIn)
+        status |=  setDACValue(DAC_TPBufferIn, value, function);
+    else if (function == PimegaTpBufferOut)
+        status |=  setDACValue(DAC_TPBufferOut, value, function);
+    else if (function == PimegaTpRef)
+        status |=  setDACValue(DAC_TPRef, value, function);
+    else if (function == PimegaTpRefA)
+        status |=  setDACValue(DAC_TPRefA, value, function);
+    else if (function == PimegaTpRefB)
+        status |=  setDACValue(DAC_TPRefB, value, function);
+    else
     {
-        if (function < FIRST_PIMEGA_PARAM) 
-                status = ADDriver::writeInt32(pasynUser, value);    
+        if (function < FIRST_PIMEGA_PARAM)
+                status = ADDriver::writeInt32(pasynUser, value);
     }
 
     if (status){
-        asynPrint(pasynUser, ASYN_TRACE_ERROR, 
-              "%s:%s: error, status=%d function=%d, value=%d\n", 
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+              "%s:%s: error, status=%d function=%d, value=%d\n",
               driverName, functionName, status, function, value);}
-    else {   
+    else {
          /* Update any changed parameters */
-        callParamCallbacks();   
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
-              "%s:%s: function=%d, value=%d\n", 
+        callParamCallbacks();
+        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s: function=%d, value=%d\n",
               driverName, functionName, function, value);
     }
-    return((asynStatus)status); 
+    return((asynStatus)status);
 
 }
 
@@ -376,7 +376,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     else {
     /* If this parameter belongs to a base class call its method */
         if (function < FIRST_PIMEGA_PARAM) status = ADDriver::writeFloat64(pasynUser, value);
-    }   
+    }
 
     if (status)
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
@@ -420,7 +420,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     else {
         status = asynPortDriver::readFloat64(pasynUser, value);
     }
-    return (status==0) ? asynSuccess : asynError;      
+    return (status==0) ? asynSuccess : asynError;
 }
 
 asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
@@ -432,7 +432,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
 
     getParameter(ADStatus,&scanStatus);
 
-    if ((function == PimegaBackBuffer) && (scanStatus == ADStatusAcquire)) { 
+    if ((function == PimegaBackBuffer) && (scanStatus == ADStatusAcquire)) {
         *value = pimega->acq_status_return.bufferUsed;
     }
 
@@ -440,16 +440,16 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     else {
         status = asynPortDriver::readInt32(pasynUser, value);
     }
-    return (status==0) ? asynSuccess : asynError;    
+    return (status==0) ? asynSuccess : asynError;
 
 }
 
 /** Configuration command for Pimega driver; creates a new Pimega object.
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] CommandPort The asyn network port connection to the Pimega
-  * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is 
+  * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is
   *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
-  * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is 
+  * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is
   *            allowed to allocate. Set this to -1 to allow an unlimited amount of memory.
   * \param[in] priority The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
   * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
@@ -499,7 +499,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     const char *functionName = "pimegaDetector";
 
     pimega_image = (uint32_t*)malloc(p_imageSize * sizeof(uint32_t));
-    // initialize random seed: 
+    // initialize random seed:
     srand (time(NULL));
 
     /* Create the epicsEvents for signaling to the simulate task when acquisition starts and stops */
@@ -515,7 +515,7 @@ pimegaDetector::pimegaDetector(const char *portName,
             driverName, functionName);
         return;
     }
-    
+
     detModel = (pimega_detector_model_t) detectorModel;
     pimega = pimega_new(detModel);
 
@@ -528,23 +528,23 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     createParameters();
     setDefaults();
-    
+
     // send image pattern to test
     //Send_Image(pimega, 3);
-    
-    //reset(1);    
 
-    
-    
+    //reset(1);
+
+
+
     epicsThreadCreate("pimega_test_poller",epicsThreadPriorityMedium,
                         epicsThreadGetStackSize(epicsThreadStackMedium),
                         (EPICSTHREADFUNC)pollerThreadC,
-                        this); 
+                        this);
 
     /* Create the thread that runs acquisition */
     status = (epicsThreadCreate("pimegaDetTask", epicsThreadPriorityMedium,
             epicsThreadGetStackSize(epicsThreadStackMedium),
-            (EPICSTHREADFUNC) acquisitionTaskC, this) == NULL); 
+            (EPICSTHREADFUNC) acquisitionTaskC, this) == NULL);
     if (status)
     {
         printf("%s:%s epicsThreadCreate failure for acquisition task\n", driverName,
@@ -580,7 +580,7 @@ static const iocshFuncDef configpimegaDetector =
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args)
 {
-    pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival, 
+    pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival,
                         args[4].ival, args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival);
 }
 
@@ -711,6 +711,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaEqualizationString,   asynParamInt32,     &PimegaEqualization);
     createParam(pimegaGainString,           asynParamInt32,     &PimegaGain);
     createParam(pimegaResetString,          asynParamInt32,     &PimegaReset);
+    createParam(pimegaDacBiasString,        asynParamInt32,     &PimegaDacBias);
     createParam(pimegaThreshold0String,     asynParamInt32,     &PimegaThreshold0);
     createParam(pimegaThreshold1String,     asynParamInt32,     &PimegaThreshold1);
     createParam(pimegaDacPreampString,      asynParamInt32,     &PimegaPreamp);
@@ -811,7 +812,7 @@ void pimegaDetector::report(FILE *fp, int details)
 {
 
     fprintf(fp, " Pimega detector: %s\n", this->portName);
-    
+
     if (details > 0) {
         int  dataType;
         getIntegerParam(NDDataType, &dataType);
@@ -918,17 +919,17 @@ asynStatus pimegaDetector::numExposures(unsigned number)
 asynStatus pimegaDetector::omrOpMode(int mode)
 {
     int rc;
-    
+
     if(!validate_operation_mode(mode)){
-        error("Invalid OMR operation mode value: %d\n", mode); return asynError; 
+        error("Invalid OMR operation mode value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_OmrOMSelec(pimega, (pimega_operation_mode_t)mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
 
     setParameter(PimegaOmrOPMode, mode);
-    return asynSuccess;   
+    return asynSuccess;
 }
 
 asynStatus pimegaDetector::pixelMode(int mode)
@@ -936,9 +937,9 @@ asynStatus pimegaDetector::pixelMode(int mode)
     int rc;
 
     if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError; 
+        error("Invalid boolean value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_PixelMode(pimega, (pimega_pixel_mode_t)mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
@@ -952,9 +953,9 @@ asynStatus pimegaDetector::continuosRW(int mode)
     int rc;
 
     if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError; 
+        error("Invalid boolean value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_ContinuousRW(pimega, (pimega_crw_srw_t)mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
@@ -968,9 +969,9 @@ asynStatus pimegaDetector::polarity(int mode)
     int rc;
 
     if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError; 
+        error("Invalid boolean value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_Polarity(pimega, (pimega_polarity_t)mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
@@ -984,9 +985,9 @@ asynStatus pimegaDetector::discriminator(int mode)
     int rc;
 
     if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError; 
+        error("Invalid boolean value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_Discriminator(pimega, (pimega_discriminator_t)mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
@@ -1000,33 +1001,33 @@ asynStatus pimegaDetector::enableTP(int mode)
     int rc;
 
     if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError; 
+        error("Invalid boolean value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_TestPulse(pimega, mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
 
     setParameter(PimegaTestPulse, mode);
-    return asynSuccess;   
+    return asynSuccess;
 }
 
 asynStatus pimegaDetector::counterDepth(int mode)
 {
     int rc;
-    
+
     printf("Valor de mode do counterDepth: %d\n", mode);
 
     if(!validate_counter_depth(mode)){
-        error("Invalid counterDepth value: %d\n", mode); return asynError; 
+        error("Invalid counterDepth value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_CounterDepth(pimega, (pimega_counterDepth_t)mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
 
     setParameter(PimegaCounterDepth, mode);
-    return asynSuccess;   
+    return asynSuccess;
 }
 
 asynStatus pimegaDetector::equalization(int mode)
@@ -1034,31 +1035,31 @@ asynStatus pimegaDetector::equalization(int mode)
     int rc;
 
     if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError; 
+        error("Invalid boolean value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_Equalization(pimega, mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
 
     setParameter(PimegaEqualization, mode);
-    return asynSuccess;   
+    return asynSuccess;
 }
 
 asynStatus pimegaDetector::gainMode(int mode)
 {
     int rc;
-    
+
     if(!validate_gain_mode(mode)){
-        error("Invalid gain mode value: %d\n", mode); return asynError; 
+        error("Invalid gain mode value: %d\n", mode); return asynError;
     }
-    
+
     rc = US_Gain(pimega, (pimega_gain_mode_t)mode);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
 
     setParameter(PimegaGain, mode);
-    return asynSuccess;   
+    return asynSuccess;
 }
 
 asynStatus pimegaDetector::acqTime(float acquire_time_s)

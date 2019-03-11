@@ -26,10 +26,8 @@ extern "C" {
 #define	PIMEGA_OMR_VALUE_FAILED -12
 
 #define PIMEGA_TIMEOUT 3000000
-#define DATA_SERVER_TIMEOUT 5000000
-#define PIMEGA_MAX_FILE_NAME 250
-#define PIMEGA_NETWORK_RATE_BPS 100e6f
-#define PIMEGA_MAXIMUM_IMAGE_COUNT 16383
+#define DATA_SERVER_TIMEOUT 3000000
+#define PIMEGA_MAX_FILE_NAME 100
 
 #define PIMEGA_MIN_GAP 2e-5f
 
@@ -38,8 +36,6 @@ extern "C" {
 
 #define PIMEGA_MAX_BIASVOLTAGE 200
 #define PIMEGA_MIN_BIASVOLTAGE -200
-
-#define PIMEGA_MAX_RETURN_TEXT 512
 
 #define STRUCT_SIZE 112
 
@@ -74,7 +70,7 @@ typedef struct __attribute__((__packed__)){
 typedef struct __attribute__((__packed__)){
       uint8_t  type;
       uint64_t noOfFrames;
-      char fileName[100]; 
+      char fileName[PIMEGA_MAX_FILE_NAME];
       uint8_t reserved[STRUCT_SIZE-109];
 } acqArgs;
 
@@ -83,7 +79,7 @@ typedef struct __attribute__((__packed__)){
 typedef struct __attribute__((__packed__)){
       uint8_t  type;
       uint64_t noOfFrames;
-      uint8_t  bufferUsed; /* This contains a percetage of the buffer usage */
+      uint8_t  bufferUsed; /* This contains a percentage of the buffer usage */
       uint8_t  bufferState;
       uint8_t  done;
       uint8_t reserved[STRUCT_SIZE-12];
@@ -112,7 +108,6 @@ typedef enum backend_init_args_t{
 	BACKEND_QPN,
 	BACKEND_ENUM_END,
 } backend_init_args_t;
-
 
 typedef enum pimega_detector_model_t{
 	mobipix, pimega540D
@@ -211,48 +206,52 @@ typedef enum pimega_omr_t {
 
 
 typedef enum pimega_dac_t {
-	HS_CAS=0, 				//0
-	HS_Delay, 				//1
-	HS_Disc,				//2
-	HS_DiscH,				//3
-	HS_DiscL,				//4
-	HS_DiscLS,				//5
-	HS_FBK,					//6
-	HS_GND,					//7
-	HS_IKrum,				//8
-	HS_Preamp,				//9
-	HS_RPZ,					//10
-	HS_Shaper,				//11
-	HS_ThresholdEnergy0,	//12
-	HS_ThresholdEnergy1,	//13
-	HS_TPBufferIn, 			//14
-	HS_TPBufferOut,			//15
-	HS_TPRef,				//16
-	HS_TPRefA,				//17
-	HS_TPRefB,				//18
+    DAC_ThresholdEnergy0=1,     //1
+    DAC_ThresholdEnergy1,       //2
+    DAC_Preamp=9,               //9
+    DAC_IKrum,                  //10
+    DAC_Shaper,                 //11
+    DAC_Disc,                   //12
+    DAC_DiscLS,				    //13
+    DAC_ShaperTest,             //14
+    DAC_DiscL,                  //15
+    DAC_Delay,                  //16
+    DAC_TPBufferIn,             //17
+    DAC_TPBufferOut,            //18
+    DAC_RPZ,                    //19
+    DAC_GND,                    //20
+    DAC_TPRef,                  //21
+    DAC_FBK,                    //22
+    DAC_CAS,                    //23
+    DAC_TPRefA,                 //24
+    DAC_TPRefB,                 //25
+    DAC_Test=30,                //30
+    DAC_DiscH,                  //31
 	DAC_ENUM_END,
 } pimega_dac_t;
 
 typedef struct pimega_dac_values_t {
-	unsigned HS_CAS;				
-	unsigned HS_Delay; 				
-	unsigned HS_Disc;				
-	unsigned HS_DiscH;				
-	unsigned HS_DiscL;				
-	unsigned HS_DiscLS;				
-	unsigned HS_FBK;					
-	unsigned HS_GND;					
-	unsigned HS_IKrum;				
-	unsigned HS_Preamp;			
-	unsigned HS_RPZ;					
-	unsigned HS_Shaper;				
-	unsigned HS_ThresholdEnergy0;	
-	unsigned HS_ThresholdEnergy1;	
-	unsigned HS_TPBufferIn; 			
-	unsigned HS_TPBufferOut;			
-	unsigned HS_TPRef;				
-	unsigned HS_TPRefA;				
-	unsigned HS_TPRefB;				
+    unsigned DAC_ThresholdEnergy0;
+	unsigned DAC_ThresholdEnergy1;
+    unsigned DAC_Preamp;
+    unsigned DAC_IKrum;
+    unsigned DAC_Shaper;
+    unsigned DAC_Disc;
+    unsigned DAC_DiscLS;
+    unsigned DAC_ShaperTest;
+    unsigned DAC_DiscL;
+    unsigned DAC_Delay;
+    unsigned DAC_TPBufferIn;
+	unsigned DAC_TPBufferOut;
+    unsigned DAC_RPZ;
+    unsigned DAC_GND;
+    unsigned DAC_TPRef;
+    unsigned DAC_FBK;
+	unsigned DAC_CAS;
+    unsigned DAC_TPRefA;
+	unsigned DAC_TPRefB;
+    unsigned DAC_Test;
+	unsigned DAC_DiscH;
 } pimega_dac_values_t;
 
 
@@ -332,7 +331,7 @@ typedef struct pimega_operation_register_t {
 	pimega_gain_mode_t gain_mode;				//US_Gain
 	pimega_dac_t dac;							//US_Set/Get DAC
 	pimega_trigger_mode_t trigger_mode;			//US_TriggerMode
-	bool discard_data;							//US_DiscardData			
+	bool discard_data;							//US_DiscardData
 	float bias_voltage;
 	float temperature;
 	float actual_temperature;
@@ -348,12 +347,11 @@ typedef struct pimega_acquire_params_t {
 	uint32_t numImagesCounter;				//US_NumImagesCounter_RBV
 	uint32_t numExposures;					//US_NumExposures
 	float acquireTime;						//US_AcquireTime
-	float acquirePeriod;					
+	float acquirePeriod;
 	bool acquireState;						//US_Acquire_RBV
 	char detectorState[512];				//US_DetectorState_RBV
 	float timeRemaining;					//US_TimeRemaining_RBV
-
-}pimega_acquire_params_t;
+} pimega_acquire_params_t;
 
 typedef struct pimega_t {
 	uint8_t max_num_boards;
@@ -369,10 +367,7 @@ typedef struct pimega_t {
 	simpleArgs ack;
     simpleArgs req_args;
     acqArgs acq_args;
-    acqStatusArgs acq_status_return; 
-
-
-
+    acqStatusArgs acq_status_return;
 } pimega_t;
 
 
@@ -380,7 +375,6 @@ pimega_t *pimega_new(pimega_detector_model_t detModel);
 
 int US_DetectorState_RBV(pimega_t *pimega);
 int US_efuseID_RBV(pimega_t *pimega);
-
 int US_TimeRemaining_RBV(pimega_t *pimega);
 int US_Reset(pimega_t *pimega, short action);
 int US_Acquire(pimega_t *pimega, bool  action);
@@ -388,10 +382,8 @@ int US_Acquire_RBV(pimega_t *pimega);
 
 // --------------- K60 functions exclusive -----------------------------------------
 int Send_Image(pimega_t *pimega, unsigned pattern);
-
 int Set_Trigger(pimega_t *pimega, bool set_trigger);
 int Set_Trigger_RBV(pimega_t *pimega);
-
 int Select_Board(pimega_t *pimega, int board_id);
 int Select_Board_RBV(pimega_t *pimega);
 // ---------------------------------------------------------------------------------
@@ -427,6 +419,7 @@ int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value);
 // ---------------- DAC Prototypes -------------------------------------------
 int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value);
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
+int US_DACBias_RBV(pimega_t *pimega);
 // --------------------------------------------------------------------------
 
 
@@ -483,9 +476,6 @@ int prepareAcquire(pimega_t *pimega);
 
 const char *pimega_error_string(int error);
 void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
-
-
-int readSocket_Test(pimega_t *pimega);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -36,23 +36,23 @@ record(calcout,"$(P)$(R)UpdateScan")
 }
 record(ao, "$(P)$(R)Gain")
 {
-	#field(DISA, "1")  
+	#field(DISA, "1")
 }
 
 record(ai, "$(P)$(R)Gain_RBV")
 {
-	#field(DISA, "1")   
+	#field(DISA, "1")
 }
 
 record(ai, "$(P)$(R)TimeRemaining_RBV")
 {
-   field(SCAN, ".1 second")
-   field(EGU, "s")
+	field(SCAN, ".1 second")
+   	field(EGU, "s")
 }
 
 # We redefine the states for the TriggerMode records defined in ADBase.template
 record(mbbo,"$(P)$(R)TriggerMode") {
-    field(DESC,"Trigger mode")
+	field(DESC,"Trigger mode")
     field(ZRVL,"0")
     field(ZRST,"Debug Push Button")
     field(ONVL,"1")
@@ -358,7 +358,7 @@ record(ao, "$(P)$(R)MedipixBoard")
 	field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_BOARD")
-   	field(VAL,  "1")	
+   	field(VAL,  "1")
 }
 
 record(ai, "$(P)$(R)MedipixBoard_RBV")
@@ -366,7 +366,7 @@ record(ai, "$(P)$(R)MedipixBoard_RBV")
 	field(DESC, "Medipix Board Number Readback")
    	field(DTYP, "asynInt32")
    	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_BOARD")
-   	field(SCAN,  "I/O Intr")	
+   	field(SCAN,  "I/O Intr")
 }
 
 record(ao, "$(P)$(R)ImgChipNumberID")
@@ -375,7 +375,7 @@ record(ao, "$(P)$(R)ImgChipNumberID")
 	field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_CHIP")
-   	field(VAL,  "1")	
+   	field(VAL,  "1")
 }
 
 record(ai, "$(P)$(R)ImgChipNumberID_RBV")
@@ -383,7 +383,7 @@ record(ai, "$(P)$(R)ImgChipNumberID_RBV")
    	field(DESC, "Image Chip Number ID readback")
    	field(DTYP, "asynInt32")
    	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_CHIP")
-   	field(SCAN,  "I/O Intr")	
+   	field(SCAN,  "I/O Intr")
 }
 
 
@@ -393,6 +393,15 @@ record(bo, "$(P)$(R)Reset")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET")
 	field(ZNAM, "0")
 	field(ONAM, "1")
+}
+
+record(ai, "$(P)$(R)DAC_Bias_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DAC_BIAS")
+	field(DESC, "External DAC Bias monitor readback")
+	field(SCAN, "I/O Intr")
+
 }
 
 record(ai, "$(P)$(R)DAC_ThresholdEnergy0_RBV")
@@ -416,7 +425,7 @@ record(ai, "$(P)$(R)DAC_ThresholdEnergy1_RBV")
 {
 	field(DTYP, "asynInt32")
 	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD1")
-	field(DESC, "Threshold 0 for photon detection")
+	field(DESC, "Threshold 1 for photon detection")
 	field(SCAN, "I/O Intr")
 }
 
@@ -424,7 +433,7 @@ record(ao, "$(P)$(R)DAC_ThresholdEnergy1")
 {
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD1")
-	field(DESC, "Threshold 0 for photon detection")
+	field(DESC, "Threshold 1 for photon detection")
 	field(PINI, "YES")
 	field(VAL,  "77")
 }
@@ -656,7 +665,7 @@ record(ai, "$(P)$(R)DAC_CAS_RBV")
 
 record(ao, "$(P)$(R)DAC_CAS")
 {
-	
+
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAS")
 	field(DESC, "DAC cascode bias")
