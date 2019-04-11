@@ -187,13 +187,13 @@ void pimegaDetector::acqTask()
                 acquire=0;
                 setIntegerParam(ADAcquire, 0);
                 setIntegerParam(ADStatus, ADStatusIdle);
+                setStringParam(ADStatusMessage, "Acquisition finished");
             }
 
             else if (imageMode == ADImageContinuous) {
                 Set_Trigger(pimega, 1);
                 Set_Trigger(pimega, 0);
                 numImagesCounter++;
-                setStringParam(ADStatusMessage, "Acquisition finished");
                 setIntegerParam(ADNumImagesCounter, numImagesCounter);
             }
         }
