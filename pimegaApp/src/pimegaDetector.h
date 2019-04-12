@@ -60,6 +60,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDacTPRefBString           "TP_REF_B"
 #define pimegaResetString               "RESET"
 #define pimegaBackendBufferString       "BACK_BUFFER"
+#define pimegaSensorBiasString          "SENSOR_BIAS"
 
 class pimegaDetector: public ADDriver
 {
@@ -113,7 +114,8 @@ protected:
     int PimegaTpRefA;
     int PimegaTpRefB;
     int PimegaBackBuffer;
-    #define LAST_PIMEGA_PARAM PimegaBackBuffer
+    int PimegaSensorBias;
+    #define LAST_PIMEGA_PARAM PimegaSensorBias
 
 private:
 
@@ -160,6 +162,7 @@ private:
     asynStatus gainMode(int mode);
     asynStatus acqTime(float acquire_time_s);
     asynStatus omrOpMode(int mode);
+    asynStatus sensorBias(float voltage);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)

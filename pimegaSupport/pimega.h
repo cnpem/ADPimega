@@ -34,8 +34,8 @@ extern "C" {
 #define PIMEGA_MAX_TEMPERATURE 120
 #define PIMEGA_MIN_TEMPERATURE 20
 
-#define PIMEGA_MAX_BIASVOLTAGE 200
-#define PIMEGA_MIN_BIASVOLTAGE -200
+#define PIMEGA_MAX_BIASVOLTAGE 100.0
+#define PIMEGA_MIN_BIASVOLTAGE 0
 
 #define STRUCT_SIZE 112
 
@@ -428,7 +428,6 @@ int US_NumImages_RBV(pimega_t *pimega);
 int US_NumExposures(pimega_t *pimega, int num_exposures);
 int US_NumExposures_RBV(pimega_t *pimega);
 
-
 int US_SensorBias(pimega_t *pimega, float bias_voltage);
 int US_SensorBias_RBV(pimega_t *pimega);
 
@@ -436,7 +435,6 @@ int US_AcquireTime(pimega_t *pimega, float acquire_time_s);
 int US_AcquireTime_RBV(pimega_t *pimega);
 int US_AcquirePeriod(pimega_t *pimega, float acq_period_time_s);
 int US_AcquirePeriod_RBV(pimega_t *pimega);
-
 
 int US_TriggerMode(pimega_t *pimega, pimega_trigger_mode_t trigger_mode);
 int US_TriggerMode_RBV(pimega_t *pimega);

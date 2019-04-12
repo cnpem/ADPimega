@@ -87,6 +87,22 @@ record(ai, "$(P)$(R)eFuseID_RBV")
     field(SCAN, "I/O Intr")
 }
 
+#SensorBias
+record(ao, "$(P)$(R)SensorBias") {
+	field(DESC, "Sensor Bias Voltage")
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS")
+	field(VAL, "85")
+	field(PINI, "YES")
+
+}
+
+record(ai, "$(P)$(R)SensorBias_RBV") {
+	field(DESC, "Sensor Bias Voltage Readback")
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS")
+	field(SCAN, "I/O Intr")
+}
 
 # OMR Operation mode
 record(mbbo,"$(P)$(R)OmrOMSelec") {

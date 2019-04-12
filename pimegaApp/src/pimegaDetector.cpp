@@ -136,7 +136,6 @@ void pimegaDetector::acqTask()
         this->lock();
 
         if (eventStatus == epicsEventWaitOK) {
-
             US_Acquire(pimega,0);
             send_stopAcquire_toBackend(pimega);
             setShutter(0);
@@ -372,6 +371,9 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
     if (function == ADAcquireTime)
         status |= acqTime(value);
+
+    else if (function == PimegaSensorBias)
+        status |= sensorBias(value);
 
     else {
     /* If this parameter belongs to a base class call its method */
@@ -732,6 +734,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDacTPRefBString,      asynParamInt32,     &PimegaTpRefB);
     createParam(pimegaDacDiscHString,       asynParamInt32,     &PimegaDiscH);
     createParam(pimegaBackendBufferString,  asynParamInt32,     &PimegaBackBuffer);
+    createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -1071,5 +1074,17 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s)
         return asynError;
     }
     setParameter(ADAcquireTime, acquire_time_s);
+    return asynSuccess;
+}
+
+asynStatus pimegaDetector::sensorBias(float voltage)
+{
+    int rc;
+    rc = US_SensorBias(pimega, voltage);
+    if (rc != PIMEGA_SUCCESS) {
+        error("Invalid voltage value: %s\n", pimega_error_string(rc));
+        return asynError;
+    }
+    setParameter(PimegaSensorBias, voltage);
     return asynSuccess;
 }
