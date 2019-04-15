@@ -115,12 +115,12 @@ typedef enum pimega_detector_model_t{
 
 typedef enum pimega_operation_mode_t {
 	PIMEGA_READ_COUNTER_L = 0,
-	PIMEGA_LOAD_DACS,
-	PIMEGA_LOAD_COUNTER_L,
-	PIMEGA_READ_DACS,
 	PIMEGA_READ_COUNTER_H,
-	PIMEGA_LOAD_CTPR,
+	PIMEGA_LOAD_COUNTER_L,
 	PIMEGA_LOAD_COUNTER_H,
+	PIMEGA_LOAD_DACS,
+	PIMEGA_LOAD_CTPR,
+	PIMEGA_READ_DACS,
 	PIMEGA_READ_OMR,
 	PIMEGA_OPERATION_MODE_ENUM_END,
 } pimega_operation_mode_t;
@@ -340,6 +340,7 @@ typedef struct pimega_operation_register_t {
 	uint32_t efuseID;
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
+	uint16_t sensorPos;						//US_ImgChipNumberID
 } pimega_operation_register_t;
 
 typedef struct pimega_acquire_params_t {
@@ -381,6 +382,8 @@ int US_Acquire(pimega_t *pimega, bool  action);
 int US_Acquire_RBV(pimega_t *pimega);
 
 // --------------- K60 functions exclusive -----------------------------------------
+int Config_Discl(pimega_t *pimega, uint32_t value);
+int Pixel_Load(pimega_t *pimega, uint8_t sensor, uint32_t value);
 int Send_Image(pimega_t *pimega, unsigned pattern);
 int Set_Trigger(pimega_t *pimega, bool set_trigger);
 int Set_Trigger_RBV(pimega_t *pimega);
@@ -441,7 +444,7 @@ int US_TriggerMode_RBV(pimega_t *pimega);
 int US_SoftawareTrigger(pimega_t *pimega, bool software_trigger);
 int US_SoftawareTrigger_RBV(pimega_t *pimega);
 
-int US_ImgChipNumberID(pimega_t *pimega, uint8_t sensor_position);
+int US_ImgChipNumberID(pimega_t *pimega, uint16_t sensor);
 int US_ImgChipNumberID_RBV(pimega_t *pimega);
 
 int US_ReadCounter(pimega_t *pimega, pimega_read_counter_t counter);

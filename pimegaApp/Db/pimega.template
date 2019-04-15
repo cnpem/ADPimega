@@ -104,6 +104,43 @@ record(ai, "$(P)$(R)SensorBias_RBV") {
 	field(SCAN, "I/O Intr")
 }
 
+# Read Counter
+record(mbbo, "$(P)$(R)ReadCounter") {
+	field(DESC, "Selects the counter(s) to be read")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_COUNTER")
+	field(PINI, "YES")
+	field(DTYP, "asynInt32")
+	field(VAL, "0")
+	field(ZRST, "Counter Low")      field(ZRVL, "0")
+	field(ONST, "Counter High")     field(ONVL, "1")
+	field(TWST, "Both Counters")	field(TWVL, "2")
+	field(THSV, "INVALID")
+	field(FRSV, "INVALID")
+    field(FVSV, "INVALID")
+    field(SXSV, "INVALID")
+    field(SVSV, "INVALID")
+    field(EISV, "INVALID")
+    field(NISV, "INVALID")
+    field(TESV, "INVALID")
+    field(ELSV, "INVALID")
+    field(TVSV, "INVALID")
+    field(TTSV, "INVALID")
+    field(FTSV, "INVALID")
+    field(FTSV, "INVALID")
+    field(FFSV, "INVALID")
+    field(IVOA, "1")
+}
+
+record(mbbi, "$(P)$(R)ReadCounter_RBV") {
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_COUNTER")
+	field(DESC, "Selects the counter(s) to be read Readback")
+	field(ZRST, "Counter Low")      field(ZRVL, "0")
+	field(ONST, "Counter High")     field(ONVL, "1")
+	field(TWST, "Both Counters")	field(TWVL, "2")
+	field(SCAN, "I/O Intr")
+}
+
 # OMR Operation mode
 record(mbbo,"$(P)$(R)OmrOMSelec") {
 	field(PINI, "YES")
