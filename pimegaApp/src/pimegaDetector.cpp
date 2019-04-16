@@ -296,6 +296,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |= gainMode(value);
     else if (function == PimegaReadCounter)
         status |= readCounter(value);
+    else if (function == PimegaSenseDacSel)
+        status |= senseDacSel(value);
 
     //DACS functions
     else if (function == PimegaCas)
@@ -736,6 +738,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDacTPRefBString,      asynParamInt32,     &PimegaTpRefB);
     createParam(pimegaDacDiscHString,       asynParamInt32,     &PimegaDiscH);
     createParam(pimegaReadCounterString,    asynParamInt32,     &PimegaReadCounter);
+    createParam(pimegaSenseDacSelString,    asynParamInt32,     &PimegaSenseDacSel);
     createParam(pimegaBackendBufferString,  asynParamInt32,     &PimegaBackBuffer);
     createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
 
@@ -1103,5 +1106,16 @@ asynStatus pimegaDetector::readCounter(int counter)
     printf("Valor de RC: %d\n", rc);
 
     setParameter(PimegaReadCounter, counter);
+    return asynSuccess;
+}
+
+asynStatus pimegaDetector::senseDacSel(u_int8_t dac)
+{
+    int rc;
+    rc = US_SenseDacSel(pimega, dac);
+    if (rc != PIMEGA_SUCCESS){ return asynError;
+    }
+
+    setParameter(PimegaSenseDacSel, dac);
     return asynSuccess;
 }

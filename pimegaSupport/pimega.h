@@ -318,17 +318,6 @@ typedef enum pimega_test_pulse_pattern_t {
 
 typedef struct pimega_operation_register_t {
 	pimega_detector_model_t detModel;
-	pimega_operation_mode_t operation_mode; 	//US_OmrOMSelec
-	pimega_crw_srw_t crw_srw_mode;			    //US_ContinuousRW
-	pimega_polarity_t polarity;					//US_Polarity
-	pimega_dataout_t dataout; 					//US_OmrPSSelect
-	pimega_discriminator_t discriminator;		//US_Discriminator
-	bool test_pulse;							//US_TestPulse
-	pimega_counterDepth_t counterDepth_mode; 	//US_CounterDepth (CountL - Medipix)
-	bool equalization;							//US_Equalization
-	pimega_spectroscopic_mode_t colour_mode; 	//US_SpectroscopicMode - ColourMode medipix (bit 20 OMR)
-	pimega_pixel_mode_t pixel_mode;				//US_PixelMode
-	pimega_gain_mode_t gain_mode;				//US_Gain
 	pimega_dac_t dac;							//US_Set/Get DAC
 	pimega_trigger_mode_t trigger_mode;			//US_TriggerMode
 	bool discard_data;							//US_DiscardData
@@ -340,8 +329,24 @@ typedef struct pimega_operation_register_t {
 	uint32_t efuseID;
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
-	uint16_t sensorPos;						//US_ImgChipNumberID
+	uint16_t sensorPos;							//US_ImgChipNumberID
 } pimega_operation_register_t;
+
+typedef struct pimega_omr {
+	pimega_operation_mode_t operation_mode;		//US_OmrOMSelec
+	pimega_crw_srw_t crw_srw_mode;			    //US_ContinuousRW
+	pimega_polarity_t polarity;					//US_Polarity
+	pimega_dataout_t dataout; 					//US_OmrPSSelect
+	pimega_discriminator_t discriminator;		//US_Discriminator
+	bool enable_testPulse;						//US_TestPulse
+	pimega_counterDepth_t counterDepth_mode; 	//US_CounterDepth (CountL - Medipix)
+	bool equalization;							//US_Equalization
+	pimega_spectroscopic_mode_t colour_mode; 	//US_SpectroscopicMode - ColourMode medipix (bit 20 OMR)
+	pimega_pixel_mode_t pixel_mode;				//US_PixelMode
+	pimega_gain_mode_t gain_mode;				//US_Gain
+	uint8_t sense_dacSel;						//US_SenseDacSel
+} pimega_omr;
+
 
 typedef struct pimega_acquire_params_t {
 	unsigned numImages;						//US_NumImages
@@ -360,6 +365,7 @@ typedef struct pimega_t {
 	int pimega_socket;
 	int backend_socket;
 	FILE *debug_out;
+	pimega_omr omr;
 	pimega_operation_register_t cached_result;
 	pimega_acquire_params_t acquireParam;
 	pimega_dac_values_t dac_values;
@@ -415,6 +421,10 @@ int US_PixelMode(pimega_t *pimega, pimega_pixel_mode_t mode);
 int US_PixelMode_RBV(pimega_t *pimega);
 int US_Gain(pimega_t *pimega, pimega_gain_mode_t gain_mode);
 int US_Gain_RBV(pimega_t *pimega);
+int US_SenseDacSel(pimega_t *pimega, uint8_t dac);
+int US_SenseDacSel_RBV(pimega_t *pimega);
+
+
 // ----------------------------------------------------------------------------------
 
 int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value);
