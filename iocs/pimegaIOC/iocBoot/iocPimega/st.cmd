@@ -17,6 +17,8 @@ epicsEnvSet("QSIZE",  "20")
 epicsEnvSet("XSIZE",  "1536")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
 epicsEnvSet("YSIZE",  "1536")
+# Number of Elements
+epicsEnvSet("NELEMENTS", "256")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
@@ -53,7 +55,7 @@ dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT)
 # Create a standard arrays plugin, set it to get data from pimega driver.
 NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 
-dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=2359296")
+dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=$(NELEMENTS)")
 
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd

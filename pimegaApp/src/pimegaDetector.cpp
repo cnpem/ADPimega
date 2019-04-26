@@ -52,6 +52,35 @@ static void acquisitionTaskC(void *drvPvt)
     pPvt->acqTask();
 }
 
+void pimegaDetector::generateImage(void)
+{
+    const char *functionName = "generateImage";
+
+    // simulate a image
+    for(int i=0; i <= p_imageSize ;i++) {
+        pimega_image[i] = rand()%UINT16_MAX;
+        }
+    //*****************************************************
+
+    getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+    // Get an image buffer from the pool
+    getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
+    getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
+
+    this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, p_imageSize * sizeof(uint32_t), pimega_image);
+
+    setIntegerParam(NDArraySizeX, dims[0]);
+    setIntegerParam(NDArraySizeY, dims[1]);
+
+    if (arrayCallbacks) {
+        // Call the NDArray callback
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                "%s:%s: calling imageData callback\n", driverName, functionName);
+        doCallbacksGenericPointer(this->pArrays[0], NDArrayData, 0);
+        this->pArrays[0]->release();
+    }
+}
+
 /** This thread controls acquisition, reads image files to get the image data, and
  * does the callbacks to send it to higher layers
  * It is totally decoupled from the command thread and simply waits for data
@@ -61,7 +90,7 @@ void pimegaDetector::acqTask()
 {
     int status = asynSuccess;
     int eventStatus=0;
-    int imageCounter, numImages;
+    int numImages;
     int imageMode, numImagesCounter;
     int acquire=0;
     NDArray *pImage;
@@ -69,9 +98,7 @@ void pimegaDetector::acqTask()
     int statusParam = 0;
     bool bufferOverflow=0;
 
-    int arrayCallbacks;
-    size_t dims[2];
-    int itemp;
+    int newImage=0;
 
     epicsTimeStamp startTime, endTime;
 
@@ -93,11 +120,7 @@ void pimegaDetector::acqTask()
             this->lock();
 
             setStringParam(ADStatusMessage, "Acquiring data");
-            setIntegerParam(ADNumImagesCounter, 0);
-            acquire = 1;
-            executeAcquire(pimega);
-            Set_Trigger(pimega, 1);
-            Set_Trigger(pimega, 0);
+            //setIntegerParam(ADNumImagesCounter, 0); 
 
             /* We are acquiring. */
             /* Get the current time */
@@ -113,22 +136,31 @@ void pimegaDetector::acqTask()
 
             /* Open the shutter */
             setShutter(ADShutterOpen);
-
             setStringParam(ADStatusMessage, "Acquiring data");
-            setIntegerParam(ADStatus, ADStatusAcquire);
+            setIntegerParam(ADStatus, ADStatusAcquire); 
 
             callParamCallbacks();
-
-
             bufferOverflow =0;
+
+            acquire = 1;
+            executeAcquire(pimega);
         }
 
         if (acquire) {
+            // Read detector state
+            statusAcquire(pimega);
+            
+            numImagesCounter = pimega->acquireParam.numExposuresCounter;
 
-            // Read detector state from K60
-            US_DetectorState_RBV(pimega);
-            // Read detector state from backend
-            get_acqStatus_fromBackend(pimega);
+            
+            if (newImage != numImagesCounter)
+                {
+                    generateImage();
+                    newImage = numImagesCounter;
+                }
+            
+            
+            
         }
 
         this->unlock();
@@ -158,42 +190,27 @@ void pimegaDetector::acqTask()
 
         if ((!strcmp(pimega->acquireParam.detectorState,"Done")) && (acquire)) {
 
-            // simulate a image
-            for(int i=0; i <= p_imageSize ;i++) {
-                pimega_image[i] = rand()%UINT16_MAX;
-                }
-            //*****************************************************
 
-            getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-            // Get an image buffer from the pool
-            getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
-            getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
-
-            this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, p_imageSize * sizeof(uint32_t), pimega_image);
-
-            setIntegerParam(NDArraySizeX, dims[0]);
-            setIntegerParam(NDArraySizeY, dims[1]);
-
-            if (arrayCallbacks) {
-                // Call the NDArray callback
-                asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
-                        "%s:%s: calling imageData callback\n", driverName, functionName);
-                doCallbacksGenericPointer(this->pArrays[0], NDArrayData, 0);
-                this->pArrays[0]->release();
-            }
-
+            generateImage();
             if (imageMode == ADImageSingle) {
                 acquire=0;
+                newImage = 0;
                 setIntegerParam(ADAcquire, 0);
                 setIntegerParam(ADStatus, ADStatusIdle);
                 setStringParam(ADStatusMessage, "Acquisition finished");
             }
 
+            else if (imageMode == ADImageMultiple) {
+                acquire=0;
+                setIntegerParam(ADAcquire, 0);
+                setIntegerParam(ADStatus, ADStatusIdle);
+                setStringParam(ADStatusMessage, "Acquisition finished");
+                newImage = 0;
+            }
+
             else if (imageMode == ADImageContinuous) {
-                Set_Trigger(pimega, 1);
-                Set_Trigger(pimega, 0);
-                numImagesCounter++;
-                setIntegerParam(ADNumImagesCounter, numImagesCounter);
+                acquire=0;
+                newImage = 0;
             }
         }
         /* Call the callbacks to update any changes */
@@ -266,6 +283,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
     }
 
+    else if (function == ADImageMode)
+        status |= imageMode(value);
     else if (function == PimegaOmrOPMode)
         status |= omrOpMode(value);
     else if (function == ADNumExposures)
@@ -440,6 +459,11 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
 
     if ((function == PimegaBackBuffer) && (scanStatus == ADStatusAcquire)) {
         *value = pimega->acq_status_return.bufferUsed;
+    }
+
+    if ((function == ADNumImagesCounter) && (scanStatus == ADStatusAcquire)) {
+        US_NumExposuresCounter_RBV(pimega);
+        *value = pimega->acquireParam.numExposuresCounter;
     }
 
     //Other functions we call the base class method
@@ -751,8 +775,8 @@ void pimegaDetector::setDefaults(void)
 {
 
     //TODO remove this variables after test
-    int maxSizeX = 1536;
-    int maxSizeY = 1536;
+    int maxSizeX = 16;
+    int maxSizeY = 16;
 
 
     setParameter(ADMaxSizeX, maxSizeX);
@@ -1097,13 +1121,9 @@ asynStatus pimegaDetector::sensorBias(float voltage)
 asynStatus pimegaDetector::readCounter(int counter)
 {
     int rc;
-
     rc = US_ReadCounter(pimega, (pimega_read_counter_t)counter);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
-
-    printf("Valor de readCounter: %d\n", counter);
-    printf("Valor de RC: %d\n", rc);
 
     setParameter(PimegaReadCounter, counter);
     return asynSuccess;
@@ -1117,5 +1137,15 @@ asynStatus pimegaDetector::senseDacSel(u_int8_t dac)
     }
 
     setParameter(PimegaSenseDacSel, dac);
+    return asynSuccess;
+}
+
+asynStatus pimegaDetector::imageMode(u_int8_t mode)
+{
+    int rc;
+    rc = US_ImageMode(pimega, (pimega_image_mode_t)mode);
+    if (rc != PIMEGA_SUCCESS) return asynError;
+    
+    setParameter(ADImageMode, mode);
     return asynSuccess;
 }

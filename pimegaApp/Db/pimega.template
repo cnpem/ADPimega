@@ -50,6 +50,11 @@ record(ai, "$(P)$(R)TimeRemaining_RBV")
    	field(EGU, "s")
 }
 
+record(longin, "$(P)$(R)NumImagesCounter_RBV")
+{
+	field(SCAN, ".1 second")	
+}
+
 # We redefine the states for the TriggerMode records defined in ADBase.template
 record(mbbo,"$(P)$(R)TriggerMode") {
 	field(DESC,"Trigger mode")
@@ -70,6 +75,21 @@ record(mbbi,"$(P)$(R)TriggerMode_RBV") {
     field(ONST,"External I/O")
     field(TWVL,"2")
     field(TWST,"MCU GPIO (in-system)")
+}
+
+# Add new items for the ImageMode records defined in ADBase.template
+record(mbbo,"$(P)$(R)ImageMode") {
+	field(THST,"Threshold")
+	field(THVL,"3")
+	field(FRST,"TestPulse")
+	field(FRVL,"4")
+}
+
+record(mbbi,"$(P)$(R)ImageMode_RBV") {
+	field(THST,"Threshold")
+	field(THVL,"3")
+	field(FRST,"TestPulse")
+	field(FRVL,"4")
 }
 
 record(ao, "$(P)$(R)AcquireTime")
@@ -134,7 +154,7 @@ record(mbbo, "$(P)$(R)ReadCounter") {
 record(mbbi, "$(P)$(R)ReadCounter_RBV") {
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_COUNTER")
-	field(DESC, "Selects the counter(s) to be read Readback")
+	field(DESC, "Selects the counter(s) to be read RBV")
 	field(ZRST, "Counter Low")      field(ZRVL, "0")
 	field(ONST, "Counter High")     field(ONVL, "1")
 	field(TWST, "Both Counters")	field(TWVL, "2")
@@ -367,7 +387,6 @@ record(mbbo,"$(P)$(R)CounterDepth") {
     field(FTSV, "INVALID")
     field(FFSV, "INVALID")
     field(IVOA, "1")
-
 }
 
 record(mbbi,"$(P)$(R)CounterDepth_RBV") {

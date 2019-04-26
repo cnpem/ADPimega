@@ -78,6 +78,7 @@ public:
     virtual void report(FILE *fp, int details);
     virtual void pollerThread(void);
     virtual void acqTask(void);
+    virtual void generateImage(void);
 
 
 protected:
@@ -134,8 +135,11 @@ private:
     pimega_t *pimega;
     pimega_detector_model_t detModel;
 
-    int p_imageSize = 256*256*36;
+    int p_imageSize = 256;
     uint32_t *pimega_image; 
+    int arrayCallbacks;
+    size_t dims[2];
+    int itemp;
 
     void panic(const char *msg);
     void connect(const char *address, unsigned short port);
@@ -169,6 +173,7 @@ private:
     asynStatus sensorBias(float voltage);
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
+    asynStatus imageMode(u_int8_t mode);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)

@@ -55,11 +55,6 @@ enum AckTypesEnum {
     ERROR = 10
 };
 
-enum bufferStateEnum {
-    BUFFER_OK = 0,
-    BUFFER_OVERFLOW = 1
-};
-
 //Size 1
 typedef struct __attribute__((__packed__)){
       uint8_t  type;
@@ -297,15 +292,11 @@ typedef enum pimega_row_count_t {
 
 typedef enum pimega_image_mode_t
 {
-	PIMEGA_IMAGE_MODE_BACK = 0,
-	PIMEGA_IMAGE_MODE_SPM_CSM,
-	PIMEGA_IMAGE_MODE_DENERGY,
-	PIMEGA_IMAGE_MODE_SMFRAMES,
-	PIMEGA_IMAGE_MODE_TRIGGER,
-	PIMEGA_IMAGE_MODE_SEQCONT,
+	PIMEGA_IMAGE_MODE_SINGLE = 0,
+	PIMEGA_IMAGE_MODE_MULTIPLE,
+	PIMEGA_IMAGE_MODE_CONTINUOUS,
 	PIMEGA_IMAGE_MODE_THRESHOLD,
 	PIMEGA_IMAGE_MODE_TESTPULSE,
-	PIMEGA_IMAGE_MODE_24BITS,
 	PIMEGA_IMAGE_MODE_ENUM_END,
 } pimega_image_mode_t;
 
@@ -357,7 +348,16 @@ typedef struct pimega_acquire_params_t {
 	bool acquireState;						//US_Acquire_RBV
 	char detectorState[512];				//US_DetectorState_RBV
 	float timeRemaining;					//US_TimeRemaining_RBV
+	uint32_t numExposuresCounter;			//US_NumExposuresCounter_RBV
 } pimega_acquire_params_t;
+
+enum acquireStatus{
+	IDLE = 0,
+    DONE_ACQ = 1,
+	ACQUIRING = 2,
+	BUFFER_OVERFLOW = 3,
+    STOPPED = 4,
+};
 
 typedef struct pimega_t {
 	uint8_t max_num_boards;
@@ -386,6 +386,11 @@ int US_TimeRemaining_RBV(pimega_t *pimega);
 int US_Reset(pimega_t *pimega, short action);
 int US_Acquire(pimega_t *pimega, bool  action);
 int US_Acquire_RBV(pimega_t *pimega);
+int US_NumImages(pimega_t *pimega, unsigned num_images);
+int US_NumImages_RBV(pimega_t *pimega);
+int US_NumExposures(pimega_t *pimega, int num_exposures);
+int US_NumExposures_RBV(pimega_t *pimega);
+int US_NumExposuresCounter_RBV(pimega_t *pimega);
 
 // --------------- K60 functions exclusive -----------------------------------------
 int Config_Discl(pimega_t *pimega, uint32_t value);
@@ -436,10 +441,6 @@ int US_DACBias_RBV(pimega_t *pimega);
 // --------------------------------------------------------------------------
 
 
-int US_NumImages(pimega_t *pimega, unsigned num_images);
-int US_NumImages_RBV(pimega_t *pimega);
-int US_NumExposures(pimega_t *pimega, int num_exposures);
-int US_NumExposures_RBV(pimega_t *pimega);
 
 int US_SensorBias(pimega_t *pimega, float bias_voltage);
 int US_SensorBias_RBV(pimega_t *pimega);
@@ -483,7 +484,8 @@ int get_filesReady_fromBackend(pimega_t *pimega);
 int send_stopAcquire_toBackend(pimega_t *pimega);
 
 int executeAcquire(pimega_t *pimega);
-int prepareAcquire(pimega_t *pimega);
+int statusAcquire(pimega_t *pimega);
+
 
 const char *pimega_error_string(int error);
 void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
