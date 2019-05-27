@@ -321,6 +321,8 @@ typedef struct pimega_operation_register_t {
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
 	uint16_t sensorPos;							//US_ImgChipNumberID
+	float extBgIn;								//US_ImgChip_ExtBgIN
+	float dacOutput;							//US_ImgChipDACOUTSense_RBV
 } pimega_operation_register_t;
 
 typedef struct pimega_omr {
@@ -439,6 +441,14 @@ int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value);
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
 int US_DACBias_RBV(pimega_t *pimega);
 // --------------------------------------------------------------------------
+
+int US_ImgChipDACOUTSense_RBV(pimega_t *pimega);
+int US_ImgChip_ExtBgIn(pimega_t *pimega, float voltage);
+int US_ImgChip_ExtBgIn_RBV(pimega_t *pimega);
+int US_BandGapOutput_RBV(pimega_t *pimega);
+int US_BandGapTemperature_RBV(pimega_t *pimega);
+int US_CascodeBias_RBV(pimega_t *pimega);
+
 
 
 
