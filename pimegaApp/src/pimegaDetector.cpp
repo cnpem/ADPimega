@@ -922,9 +922,6 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     }
     setParameter(PimegaMedipixChip, chip_id);
 
-    /*Get OMR operation mode */
-    getParameter(PimegaOmrOPMode,&OmrOp);
-
     /* Get e-fuseID from selected chip_id */
     rc = US_efuseID_RBV(pimega);
     if (rc != PIMEGA_SUCCESS) return asynError;
