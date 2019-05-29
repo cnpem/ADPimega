@@ -18,3 +18,4 @@ external/
 .tags
 .vscode/c_cpp_properties.json
 .vscode
+core
