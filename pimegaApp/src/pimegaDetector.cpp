@@ -102,8 +102,6 @@ void pimegaDetector::acqTask()
 
     epicsTimeStamp startTime, endTime;
 
-
-
     const char *functionName = "acqTask";
 
     this->lock();
