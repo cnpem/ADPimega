@@ -281,8 +281,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
     }
 
-    else if (function == ADImageMode)
-        status |= imageMode(value);
+    //else if (function == ADImageMode)
+    //    status |= imageMode(value);
     else if (function == PimegaOmrOPMode)
         status |= omrOpMode(value);
     else if (function == ADNumExposures)
@@ -290,8 +290,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaReset)
         status |=  reset(value);
     else if (function == ADTriggerMode)
-        status |=  triggerMode(value);
-    else if (function == PimegaMedipixBoard)
+    //    status |=  triggerMode(value);
+    //else if (function == PimegaMedipixBoard)
         status |= medipixBoard(value);
     else if (function == PimegaMedipixChip)
         status |= imgChipID(value);
@@ -429,14 +429,19 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
     getParameter(ADStatus,&scanStatus);
 
-    if (function == ADTemperatureActual) {
-        status = US_TemperatureActual(pimega);
-        *value = pimega->cached_result.actual_temperature;
-    }
+    //if (function == ADTemperatureActual) {
+    //    status = US_TemperatureActual(pimega);
+    //    *value = pimega->cached_result.actual_temperature;
+    //}
 
-    else if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
+    if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
         status = US_TimeRemaining_RBV(pimega);
         *value = pimega->acquireParam.timeRemaining;
+    }
+
+    else if (function == PimegaSensorBias){
+        printf("test proc");
+        status = US_SensorBias_RBV(pimega);
     }
 
     //Other functions we call the base class method
@@ -547,7 +552,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     detModel = (pimega_detector_model_t) detectorModel;
     pimega = pimega_new(detModel);
 
-    pimega_connect_backend(pimega, "127.0.0.1", 5412);
+    //pimega_connect_backend(pimega, "127.0.0.1", 5412);
     pimega_connect(pimega, address, port);
 
     //pimega->debug_out = fopen("log.txt", "w+");
@@ -556,6 +561,7 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     createParameters();
     setDefaults();
+
 
     // send image pattern to test
     //Send_Image(pimega, 3);
@@ -718,7 +724,7 @@ void pimegaDetector::getParameter(int index, int *value)
 void pimegaDetector::getParameter(int index, double *value)
 {
     asynStatus status;
-status = getDoubleParam(index, value);
+    status = getDoubleParam(index, value);
 
     if (status != asynSuccess)
         panic("getDoubleParam failed.");
@@ -776,6 +782,7 @@ void pimegaDetector::setDefaults(void)
     int maxSizeX = 16;
     int maxSizeY = 16;
 
+    //Set_DAC_Defaults(pimega);
 
     setParameter(ADMaxSizeX, maxSizeX);
     setParameter(ADMaxSizeY, maxSizeY);
@@ -827,6 +834,35 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFileWriteMessage, "");
     setParameter(PimegaBackBuffer, 0);
     setParameter(ADImageMode, ADImageSingle);
+
+    getDacsValues();
+}
+
+void pimegaDetector::getDacsValues(void)
+{
+    
+    Get_All_DACs(pimega);
+    setParameter(PimegaThreshold0, (int)pimega->dac_values.DAC_ThresholdEnergy0);
+    setParameter(PimegaThreshold1, (int)pimega->dac_values.DAC_ThresholdEnergy1);
+    setParameter(PimegaPreamp, (int)pimega->dac_values.DAC_Preamp);
+    setParameter(PimegaIkrum, (int)pimega->dac_values.DAC_IKrum);
+    setParameter(PimegaShaper, (int)pimega->dac_values.DAC_Shaper);
+    setParameter(PimegaDisc, (int)pimega->dac_values.DAC_Disc);
+    setParameter(PimegaDiscLS, (int)pimega->dac_values.DAC_DiscLS);
+    //setParameter(PimegaShaperTest, pimega->dac_values.DAC_ShaperTest)
+    setParameter(PimegaDiscL, (int)pimega->dac_values.DAC_DiscL);
+    setParameter(PimegaDelay, (int)pimega->dac_values.DAC_Delay);
+    setParameter(PimegaTpBufferIn, (int)pimega->dac_values.DAC_TPBufferIn);
+    setParameter(PimegaTpBufferOut, (int)pimega->dac_values.DAC_TPBufferOut);
+    setParameter(PimegaRpz, (int)pimega->dac_values.DAC_RPZ);
+    setParameter(PimegaGnd, (int)pimega->dac_values.DAC_GND);
+    setParameter(PimegaTpRef, (int)pimega->dac_values.DAC_TPRef);
+    setParameter(PimegaFbk, (int)pimega->dac_values.DAC_FBK);
+    setParameter(PimegaCas, (int)pimega->dac_values.DAC_CAS);
+    setParameter(PimegaTpRefA, (int)pimega->dac_values.DAC_TPRefA);
+    setParameter(PimegaTpRefB, (int)pimega->dac_values.DAC_TPRefB);
+    //setParameter(PimegaShaperTest, pimega->dac_values.DAC_Test);
+    setParameter(PimegaDiscH,(int)pimega->dac_values.DAC_DiscH);
 }
 
 void pimegaDetector::prepareScan(unsigned board)

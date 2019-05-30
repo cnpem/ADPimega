@@ -503,8 +503,6 @@ record(ao, "$(P)$(R)DAC_ThresholdEnergy0")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD0")
 	field(DESC, "Threshold 0 for photon detection")
-	field(PINI, "YES")
-	field(VAL,  "77")
 }
 
 record(ai, "$(P)$(R)DAC_ThresholdEnergy1_RBV")
@@ -520,8 +518,6 @@ record(ao, "$(P)$(R)DAC_ThresholdEnergy1")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD1")
 	field(DESC, "Threshold 1 for photon detection")
-	field(PINI, "YES")
-	field(VAL,  "77")
 }
 
 record(ai, "$(P)$(R)DAC_Preamp_RBV")
@@ -537,8 +533,6 @@ record(ao, "$(P)$(R)DAC_Preamp")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))PREAMP")
 	field(DESC, "Preamplifier current")
-	field(PINI, "YES")
-	field(VAL,  "100")
 }
 
 record(ai, "$(P)$(R)DAC_IKrum_RBV")
@@ -554,8 +548,6 @@ record(ao, "$(P)$(R)DAC_IKrum")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))IKRUM")
 	field(DESC, "Krummenacher current")
-	field(PINI, "YES")
-	field(VAL,  "5")
 }
 
 record(ai, "$(P)$(R)DAC_Shaper_RBV")
@@ -571,8 +563,6 @@ record(ao, "$(P)$(R)DAC_Shaper")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SHAPER")
 	field(DESC, "Shaper current")
-	field(PINI, "YES")
-	field(VAL,  "125")
 }
 
 record(ai, "$(P)$(R)DAC_Disc_RBV")
@@ -588,8 +578,6 @@ record(ao, "$(P)$(R)DAC_Disc")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC")
 	field(DESC, "Discriminator current")
-	field(PINI, "YES")
-	field(VAL,  "125")
 }
 
 record(ai, "$(P)$(R)DAC_DiscLS_RBV")
@@ -603,8 +591,6 @@ record(ao, "$(P)$(R)DAC_DiscLS")
 {
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_LS")
-	field(VAL,  "100")
-	field(PINI, "YES")
 }
 
 record(ai, "$(P)$(R)DAC_DiscL_RBV")
@@ -620,8 +606,6 @@ record(ao, "$(P)$(R)DAC_DiscL")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_L")
 	field(DESC, "Low discriminator current")
-	field(PINI, "YES")
-	field(VAL,  "68")
 }
 
 record(ai, "$(P)$(R)DAC_Delay_RBV")
@@ -635,8 +619,6 @@ record(ao, "$(P)$(R)DAC_Delay")
 {
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DELAY")
-	field(PINI, "YES")
-	field(VAL,  "30")
 }
 
 record(ai, "$(P)$(R)DAC_TPBufferIn_RBV")
@@ -652,8 +634,6 @@ record(ao, "$(P)$(R)DAC_TPBufferIn")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_BUFFER_IN")
 	field(DESC, "Test pulse input buffer current")
-	field(PINI, "YES")
-	field(VAL,  "128")
 }
 
 record(ai, "$(P)$(R)DAC_TPBufferOut_RBV")
@@ -669,8 +649,6 @@ record(ao, "$(P)$(R)DAC_TPBufferOut")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_BUFFER_OUT")
 	field(DESC, "Test pulse output buffer current")
-	field(PINI, "YES")
-	field(VAL,  "4")
 }
 
 record(ai, "$(P)$(R)DAC_RPZ_RBV")
@@ -686,8 +664,6 @@ record(ao, "$(P)$(R)DAC_RPZ")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))RPZ")
 	field(DESC, "Shaper pole zero voltage")
-	field(PINI, "YES")
-	field(VAL,  "255")
 }
 
 record(ai, "$(P)$(R)DAC_GND_RBV")
@@ -703,8 +679,6 @@ record(ao, "$(P)$(R)DAC_GND")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))GND")
 	field(DESC, "Preamplifier virtual ground voltage")
-	field(PINI, "YES")
-	field(VAL,  "133")
 }
 
 record(ai, "$(P)$(R)DAC_TPRef_RBV")
@@ -720,8 +694,6 @@ record(ao, "$(P)$(R)DAC_TPRef")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF")
 	field(DESC, "Test pulses 1 and 2 reference voltage")
-	field(PINI, "YES")
-	field(VAL,  "120")
 }
 
 record(ai, "$(P)$(R)DAC_FBK_RBV")
@@ -737,8 +709,6 @@ record(ao, "$(P)$(R)DAC_FBK")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FBK")
 	field(DESC, "Preamplifier feedback voltage")
-	field(PINI, "YES")
-	field(VAL,  "171")
 }
 
 record(ai, "$(P)$(R)DAC_CAS_RBV")
@@ -755,8 +725,6 @@ record(ao, "$(P)$(R)DAC_CAS")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAS")
 	field(DESC, "DAC cascode bias")
-	field(VAL,  "175")
-	field(PINI, "YES")
 	field(DRVL, 0)
 	field(DRVH, 255)
 }
@@ -774,9 +742,6 @@ record(ao, "$(P)$(R)DAC_TPRefA")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF_A")
 	field(DESC, "Test pulse 1 voltage")
-	field(VAL,  "311")
-	field(PINI, "YES")
-
 }
 
 record(ai, "$(P)$(R)DAC_TPRefB_RBV")
@@ -792,9 +757,6 @@ record(ao, "$(P)$(R)DAC_TPRefB")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF_B")
 	field(DESC, "Test pulse 2 voltage")
-	field(PINI, "YES")
-	field(VAL,  "311")
-
 }
 
 record(ai, "$(P)$(R)DAC_DiscH_RBV")
@@ -810,8 +772,6 @@ record(ao, "$(P)$(R)DAC_DiscH")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_H")
 	field(DESC, "High discriminator current")
-	field(PINI, "YES")
-	field(VAL,  "72")
 }
 
 record(ai, "$(P)$(R)Backend_BufferUsed_RBV")

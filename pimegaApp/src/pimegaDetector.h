@@ -151,6 +151,7 @@ private:
     void getParameter(int index, int *value);
     void getParameter(int index, double *value);
 
+    void getDacsValues(void);
     void setDefaults(void);
     void prepareScan(unsigned board);
 

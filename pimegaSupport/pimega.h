@@ -437,6 +437,9 @@ int US_SenseDacSel_RBV(pimega_t *pimega);
 int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value);
 
 // ---------------- DAC Prototypes -------------------------------------------
+int Set_DAC_Defaults(pimega_t *pimega);
+int Get_All_DACs(pimega_t *pimega);
+
 int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value);
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
 int US_DACBias_RBV(pimega_t *pimega);
