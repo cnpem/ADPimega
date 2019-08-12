@@ -5,7 +5,36 @@
  *      Author: Douglas Araujo
  */
 
+// Standard includes
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <stdint.h>
+
+// EPICS includes
+#include <epicsThread.h>
 #include <epicsEvent.h>
+#include <epicsString.h>
+#include <iocsh.h>
+#include <epicsExport.h>
+
+#include <epicsStdio.h>
+#include <epicsMutex.h>
+#include <cantProceed.h>
+#include <epicsExit.h>
+
+// Asyn driver includes
+#include <asynOctetSyncIO.h>
+
+// areaDetector includes
+#include "ADDriver.h"
+
+// pimega lib includes
+#include <pimega.h>
 
 /** Messages to/from Labview command channel */
 #define MAX_MESSAGE_SIZE 256

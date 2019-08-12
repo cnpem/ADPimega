@@ -13,30 +13,6 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-#include <stdint.h>
-
-#include <epicsThread.h>
-#include <epicsEvent.h>
-#include <epicsMutex.h>
-#include <epicsString.h>
-#include <epicsStdio.h>
-#include <epicsMutex.h>
-#include <cantProceed.h>
-#include <iocsh.h>
-#include <epicsExport.h>
-#include <epicsExit.h>
-
-#include <asynOctetSyncIO.h>
-
-#include <pimega.h>
-#include "ADDriver.h"
-
 #include "pimegaDetector.h"
 
 static void pollerThreadC(void * drvPvt)
