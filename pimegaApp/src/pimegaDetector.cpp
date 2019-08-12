@@ -281,8 +281,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
     }
 
-    //else if (function == ADImageMode)
-    //    status |= imageMode(value);
+    else if (function == ADImageMode)
+        status |= imageMode(value);
     else if (function == PimegaOmrOPMode)
         status |= omrOpMode(value);
     else if (function == ADNumExposures)
@@ -290,8 +290,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaReset)
         status |=  reset(value);
     else if (function == ADTriggerMode)
-    //    status |=  triggerMode(value);
-    //else if (function == PimegaMedipixBoard)
+        status |=  triggerMode(value);
+    else if (function == PimegaMedipixBoard)
         status |= medipixBoard(value);
     else if (function == PimegaMedipixChip)
         status |= imgChipID(value);
@@ -429,10 +429,10 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
     getParameter(ADStatus,&scanStatus);
 
-    //if (function == ADTemperatureActual) {
-    //    status = US_TemperatureActual(pimega);
-    //    *value = pimega->cached_result.actual_temperature;
-    //}
+    if (function == ADTemperatureActual) {
+        status = US_TemperatureActual(pimega);
+        *value = pimega->cached_result.actual_temperature;
+    }
 
     if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
         status = US_TimeRemaining_RBV(pimega);
@@ -552,22 +552,14 @@ pimegaDetector::pimegaDetector(const char *portName,
     detModel = (pimega_detector_model_t) detectorModel;
     pimega = pimega_new(detModel);
 
-    //pimega_connect_backend(pimega, "127.0.0.1", 5412);
-    pimega_connect(pimega, address, port);
-
+    pimega_connect_backend(pimega, "127.0.0.1", 5412);
+    connect(address, port);
     //pimega->debug_out = fopen("log.txt", "w+");
     //report(pimega->debug_out, 1);
     //fflush(pimega->debug_out);
 
     createParameters();
     setDefaults();
-
-
-    // send image pattern to test
-    //Send_Image(pimega, 3);
-
-    //reset(1);
-
 
 
     epicsThreadCreate("pimega_test_poller",epicsThreadPriorityMedium,
