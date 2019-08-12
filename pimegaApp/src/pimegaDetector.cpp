@@ -147,18 +147,12 @@ void pimegaDetector::acqTask()
         if (acquire) {
             // Read detector state
             statusAcquire(pimega);
-            
             numImagesCounter = pimega->acquireParam.numExposuresCounter;
-
-            
             if (newImage != numImagesCounter)
                 {
                     generateImage();
                     newImage = numImagesCounter;
-                }
-            
-            
-            
+                }          
         }
 
         this->unlock();
@@ -172,6 +166,7 @@ void pimegaDetector::acqTask()
             setIntegerParam(ADAcquire, 0);
             acquire=0;
 
+            setIntegerParam(ADNumImagesCounter, numImagesCounter);
             if (bufferOverflow) setStringParam(ADStatusMessage,
                     "Acquisition aborted by buffer overflow");
 
@@ -203,6 +198,7 @@ void pimegaDetector::acqTask()
                 setIntegerParam(ADAcquire, 0);
                 setIntegerParam(ADStatus, ADStatusIdle);
                 setStringParam(ADStatusMessage, "Acquisition finished");
+                setIntegerParam(ADNumImagesCounter, numImagesCounter+1);
                 newImage = 0;
             }
 
