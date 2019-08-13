@@ -24,7 +24,6 @@ static void pollerThreadC(void * drvPvt)
 static void acquisitionTaskC(void *drvPvt)
 {
     pimegaDetector *pPvt = (pimegaDetector *) drvPvt;
-
     pPvt->acqTask();
 }
 
@@ -344,7 +343,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
               "%s:%s: function=%d, value=%d\n",
               driverName, functionName, function, value);
     }
-    return((asynStatus)status);
+    return (asynStatus)status;
 
 }
 
@@ -398,16 +397,16 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     static const char *functionName = "readFloat64";
     int scanStatus;
 
-
     getParameter(ADStatus,&scanStatus);
 
     if (function == ADTemperatureActual) {
         status = US_TemperatureActual(pimega);
-        *value = pimega->cached_result.actual_temperature;
+        setParameter(ADTemperatureActual, pimega->cached_result.actual_temperature);
     }
 
     if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
         status = US_TimeRemaining_RBV(pimega);
+        status = US_TemperatureActual(pimega);
         *value = pimega->acquireParam.timeRemaining;
     }
 
@@ -501,11 +500,15 @@ pimegaDetector::pimegaDetector(const char *portName,
 
 {
     int status = asynSuccess;
-    const char *functionName = "pimegaDetector";
+    const char *functionName = "pimegaDetector::pimegaDetector";
 
     pimega_image = (uint32_t*)malloc(p_imageSize * sizeof(uint32_t));
     // initialize random seed:
     srand (time(NULL));
+
+    // Initialise the debugger
+    initDebugger(1);
+    debugLevel("all",1);
 
     /* Create the epicsEvents for signaling to the simulate task when acquisition starts and stops */
     startEventId_ = epicsEventCreate(epicsEventEmpty);
@@ -523,6 +526,7 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     detModel = (pimega_detector_model_t) detectorModel;
     pimega = pimega_new(detModel);
+    if (pimega) debug(functionName, "Pimega Object created!");
 
     pimega_connect_backend(pimega, "127.0.0.1", 5412);
     connect(address, port);
@@ -540,60 +544,15 @@ pimegaDetector::pimegaDetector(const char *portName,
                         this);
 
     /* Create the thread that runs acquisition */
-    status = (epicsThreadCreate("pimegaDetTask", epicsThreadPriorityMedium,
-            epicsThreadGetStackSize(epicsThreadStackMedium),
-            (EPICSTHREADFUNC) acquisitionTaskC, this) == NULL);
-    if (status)
-    {
-        printf("%s:%s epicsThreadCreate failure for acquisition task\n", driverName,
-                functionName);
-        return;
+    status = (epicsThreadCreate("pimegaDetTask", 
+                                epicsThreadPriorityMedium,
+                                epicsThreadGetStackSize(epicsThreadStackMedium),
+                                (EPICSTHREADFUNC)acquisitionTaskC,
+                                this) == NULL);
+    if (status) {
+        debug(functionName, "epicsTheadCreate failure for image task");
     }
-
 }
-
-/* Code for iocsh registration */
-static const iocshArg pimegaDetectorConfigArg0 = { "Port name", iocshArgString };
-static const iocshArg pimegaDetectorConfigArg1 = { "pimega address", iocshArgString };
-static const iocshArg pimegaDetectorConfigArg2 = { "pimega port", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg3 = { "maxSizeX", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg4 = { "maxSizeY", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg5 = { "detectorModel", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg6 = { "maxBuffers", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg7 = { "maxMemory", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg8 = { "priority", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg9 = { "stackSize", iocshArgInt };
-static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConfigArg0,
-                                                          &pimegaDetectorConfigArg1,
-                                                          &pimegaDetectorConfigArg2,
-                                                          &pimegaDetectorConfigArg3,
-                                                          &pimegaDetectorConfigArg4,
-                                                          &pimegaDetectorConfigArg5,
-                                                          &pimegaDetectorConfigArg6,
-                                                          &pimegaDetectorConfigArg7,
-                                                          &pimegaDetectorConfigArg8,
-                                                          &pimegaDetectorConfigArg9};
-static const iocshFuncDef configpimegaDetector =
-{ "pimegaDetectorConfig", 9, pimegaDetectorConfigArgs };
-
-static void configpimegaDetectorCallFunc(const iocshArgBuf *args)
-{
-    pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival,
-                        args[4].ival, args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival);
-}
-
-static void pimegaDetectorRegister(void)
-{
-
-    iocshRegister(&configpimegaDetector, configpimegaDetectorCallFunc);
-}
-
-extern "C"
-{
-epicsExportRegistrar(pimegaDetectorRegister);
-}
-
-
 
 /************************************************************************************
  * Validation functions
@@ -827,15 +786,6 @@ void pimegaDetector::getDacsValues(void)
     setParameter(PimegaTpRefB, (int)pimega->dac_values.DAC_TPRefB);
     //setParameter(PimegaShaperTest, pimega->dac_values.DAC_Test);
     setParameter(PimegaDiscH,(int)pimega->dac_values.DAC_DiscH);
-}
-
-void pimegaDetector::prepareScan(unsigned board)
-{
-    medipixBoard(board);
-    //imgChipID(pimega, 0);          // all chips
-    //US_AcquireTime(pimega, acquireTime);    // set acquire time
-    US_NumExposures(pimega, 1);             // set number of exposures
-    US_Acquire(pimega, 1);
 }
 
 void pimegaDetector::report(FILE *fp, int details)
@@ -1143,4 +1093,127 @@ asynStatus pimegaDetector::imageMode(u_int8_t mode)
     
     setParameter(ADImageMode, mode);
     return asynSuccess;
+}
+
+asynStatus pimegaDetector::initDebugger(int initDebug)
+{
+  // Set all debugging levels to initialised value
+  debugMap_["pimegaDetector::pimegaDetector"]           = initDebug;
+  debugMap_["pimegaDetector::pimegaDetectorTask"]       = initDebug;
+  debugMap_["pimegaDetector::readEnum"]                 = initDebug;
+  debugMap_["pimegaDetector::writeInt32"]               = initDebug;
+  debugMap_["pimegaDetector::writeFloat64"]             = initDebug;
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::debugLevel(const std::string& method, int onOff)
+{
+  if (method == "all"){
+    debugMap_["pimegaDetector::pimegaDetector"]           = onOff;
+    debugMap_["pimegaDetector::pimegaDetectorTask"]       = onOff;
+    debugMap_["pimegaDetector::readEnum"]                 = onOff;
+    debugMap_["pimegaDetector::writeInt32"]               = onOff;
+    debugMap_["pimegaDetector::writeFloat64"]             = onOff;
+  } else {
+    debugMap_[method] = onOff;
+  }
+  return asynSuccess;
+}
+
+
+asynStatus pimegaDetector::debug(const std::string& method, const std::string& msg)
+{
+  // First check for the debug entry in the debug map
+  if (debugMap_.count(method) == 1){
+    // Now check if debug is turned on
+    if (debugMap_[method] == 1){
+      // Print out the debug message
+      std::cout << method << ": " << msg << std::endl;
+    }
+  }
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::debug(const std::string& method, const std::string& msg, int value)
+{
+  // First check for the debug entry in the debug map
+  if (debugMap_.count(method) == 1){
+    // Now check if debug is turned on
+    if (debugMap_[method] == 1){
+      // Print out the debug message
+      std::cout << method << ": " << msg << " [" << value << "]" << std::endl;
+    }
+  }
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::debug(const std::string& method, const std::string& msg, double value)
+{
+  // First check for the debug entry in the debug map
+  if (debugMap_.count(method) == 1){
+    // Now check if debug is turned on
+    if (debugMap_[method] == 1){
+      // Print out the debug message
+      std::cout << method << ": " << msg << " [" << value << "]" << std::endl;
+    }
+  }
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::debug(const std::string& method, const std::string& msg, const std::string& value)
+{
+  // First check for the debug entry in the debug map
+  if (debugMap_.count(method) == 1){
+    // Now check if debug is turned on
+    if (debugMap_[method] == 1){
+      // Copy the string
+      std::string val = value;
+      // Trim the output
+      val.erase(val.find_last_not_of("\n")+1);
+      // Print out the debug message
+      std::cout << method << ": " << msg << " [" << val << "]" << std::endl;
+    }
+  }
+  return asynSuccess;
+}
+
+/* Code for iocsh registration */
+static const iocshArg pimegaDetectorConfigArg0 = { "Port name", iocshArgString };
+static const iocshArg pimegaDetectorConfigArg1 = { "pimega address", iocshArgString };
+static const iocshArg pimegaDetectorConfigArg2 = { "pimega port", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg3 = { "maxSizeX", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg4 = { "maxSizeY", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg5 = { "detectorModel", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg6 = { "maxBuffers", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg7 = { "maxMemory", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg8 = { "priority", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg9 = { "stackSize", iocshArgInt };
+static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConfigArg0,
+                                                          &pimegaDetectorConfigArg1,
+                                                          &pimegaDetectorConfigArg2,
+                                                          &pimegaDetectorConfigArg3,
+                                                          &pimegaDetectorConfigArg4,
+                                                          &pimegaDetectorConfigArg5,
+                                                          &pimegaDetectorConfigArg6,
+                                                          &pimegaDetectorConfigArg7,
+                                                          &pimegaDetectorConfigArg8,
+                                                          &pimegaDetectorConfigArg9};
+static const iocshFuncDef configpimegaDetector =
+{ "pimegaDetectorConfig", 9, pimegaDetectorConfigArgs };
+
+static void configpimegaDetectorCallFunc(const iocshArgBuf *args)
+{
+    pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival,
+                        args[4].ival, args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival);
+}
+
+static void pimegaDetectorRegister(void)
+{
+
+    iocshRegister(&configpimegaDetector, configpimegaDetectorCallFunc);
+}
+
+extern "C"
+{
+epicsExportRegistrar(pimegaDetectorRegister);
 }

@@ -14,6 +14,7 @@
 #include <math.h>
 #include <time.h>
 #include <stdint.h>
+#include <map>
 
 // EPICS includes
 #include <epicsThread.h>
@@ -109,6 +110,13 @@ public:
     virtual void acqTask(void);
     virtual void generateImage(void);
 
+    // Debugging routines
+    asynStatus initDebugger(int initDebug);
+    asynStatus debugLevel(const std::string& method, int onOff);
+    asynStatus debug(const std::string& method, const std::string& msg);
+    asynStatus debug(const std::string& method, const std::string& msg, int value);
+    asynStatus debug(const std::string& method, const std::string& msg, double value);
+    asynStatus debug(const std::string& method, const std::string& msg, const std::string& value);
 
 protected:
     int PimegaReset;
@@ -153,6 +161,9 @@ protected:
 
 private:
 
+    // debug map
+    std::map<std::string, int>         debugMap_;
+
     // ***** poller control variables ****
     double pollTime_;
     int forceCallback_;
@@ -182,7 +193,6 @@ private:
 
     void getDacsValues(void);
     void setDefaults(void);
-    void prepareScan(unsigned board);
 
     asynStatus triggerMode(int trigger);
     asynStatus reset(short action);
