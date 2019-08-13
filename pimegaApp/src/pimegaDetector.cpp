@@ -15,12 +15,6 @@
 
 #include "pimegaDetector.h"
 
-static void pollerThreadC(void * drvPvt)
-{
-    pimegaDetector *pPvt = (pimegaDetector *)drvPvt;
-    pPvt->pollerThread();
-}
-
 static void acquisitionTaskC(void *drvPvt)
 {
     pimegaDetector *pPvt = (pimegaDetector *) drvPvt;
@@ -186,36 +180,6 @@ void pimegaDetector::acqTask()
         callParamCallbacks();
     }
 
-}
-
-void pimegaDetector::pollerThread()
-{
-    /* This function runs in a separate thread. It waits for the poll time */
-    static const char *functionName = "pollerThread";
-
-    /*
-    epicsFloat64 actualtemp;
-    epicsInt32 _i=0;
-
-    while(1)
-    {
-        lock();
-        // Read the digital inputs
-        US_TemperatureActual(pimega);
-
-        actualtemp = pimega->cached_result.actual_temperature;
-
-        printf("Valor da temperature atual: %.2f e valor de i: %d\n", actualtemp, _i);
-
-        forceCallback_ = 0;
-
-        _i++;
-        setParameter(ADTemperatureActual, actualtemp);
-
-        callParamCallbacks();
-        unlock();
-        epicsThreadSleep(pollTime_);
-    }*/
 }
 
 asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
@@ -536,12 +500,6 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     createParameters();
     setDefaults();
-
-
-    epicsThreadCreate("pimega_test_poller",epicsThreadPriorityMedium,
-                        epicsThreadGetStackSize(epicsThreadStackMedium),
-                        (EPICSTHREADFUNC)pollerThreadC,
-                        this);
 
     /* Create the thread that runs acquisition */
     status = (epicsThreadCreate("pimegaDetTask", 
