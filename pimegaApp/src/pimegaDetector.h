@@ -106,7 +106,6 @@ public:
     virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
 
     virtual void report(FILE *fp, int details);
-    virtual void pollerThread(void);
     virtual void acqTask(void);
     virtual void generateImage(void);
 

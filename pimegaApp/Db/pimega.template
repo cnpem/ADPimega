@@ -414,10 +414,10 @@ record(bi,"$(P)$(R)PixelMode_RBV") {
 record(ao, "$(P)$(R)MedipixBoard")
 {
 	field(DESC, "Medipix Board Number")
-	field(PINI, "YES")
+	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_BOARD")
-   	field(VAL,  "1")
+   	#field(VAL,  "0")
 }
 
 record(ai, "$(P)$(R)MedipixBoard_RBV")
@@ -431,10 +431,10 @@ record(ai, "$(P)$(R)MedipixBoard_RBV")
 record(ao, "$(P)$(R)ImgChipNumberID")
 {
 	field(DESC, "Image Chip Number ID")
-	field(PINI, "YES")
+	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_CHIP")
-   	field(VAL,  "1")
+   	#field(VAL,  "1")
 }
 
 record(ai, "$(P)$(R)ImgChipNumberID_RBV")

@@ -130,7 +130,7 @@ void pimegaDetector::acqTask()
 
         if (eventStatus == epicsEventWaitOK) {
             US_Acquire(pimega,0);
-            send_stopAcquire_toBackend(pimega);
+            //send_stopAcquire_toBackend(pimega);
             setShutter(0);
             setIntegerParam(ADAcquire, 0);
             acquire=0;
@@ -224,10 +224,10 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |=  numExposures(value);
     else if (function == PimegaReset)
         status |=  reset(value);
-    else if (function == ADTriggerMode)
-        status |=  triggerMode(value);
-    else if (function == PimegaMedipixBoard)
-        status |= medipixBoard(value);
+    //else if (function == ADTriggerMode)
+    //    status |=  triggerMode(value);
+    //else if (function == PimegaMedipixBoard)
+    //    status |= medipixBoard(value);
     else if (function == PimegaMedipixChip)
         status |= imgChipID(value);
     else if (function == PimegaPixelMode)
@@ -363,14 +363,14 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
     getParameter(ADStatus,&scanStatus);
 
-    if (function == ADTemperatureActual) {
-        status = US_TemperatureActual(pimega);
-        setParameter(ADTemperatureActual, pimega->cached_result.actual_temperature);
-    }
+    //if (function == ADTemperatureActual) {
+    //    status = US_TemperatureActual(pimega);
+    //    setParameter(ADTemperatureActual, pimega->cached_result.actual_temperature);
+    //}
 
     if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
         status = US_TimeRemaining_RBV(pimega);
-        status = US_TemperatureActual(pimega);
+        //status = US_TemperatureActual(pimega);
         *value = pimega->acquireParam.timeRemaining;
     }
 
@@ -492,7 +492,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     pimega = pimega_new(detModel);
     if (pimega) debug(functionName, "Pimega Object created!");
 
-    pimega_connect_backend(pimega, "127.0.0.1", 5412);
+    //pimega_connect_backend(pimega, "127.0.0.1", 5412);
     connect(address, port);
     //pimega->debug_out = fopen("log.txt", "w+");
     //report(pimega->debug_out, 1);
@@ -551,6 +551,8 @@ void pimegaDetector::connect(const char *address, unsigned short port)
 
     for (i = 0; i < 5; i++) {
         rc = pimega_connect(pimega, address, port);
+        //rc = open_serialPort(pimega, "/dev/ttyUSB0");
+
         if (rc == PIMEGA_SUCCESS) return;
         epicsThreadSleep(1);
     }
@@ -716,13 +718,23 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaBackBuffer, 0);
     setParameter(ADImageMode, ADImageSingle);
 
+    setParameter(PimegaMedipixChip, 0);
+    setParameter(PimegaMedipixBoard, 0);
+
     getDacsValues();
 }
 
 void pimegaDetector::getDacsValues(void)
 {
-    
-    Get_All_DACs(pimega);
+    int chip_id = 0;
+    int mfb = 0;
+    getParameter(PimegaMedipixChip, &chip_id);
+    getParameter(PimegaMedipixBoard, &mfb);
+
+    //printf("\n\nChip ID: %i\n\n", chip_id);
+    //printf("\n\nMFB ID: %i\n\n", mfb);
+
+    Get_All_DACs(pimega, mfb, chip_id);
     setParameter(PimegaThreshold0, (int)pimega->dac_values.DAC_ThresholdEnergy0);
     setParameter(PimegaThreshold1, (int)pimega->dac_values.DAC_ThresholdEnergy1);
     setParameter(PimegaPreamp, (int)pimega->dac_values.DAC_Preamp);
@@ -834,6 +846,7 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     _efuseID = pimega->cached_result.efuseID;
     setParameter(PimegaefuseID, _efuseID);
 
+    getDacsValues();
     return asynSuccess;
 
 }

@@ -13,7 +13,7 @@ extern "C" {
 
 #define PIMEGA_SUCCESS 0
 #define PIMEGA_NAME_ERROR -1
-#define PIMEGA_PARSE_ERROR -2
+#define PIMEGA_READ_MSG_ERROR -2
 #define PIMEGA_COMMAND_FAILED -3
 #define PIMEGA_DAC_FAILED -4
 #define PIMEGA_DAC_VALUE_FAILED -5
@@ -24,6 +24,10 @@ extern "C" {
 #define PIMEGA_INVALID_IMAGE_COUNT -10
 #define	PIMEGA_OMR_FAILED -11
 #define	PIMEGA_OMR_VALUE_FAILED -12
+
+#define PIMEGA_SIZE_SEND_MSG 512
+#define PIMEGA_SIZE_READ_MSG 512
+#define PIMEGA_SIZE_RESULT 256
 
 #define PIMEGA_TIMEOUT 3000000
 #define DATA_SERVER_TIMEOUT 3000000
@@ -38,6 +42,10 @@ extern "C" {
 #define PIMEGA_MIN_BIASVOLTAGE 0
 
 #define STRUCT_SIZE 112
+
+#define SERIAL 0
+#define ETHERNET 1
+#define COMMUNICATION ETHERNET
 
 /* Backend Structs */
 enum requestTypesEnum {
@@ -362,9 +370,9 @@ enum acquireStatus{
 };
 
 typedef struct pimega_t {
-	uint8_t max_num_boards;
-	uint8_t max_num_chips;
-	int pimega_socket;
+	uint8_t max_num_boards; // MFB Boards
+	uint8_t max_num_chips;	// Chips
+	int pimega_interface;
 	int backend_socket;
 	FILE *debug_out;
 	pimega_omr omr;
@@ -438,7 +446,7 @@ int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value);
 
 // ---------------- DAC Prototypes -------------------------------------------
 int Set_DAC_Defaults(pimega_t *pimega);
-int Get_All_DACs(pimega_t *pimega);
+int Get_All_DACs(pimega_t *pimega, int mfb, int chip);
 
 int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value);
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
@@ -486,6 +494,10 @@ int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short
 void pimega_disconnect(pimega_t *pimega);
 void pimega_disconnect_backend(pimega_t *pimega);
 void pimega_delete(pimega_t *pimega);
+
+int open_serialPort(pimega_t *pimega, const char * device);
+int write_serialPort(int fd, const char *buffer, size_t size);
+int read_serialPort(pimega_t *pimega, int fd, char *buffer, size_t size);
 
 int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
 int send_initArgs(pimega_t *pimega, backend_init_args_t init_args, const char *value);
