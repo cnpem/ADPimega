@@ -45,7 +45,7 @@ extern "C" {
 
 #define SERIAL 0
 #define ETHERNET 1
-#define COMMUNICATION ETHERNET
+#define COMMUNICATION SERIAL
 
 /* Backend Structs */
 enum requestTypesEnum {

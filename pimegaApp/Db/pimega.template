@@ -258,6 +258,14 @@ record(ai, "$(P)$(R)SenseDacSel_RBV")
    	field(SCAN,  "I/O Intr")
 }
 
+record(ai, "$(P)$(R)DacOutSense_RBV") {
+	field(DESC, "Dac voltage monitor")
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DAC_OUT_SENSE")
+	field(SCAN, "5 second")
+	field(PREC, "7")
+}
+
 record(bo,"$(P)$(R)ContinuousRW") {
     field(PINI, "YES")
     field(DTYP, "asynInt32")

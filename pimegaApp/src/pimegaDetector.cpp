@@ -379,6 +379,11 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
         status = US_SensorBias_RBV(pimega);
     }
 
+    else if (function == PimegaDacOutSense){
+        status = US_ImgChipDACOUTSense_RBV(pimega);
+        *value = pimega->cached_result.dacOutput;
+    }
+
     //Other functions we call the base class method
     else {
         status = asynPortDriver::readFloat64(pasynUser, value);
@@ -550,8 +555,10 @@ void pimegaDetector::connect(const char *address, unsigned short port)
     int rc;
 
     for (i = 0; i < 5; i++) {
-        rc = pimega_connect(pimega, address, port);
-        //rc = open_serialPort(pimega, "/dev/ttyUSB0");
+        // Ethernet test
+        //rc = pimega_connect(pimega, address, port);
+        //Serial Test
+        rc = open_serialPort(pimega, "/dev/ttyUSB0");
 
         if (rc == PIMEGA_SUCCESS) return;
         epicsThreadSleep(1);
@@ -650,6 +657,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDacDiscHString,       asynParamInt32,     &PimegaDiscH);
     createParam(pimegaReadCounterString,    asynParamInt32,     &PimegaReadCounter);
     createParam(pimegaSenseDacSelString,    asynParamInt32,     &PimegaSenseDacSel);
+    createParam(pimegaDacOutSenseString,    asynParamFloat64,   &PimegaDacOutSense);
     createParam(pimegaBackendBufferString,  asynParamInt32,     &PimegaBackBuffer);
     createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
 
@@ -718,8 +726,8 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaBackBuffer, 0);
     setParameter(ADImageMode, ADImageSingle);
 
-    setParameter(PimegaMedipixChip, 0);
-    setParameter(PimegaMedipixBoard, 0);
+    setParameter(PimegaMedipixChip, 11);
+    setParameter(PimegaMedipixBoard, 2);
 
     getDacsValues();
 }
@@ -731,7 +739,7 @@ void pimegaDetector::getDacsValues(void)
     getParameter(PimegaMedipixChip, &chip_id);
     getParameter(PimegaMedipixBoard, &mfb);
 
-    //printf("\n\nChip ID: %i\n\n", chip_id);
+    printf("\n\nChip ID: %i\n\n", chip_id);
     //printf("\n\nMFB ID: %i\n\n", mfb);
 
     Get_All_DACs(pimega, mfb, chip_id);
@@ -1058,9 +1066,9 @@ asynStatus pimegaDetector::senseDacSel(u_int8_t dac)
 
 asynStatus pimegaDetector::imageMode(u_int8_t mode)
 {
-    int rc;
-    rc = US_ImageMode(pimega, (pimega_image_mode_t)mode);
-    if (rc != PIMEGA_SUCCESS) return asynError;
+    //int rc;
+    //rc = US_ImageMode(pimega, (pimega_image_mode_t)mode);
+    //if (rc != PIMEGA_SUCCESS) return asynError;
     
     setParameter(ADImageMode, mode);
     return asynSuccess;

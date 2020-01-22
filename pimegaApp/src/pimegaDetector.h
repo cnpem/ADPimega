@@ -91,6 +91,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaResetString               "RESET"
 #define pimegaReadCounterString         "READ_COUNTER"
 #define pimegaSenseDacSelString         "SENSE_DAC_SEL"
+#define pimegaDacOutSenseString         "DAC_OUT_SENSE"
 #define pimegaBackendBufferString       "BACK_BUFFER"
 #define pimegaSensorBiasString          "SENSOR_BIAS"
 
@@ -154,6 +155,7 @@ protected:
     int PimegaTpRefB;
     int PimegaReadCounter;
     int PimegaSenseDacSel;
+    int PimegaDacOutSense;
     int PimegaBackBuffer;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
