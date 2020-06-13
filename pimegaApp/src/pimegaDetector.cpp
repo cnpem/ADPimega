@@ -375,13 +375,14 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     }
 
     else if (function == PimegaSensorBias){
-        printf("test proc");
         status = US_SensorBias_RBV(pimega);
+        *value = pimega->pimegaParam.bias_voltage;
+        setParameter(PimegaSensorBias, *value);
     }
 
     else if (function == PimegaDacOutSense){
         status = US_ImgChipDACOUTSense_RBV(pimega);
-        *value = pimega->cached_result.dacOutput;
+        *value = pimega->pimegaParam.dacOutput;
     }
 
     //Other functions we call the base class method
@@ -556,9 +557,9 @@ void pimegaDetector::connect(const char *address, unsigned short port)
 
     for (i = 0; i < 5; i++) {
         // Ethernet test
-        //rc = pimega_connect(pimega, address, port);
+        rc = pimega_connect(pimega, 0, address, port);
         //Serial Test
-        rc = open_serialPort(pimega, "/dev/ttyUSB0");
+        //rc = open_serialPort(pimega, "/dev/ttyUSB0");
 
         if (rc == PIMEGA_SUCCESS) return;
         epicsThreadSleep(1);
@@ -673,8 +674,6 @@ void pimegaDetector::setDefaults(void)
     int maxSizeX = 16;
     int maxSizeY = 16;
 
-    //Set_DAC_Defaults(pimega);
-
     setParameter(ADMaxSizeX, maxSizeX);
     setParameter(ADMaxSizeY, maxSizeY);
     setParameter(ADSizeX, maxSizeX);
@@ -726,7 +725,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaBackBuffer, 0);
     setParameter(ADImageMode, ADImageSingle);
 
-    setParameter(PimegaMedipixChip, 11);
+    setParameter(PimegaMedipixChip, 1);
     setParameter(PimegaMedipixBoard, 2);
 
     getDacsValues();
@@ -734,36 +733,35 @@ void pimegaDetector::setDefaults(void)
 
 void pimegaDetector::getDacsValues(void)
 {
-    int chip_id = 0;
-    int mfb = 0;
+    int chip_id;
+    int mfb;
     getParameter(PimegaMedipixChip, &chip_id);
     getParameter(PimegaMedipixBoard, &mfb);
 
     printf("\n\nChip ID: %i\n\n", chip_id);
-    //printf("\n\nMFB ID: %i\n\n", mfb);
 
-    Get_All_DACs(pimega, mfb, chip_id);
-    setParameter(PimegaThreshold0, (int)pimega->dac_values.DAC_ThresholdEnergy0);
-    setParameter(PimegaThreshold1, (int)pimega->dac_values.DAC_ThresholdEnergy1);
-    setParameter(PimegaPreamp, (int)pimega->dac_values.DAC_Preamp);
-    setParameter(PimegaIkrum, (int)pimega->dac_values.DAC_IKrum);
-    setParameter(PimegaShaper, (int)pimega->dac_values.DAC_Shaper);
-    setParameter(PimegaDisc, (int)pimega->dac_values.DAC_Disc);
-    setParameter(PimegaDiscLS, (int)pimega->dac_values.DAC_DiscLS);
-    //setParameter(PimegaShaperTest, pimega->dac_values.DAC_ShaperTest)
-    setParameter(PimegaDiscL, (int)pimega->dac_values.DAC_DiscL);
-    setParameter(PimegaDelay, (int)pimega->dac_values.DAC_Delay);
-    setParameter(PimegaTpBufferIn, (int)pimega->dac_values.DAC_TPBufferIn);
-    setParameter(PimegaTpBufferOut, (int)pimega->dac_values.DAC_TPBufferOut);
-    setParameter(PimegaRpz, (int)pimega->dac_values.DAC_RPZ);
-    setParameter(PimegaGnd, (int)pimega->dac_values.DAC_GND);
-    setParameter(PimegaTpRef, (int)pimega->dac_values.DAC_TPRef);
-    setParameter(PimegaFbk, (int)pimega->dac_values.DAC_FBK);
-    setParameter(PimegaCas, (int)pimega->dac_values.DAC_CAS);
-    setParameter(PimegaTpRefA, (int)pimega->dac_values.DAC_TPRefA);
-    setParameter(PimegaTpRefB, (int)pimega->dac_values.DAC_TPRefB);
-    //setParameter(PimegaShaperTest, pimega->dac_values.DAC_Test);
-    setParameter(PimegaDiscH,(int)pimega->dac_values.DAC_DiscH);
+    get_dacs_values(pimega, chip_id);
+    setParameter(PimegaThreshold0, (int)pimega->digital_dac_values[DAC_ThresholdEnergy0]);
+    setParameter(PimegaThreshold1, (int)pimega->digital_dac_values[DAC_ThresholdEnergy1]);
+    setParameter(PimegaPreamp, (int)pimega->digital_dac_values[DAC_Preamp]);
+    setParameter(PimegaIkrum, (int)pimega->digital_dac_values[DAC_IKrum]);
+    setParameter(PimegaShaper, (int)pimega->digital_dac_values[DAC_Shaper]);
+    setParameter(PimegaDisc, (int)pimega->digital_dac_values[DAC_Disc]);
+    setParameter(PimegaDiscLS, (int)pimega->digital_dac_values[DAC_DiscLS]);
+    //setParameter(PimegaShaperTest, pimega->digital_dac_values[DAC_ShaperTest])
+    setParameter(PimegaDiscL, (int)pimega->digital_dac_values[DAC_DiscL]);
+    setParameter(PimegaDelay, (int)pimega->digital_dac_values[DAC_Delay]);
+    setParameter(PimegaTpBufferIn, (int)pimega->digital_dac_values[DAC_TPBufferIn]);
+    setParameter(PimegaTpBufferOut, (int)pimega->digital_dac_values[DAC_TPBufferOut]);
+    setParameter(PimegaRpz, (int)pimega->digital_dac_values[DAC_RPZ]);
+    setParameter(PimegaGnd, (int)pimega->digital_dac_values[DAC_GND]);
+    setParameter(PimegaTpRef, (int)pimega->digital_dac_values[DAC_TPRef]);
+    setParameter(PimegaFbk, (int)pimega->digital_dac_values[DAC_FBK]);
+    setParameter(PimegaCas, (int)pimega->digital_dac_values[DAC_CAS]);
+    setParameter(PimegaTpRefA, (int)pimega->digital_dac_values[DAC_TPRefA]);
+    setParameter(PimegaTpRefB, (int)pimega->digital_dac_values[DAC_TPRefB]);
+    //setParameter(PimegaShaperTest, pimega->digital_dac_values[DAC_Test]);
+    setParameter(PimegaDiscH,(int)pimega->digital_dac_values[DAC_DiscH]);
 }
 
 void pimegaDetector::report(FILE *fp, int details)
@@ -851,11 +849,11 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     /* Get e-fuseID from selected chip_id */
     rc = US_efuseID_RBV(pimega);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    _efuseID = pimega->cached_result.efuseID;
+    _efuseID = pimega->pimegaParam.efuseID;
     setParameter(PimegaefuseID, _efuseID);
 
     getDacsValues();
-    return asynSuccess;
+    return asynSuccess;   
 
 }
 

@@ -9,8 +9,8 @@ pimegaApp_registerRecordDeviceDriver(pdbbase)
 epicsEnvSet("PREFIX", "SOL7:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
-# The detector model (0:mobipix; 1:pimega540D)
-epicsEnvSet("DMODEL", "1");
+# The detector model (0:mobipix; 1:pimega45D; 2:pimega135D; 3:pimega540D)
+epicsEnvSet("DMODEL", "2");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
@@ -24,10 +24,11 @@ epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
 epicsEnvSet("CBUFFS", "500")
 # The IP address of the Pimega system
-epicsEnvSet("PIMEGA_IP", "127.0.0.1")
+#epicsEnvSet("PIMEGA_IP", "127.0.0.1")
 #epicsEnvSet("PIMEGA_IP", "10.0.27.46")
 #epicsEnvSet("PIMEGA_IP", "10.2.101.61") 
 #epicsEnvSet("PIMEGA_IP", "143.106.167.170")
+epicsEnvSet("PIMEGA_IP", "10.255.255.2")
 # The IP port for the command socket
 epicsEnvSet("PIMEGA_PORT", "60000")
 # The search path for database files

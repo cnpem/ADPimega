@@ -112,9 +112,6 @@ record(ao, "$(P)$(R)SensorBias") {
 	field(DESC, "Sensor Bias Voltage")
 	field(DTYP, "asynFloat64")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS")
-	field(VAL, "85")
-	field(PINI, "YES")
-
 }
 
 record(ai, "$(P)$(R)SensorBias_RBV") {
@@ -263,7 +260,7 @@ record(ai, "$(P)$(R)DacOutSense_RBV") {
 	field(DTYP, "asynFloat64")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DAC_OUT_SENSE")
 	field(SCAN, "5 second")
-	field(PREC, "7")
+	field(PREC, "8")
 }
 
 record(bo,"$(P)$(R)ContinuousRW") {

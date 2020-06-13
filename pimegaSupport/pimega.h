@@ -38,14 +38,17 @@ extern "C" {
 #define PIMEGA_MAX_TEMPERATURE 120
 #define PIMEGA_MIN_TEMPERATURE 20
 
+#define PIMEGA_BIASVOLTAGE 60.0
 #define PIMEGA_MAX_BIASVOLTAGE 100.0
 #define PIMEGA_MIN_BIASVOLTAGE 0
+
+#define DAC_
 
 #define STRUCT_SIZE 112
 
 #define SERIAL 0
 #define ETHERNET 1
-#define COMMUNICATION SERIAL
+#define COMMUNICATION ETHERNET
 
 /* Backend Structs */
 enum requestTypesEnum {
@@ -113,7 +116,7 @@ typedef enum backend_init_args_t{
 } backend_init_args_t;
 
 typedef enum pimega_detector_model_t{
-	mobipix, pimega540D
+	mobipix = 0, pimega45D, pimega135D, pimega540D,
 } pimega_detector_model_t;
 
 typedef enum pimega_operation_mode_t {
@@ -211,7 +214,13 @@ typedef enum pimega_omr_t {
 typedef enum pimega_dac_t {
     DAC_ThresholdEnergy0=1,     //1
     DAC_ThresholdEnergy1,       //2
-    DAC_Preamp=9,               //9
+	DAC_ThresholdEnergy2,		//3
+	DAC_ThresholdEnergy3,		//4
+	DAC_ThresholdEnergy4,		//5
+	DAC_ThresholdEnergy5,       //6
+	DAC_ThresholdEnergy6,		//7
+	DAC_ThresholdEnergy7,		//8
+    DAC_Preamp,					//9
     DAC_IKrum,                  //10
     DAC_Shaper,                 //11
     DAC_Disc,                   //12
@@ -228,34 +237,14 @@ typedef enum pimega_dac_t {
     DAC_CAS,                    //23
     DAC_TPRefA,                 //24
     DAC_TPRefB,                 //25
-    DAC_Test=30,                //30
+	DAC_BandGapOutput,
+	DAC_BandGapTemperature,
+	DAC_DACBias,
+	DAC_DACCascodeBias,
+    DAC_Test,					//30
     DAC_DiscH,                  //31
 	DAC_ENUM_END,
 } pimega_dac_t;
-
-typedef struct pimega_dac_values_t {
-    unsigned DAC_ThresholdEnergy0;
-	unsigned DAC_ThresholdEnergy1;
-    unsigned DAC_Preamp;
-    unsigned DAC_IKrum;
-    unsigned DAC_Shaper;
-    unsigned DAC_Disc;
-    unsigned DAC_DiscLS;
-    unsigned DAC_ShaperTest;
-    unsigned DAC_DiscL;
-    unsigned DAC_Delay;
-    unsigned DAC_TPBufferIn;
-	unsigned DAC_TPBufferOut;
-    unsigned DAC_RPZ;
-    unsigned DAC_GND;
-    unsigned DAC_TPRef;
-    unsigned DAC_FBK;
-	unsigned DAC_CAS;
-    unsigned DAC_TPRefA;
-	unsigned DAC_TPRefB;
-    unsigned DAC_Test;
-	unsigned DAC_DiscH;
-} pimega_dac_values_t;
 
 
 typedef enum pimega_trigger_mode_t {
@@ -315,12 +304,12 @@ typedef enum pimega_test_pulse_pattern_t {
 	PIMEGA_TEST_PULSE_ODD_COLUMNS,
 } pimega_test_pulse_pattern_t;
 
-typedef struct pimega_operation_register_t {
+typedef struct pimega_params_t {
 	pimega_detector_model_t detModel;
 	pimega_dac_t dac;							//US_Set/Get DAC
 	pimega_trigger_mode_t trigger_mode;			//US_TriggerMode
 	bool discard_data;							//US_DiscardData
-	float bias_voltage;
+	float bias_voltage;							//US_SensorBias_RBV
 	float temperature;
 	float actual_temperature;
 	pimega_read_counter_t read_counter;
@@ -331,7 +320,7 @@ typedef struct pimega_operation_register_t {
 	uint16_t sensorPos;							//US_ImgChipNumberID
 	float extBgIn;								//US_ImgChip_ExtBgIN
 	float dacOutput;							//US_ImgChipDACOUTSense_RBV
-} pimega_operation_register_t;
+} pimega_params_t;
 
 typedef struct pimega_omr {
 	pimega_operation_mode_t operation_mode;		//US_OmrOMSelec
@@ -369,22 +358,43 @@ enum acquireStatus{
     STOPPED = 4,
 };
 
+enum moduleLoc{
+    UP_LT = 0,
+    UP_RT = 1,
+    LW_LT = 2,
+    LW_RT = 3,
+    ALL   = 4,
+    SINGLE = 5,
+};
+
+typedef struct chip {
+    enum moduleLoc module;
+    int mfb;
+    int chipid;
+} chip;
+
+extern struct chip decoder540D[144];
+
 typedef struct pimega_t {
-	uint8_t max_num_boards; // MFB Boards
-	uint8_t max_num_chips;	// Chips
+	uint8_t max_num_modules; // Modules (135D)
+	uint8_t max_num_boards;  // MFB Boards
+	uint8_t max_num_chips;	 // Chips
 	int pimega_interface;
+	int fd[4];
 	int backend_socket;
 	FILE *debug_out;
 	pimega_omr omr;
-	pimega_operation_register_t cached_result;
+	pimega_params_t pimegaParam;
 	pimega_acquire_params_t acquireParam;
-	pimega_dac_values_t dac_values;
+	int digital_dac_values[DAC_ENUM_END];
+	float analog_dac_values[DAC_ENUM_END];
 	char file_template[PIMEGA_MAX_FILE_NAME];
 	initArgs init_args;
 	simpleArgs ack;
     simpleArgs req_args;
     acqArgs acq_args;
     acqStatusArgs acq_status_return;
+	chip chip_pos;
 } pimega_t;
 
 
@@ -446,7 +456,9 @@ int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value);
 
 // ---------------- DAC Prototypes -------------------------------------------
 int Set_DAC_Defaults(pimega_t *pimega);
-int Get_All_DACs(pimega_t *pimega, int mfb, int chip);
+int get_dacs_values(pimega_t *pimega, int chip_id);
+int get_digital_dac_value(pimega_t *pimega, pimega_dac_t dac);
+float get_analog_dac_value(pimega_t *pimega, pimega_dac_t dac);
 
 int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value);
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
@@ -489,7 +501,7 @@ int US_TemperatureActual(pimega_t *pimega);
 int US_DiscardData(pimega_t *pimega, bool discard_data);
 int US_DiscardData_RBV(pimega_t *pimega);
 
-int pimega_connect(pimega_t *pimega, const char *address, unsigned short port);
+int pimega_connect(pimega_t *pimega, int fd, const char *address, unsigned short port);
 int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short port);
 void pimega_disconnect(pimega_t *pimega);
 void pimega_disconnect_backend(pimega_t *pimega);
