@@ -623,7 +623,7 @@ void pimegaDetector::getParameter(int index, double *value)
 
 void pimegaDetector::createParameters(void)
 {
-    createParam(pimegaefuseIDString,        asynParamFloat64,   &PimegaefuseID);
+    createParam(pimegaefuseIDString,        asynParamOctet,     &PimegaefuseID);
     createParam(pimegaOmrOPModeString,      asynParamInt32,     &PimegaOmrOPMode);
     createParam(pimegaMedipixBoardString,   asynParamInt32,     &PimegaMedipixBoard);
     createParam(pimegaMedipixChipString,    asynParamInt32,     &PimegaMedipixChip);
@@ -837,14 +837,15 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
 {
     int rc;
     int OmrOp;
-    epicsFloat64 _efuseID;
+    char *_efuseID;
 
-    rc = US_ImgChipNumberID(pimega, chip_id);
+    rc = select_chipNumber(pimega, chip_id);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid number of medipix chip ID: %s\n", pimega_error_string(rc));
         return asynError;
     }
     setParameter(PimegaMedipixChip, chip_id);
+    setParameter(PimegaMedipixBoard, pimega->chip_pos.mfb);
 
     /* Get e-fuseID from selected chip_id */
     rc = US_efuseID_RBV(pimega);

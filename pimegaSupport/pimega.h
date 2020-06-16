@@ -39,6 +39,8 @@ extern "C" {
 #define PIMEGA_MIN_TEMPERATURE 20
 
 #define PIMEGA_BIASVOLTAGE 60.0
+#define PIMEGA_BIAS_STEP 1.0
+#define PIMEGA_BIAS_DELAY 0.1
 #define PIMEGA_MAX_BIASVOLTAGE 100.0
 #define PIMEGA_MIN_BIASVOLTAGE 0
 
@@ -314,7 +316,7 @@ typedef struct pimega_params_t {
 	float actual_temperature;
 	pimega_read_counter_t read_counter;
 	pimega_image_mode_t image_mode;
-	uint32_t efuseID;
+	char efuseID[8];
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
 	uint16_t sensorPos;							//US_ImgChipNumberID
@@ -474,7 +476,7 @@ int US_CascodeBias_RBV(pimega_t *pimega);
 
 
 
-
+int set_sensorBias(pimega_t *pimega, float voltage);
 int US_SensorBias(pimega_t *pimega, float bias_voltage);
 int US_SensorBias_RBV(pimega_t *pimega);
 
@@ -519,6 +521,8 @@ int send_acqArgs_toBackend(pimega_t *pimega);
 int get_acqStatus_fromBackend(pimega_t *pimega);
 int get_filesReady_fromBackend(pimega_t *pimega);
 int send_stopAcquire_toBackend(pimega_t *pimega);
+
+int select_chipNumber(pimega_t *pimega, int chip_id);
 
 int executeAcquire(pimega_t *pimega);
 int statusAcquire(pimega_t *pimega);
