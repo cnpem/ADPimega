@@ -340,6 +340,14 @@ typedef struct pimega_omr {
 } pimega_omr;
 
 
+typedef enum acquire_status_t{
+	IDLE = 0,
+    DONE_ACQ = 1,
+	ACQUIRING = 2,
+	BUFFER_OVERFLOW = 3,
+    STOPPED = 4,
+} acquire_status_t;
+
 typedef struct pimega_acquire_params_t {
 	unsigned numImages;						//US_NumImages
 	uint32_t numImagesCounter;				//US_NumImagesCounter_RBV
@@ -350,15 +358,8 @@ typedef struct pimega_acquire_params_t {
 	char detectorState[512];				//US_DetectorState_RBV
 	float timeRemaining;					//US_TimeRemaining_RBV
 	uint32_t numExposuresCounter;			//US_NumExposuresCounter_RBV
+	acquire_status_t acquireStatus;
 } pimega_acquire_params_t;
-
-enum acquireStatus{
-	IDLE = 0,
-    DONE_ACQ = 1,
-	ACQUIRING = 2,
-	BUFFER_OVERFLOW = 3,
-    STOPPED = 4,
-};
 
 enum moduleLoc{
     UP_LT = 0,
@@ -474,8 +475,6 @@ int US_BandGapOutput_RBV(pimega_t *pimega);
 int US_BandGapTemperature_RBV(pimega_t *pimega);
 int US_CascodeBias_RBV(pimega_t *pimega);
 
-
-
 int set_sensorBias(pimega_t *pimega, float voltage);
 int US_SensorBias(pimega_t *pimega, float bias_voltage);
 int US_SensorBias_RBV(pimega_t *pimega);
@@ -524,8 +523,8 @@ int send_stopAcquire_toBackend(pimega_t *pimega);
 
 int select_chipNumber(pimega_t *pimega, int chip_id);
 
-int executeAcquire(pimega_t *pimega);
-int statusAcquire(pimega_t *pimega);
+int execute_acquire(pimega_t *pimega);
+int status_acquire(pimega_t *pimega);
 
 
 const char *pimega_error_string(int error);

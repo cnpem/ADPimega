@@ -100,14 +100,6 @@ record(ao, "$(P)$(R)AcquireTime")
 
 
 #e-Fuse chip ID
-#record(ai, "$(P)$(R)eFuseID_RBV")
-#{
-#	field(DTYP, "asynFloat64")
-#    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EFUSE_ID")
-#    field(SCAN, "I/O Intr")
-#}
-
-#e-Fuse chip ID
 record(waveform, "$(P)$(R)eFuseID_RBV")
 {
     field(DTYP, "asynOctetRead")

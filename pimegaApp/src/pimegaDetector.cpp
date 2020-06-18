@@ -64,17 +64,14 @@ void pimegaDetector::acqTask()
     int acquire=0;
     NDArray *pImage;
     double acquireTime, acquirePeriod;
-    int statusParam = 0;
+    int acquireStatus = 0;
     bool bufferOverflow=0;
-
     int newImage=0;
-
     epicsTimeStamp startTime, endTime;
 
-    const char *functionName = "acqTask";
+    const char *functionName = "pimegaDetector::acqTask";
 
     this->lock();
-
     /* Loop forever */
     while (1) {
 
@@ -110,12 +107,12 @@ void pimegaDetector::acqTask()
             bufferOverflow =0;
 
             acquire = 1;
-            executeAcquire(pimega);
+            execute_acquire(pimega);
         }
 
         if (acquire) {
             // Read detector state
-            statusAcquire(pimega);
+            acquireStatus = status_acquire(pimega);
             numImagesCounter = pimega->acquireParam.numExposuresCounter;
             if (newImage != numImagesCounter)
                 {
@@ -150,9 +147,7 @@ void pimegaDetector::acqTask()
             callParamCallbacks();
         }
 
-        if ((!strcmp(pimega->acquireParam.detectorState,"Done")) && (acquire)) {
-
-
+        if (acquireStatus == DONE_ACQ && acquire) {
             generateImage();
             if (imageMode == ADImageSingle) {
                 acquire=0;
@@ -193,9 +188,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     int acquiring;
 
     getParamName(function, &paramName);
-    printf("Valor de function: %d\n", function);
-    printf("Nome da funcao: %s\n", paramName);
-    printf("Valor de value: %d\n", value);
 
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
@@ -369,7 +361,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     //}
 
     if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
-        status = US_TimeRemaining_RBV(pimega);
+        //status = US_TimeRemaining_RBV(pimega);
         //status = US_TemperatureActual(pimega);
         *value = pimega->acquireParam.timeRemaining;
     }
@@ -406,7 +398,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     }
 
     if ((function == ADNumImagesCounter) && (scanStatus == ADStatusAcquire)) {
-        US_NumExposuresCounter_RBV(pimega);
+        //US_NumExposuresCounter_RBV(pimega);
         *value = pimega->acquireParam.numExposuresCounter;
     }
 
@@ -1032,7 +1024,7 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s)
 asynStatus pimegaDetector::sensorBias(float voltage)
 {
     int rc;
-    rc = US_SensorBias(pimega, voltage);
+    rc = set_sensorBias(pimega, voltage);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid voltage value: %s\n", pimega_error_string(rc));
         return asynError;
@@ -1076,8 +1068,8 @@ asynStatus pimegaDetector::imageMode(u_int8_t mode)
 asynStatus pimegaDetector::initDebugger(int initDebug)
 {
   // Set all debugging levels to initialised value
+  debugMap_["pimegaDetector::acqTask"]                  = initDebug;
   debugMap_["pimegaDetector::pimegaDetector"]           = initDebug;
-  debugMap_["pimegaDetector::pimegaDetectorTask"]       = initDebug;
   debugMap_["pimegaDetector::readEnum"]                 = initDebug;
   debugMap_["pimegaDetector::writeInt32"]               = initDebug;
   debugMap_["pimegaDetector::writeFloat64"]             = initDebug;
@@ -1087,11 +1079,11 @@ asynStatus pimegaDetector::initDebugger(int initDebug)
 asynStatus pimegaDetector::debugLevel(const std::string& method, int onOff)
 {
   if (method == "all"){
-    debugMap_["pimegaDetector::pimegaDetector"]           = onOff;
-    debugMap_["pimegaDetector::pimegaDetectorTask"]       = onOff;
-    debugMap_["pimegaDetector::readEnum"]                 = onOff;
-    debugMap_["pimegaDetector::writeInt32"]               = onOff;
-    debugMap_["pimegaDetector::writeFloat64"]             = onOff;
+    debugMap_["pimegaDetector::acqTask"]                = onOff;
+    debugMap_["pimegaDetector::pimegaDetector"]         = onOff;
+    debugMap_["pimegaDetector::readEnum"]               = onOff;
+    debugMap_["pimegaDetector::writeInt32"]             = onOff;
+    debugMap_["pimegaDetector::writeFloat64"]           = onOff;
   } else {
     debugMap_[method] = onOff;
   }
