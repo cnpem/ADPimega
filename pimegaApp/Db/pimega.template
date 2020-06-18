@@ -261,8 +261,17 @@ record(ai, "$(P)$(R)DacOutSense_RBV") {
 	field(DESC, "Dac voltage monitor")
 	field(DTYP, "asynFloat64")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DAC_OUT_SENSE")
-	field(SCAN, "5 second")
+	field(SCAN, "I/O Intr")
 	field(PREC, "8")
+}
+
+record(waveform, "$(P)$(R)DacsOutSense_RBV") {
+	field(DESC, "Dacs voltages monitor")
+	field(NELM, "31")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DACS_OUT_SENSE")
+    field(SCAN, "I/O Intr")
 }
 
 record(bo,"$(P)$(R)ContinuousRW") {

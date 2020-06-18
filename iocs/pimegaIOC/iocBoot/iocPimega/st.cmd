@@ -24,11 +24,11 @@ epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
 epicsEnvSet("CBUFFS", "500")
 # The IP address of the Pimega system
-#epicsEnvSet("PIMEGA_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_IP", "127.0.0.1")
 #epicsEnvSet("PIMEGA_IP", "10.0.27.46")
 #epicsEnvSet("PIMEGA_IP", "10.2.101.61") 
 #epicsEnvSet("PIMEGA_IP", "143.106.167.170")
-epicsEnvSet("PIMEGA_IP", "10.255.255.2")
+#epicsEnvSet("PIMEGA_IP", "10.255.255.2")
 # The IP port for the command socket
 epicsEnvSet("PIMEGA_PORT", "60000")
 # The search path for database files

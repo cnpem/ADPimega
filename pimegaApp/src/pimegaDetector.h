@@ -50,6 +50,8 @@
 #define DIMS 2
 #define DEFAULT_POLL_TIME 2
 
+#define N_DACS_OUTS 31
+
 static const char *driverName = "pimegaDetector";
 
 #define error(fmt, ...) asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, \
@@ -92,6 +94,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaReadCounterString         "READ_COUNTER"
 #define pimegaSenseDacSelString         "SENSE_DAC_SEL"
 #define pimegaDacOutSenseString         "DAC_OUT_SENSE"
+#define pimegaDacsOutSenseString        "DACS_OUT_SENSE"
 #define pimegaBackendBufferString       "BACK_BUFFER"
 #define pimegaSensorBiasString          "SENSOR_BIAS"
 
@@ -105,6 +108,7 @@ public:
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
     virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
     virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
+    virtual asynStatus readFloat32Array(asynUser *pasynUser, epicsFloat32 *value, size_t nElements, size_t *nIn);
 
     virtual void report(FILE *fp, int details);
     virtual void acqTask(void);
@@ -156,6 +160,7 @@ protected:
     int PimegaReadCounter;
     int PimegaSenseDacSel;
     int PimegaDacOutSense;
+    int PimegaDacsOutSense;
     int PimegaBackBuffer;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
@@ -182,6 +187,8 @@ private:
     size_t dims[2];
     int itemp;
 
+    epicsFloat32 *PimegaDacsOutSense_;
+
     void panic(const char *msg);
     void connect(const char *address, unsigned short port);
     void createParameters(void);
@@ -194,6 +201,7 @@ private:
 
     void getDacsValues(void);
     void setDefaults(void);
+    asynStatus getDacsOutSense(void);
 
     asynStatus triggerMode(int trigger);
     asynStatus reset(short action);
@@ -215,6 +223,7 @@ private:
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
     asynStatus imageMode(u_int8_t mode);
+
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)

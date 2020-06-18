@@ -343,7 +343,34 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     return((asynStatus)status);
 }
 
+asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *value, size_t nElements, size_t *nIn)
+{
+    int function = pasynUser->reason;
+    int addr;
+    int numPoints = N_DACS_OUTS;
+    epicsFloat32 *inPtr;
+    const char *paramName;
+    static const char *functionName = "pimegaDetector::readFloat32Array";
 
+    this->getAddress(pasynUser, &addr);
+ 
+    if(function == PimegaDacsOutSense)
+    {
+        inPtr = PimegaDacsOutSense_;
+    }
+    else {
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+            "%s:%s: ERROR: unknown function=%d\n",
+            driverName, functionName, function);
+        return asynError;
+    }
+
+    *nIn = nElements;
+    if (*nIn > (size_t) numPoints) *nIn = (size_t) numPoints;
+        memcpy(value, inPtr, *nIn*sizeof(epicsFloat32)); 
+
+    return asynSuccess;
+}
 
 asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 {
@@ -450,10 +477,10 @@ pimegaDetector::pimegaDetector(const char *portName,
 
 
        : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
-                asynInt32ArrayMask | asynFloat64ArrayMask
-                        | asynGenericPointerMask | asynInt16ArrayMask,
-                asynInt32ArrayMask | asynFloat64ArrayMask
-                        | asynGenericPointerMask | asynInt16ArrayMask,
+                asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask
+                    | asynGenericPointerMask | asynInt16ArrayMask,
+                asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask
+                    | asynGenericPointerMask | asynInt16ArrayMask,
                 ASYN_CANBLOCK, 1, /* ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0, autoConnect=1 */
                 priority, stackSize),
 
@@ -467,6 +494,9 @@ pimegaDetector::pimegaDetector(const char *portName,
     pimega_image = (uint32_t*)malloc(p_imageSize * sizeof(uint32_t));
     // initialize random seed:
     srand (time(NULL));
+
+    //Alocate memory for PimegaDacsOutSense_
+    PimegaDacsOutSense_ = (epicsFloat32 *)calloc(N_DACS_OUTS, sizeof(epicsFloat32));
 
     // Initialise the debugger
     initDebugger(1);
@@ -653,6 +683,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDacOutSenseString,    asynParamFloat64,   &PimegaDacOutSense);
     createParam(pimegaBackendBufferString,  asynParamInt32,     &PimegaBackBuffer);
     createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
+    createParam(pimegaDacsOutSenseString,   asynParamFloat32Array, &PimegaDacsOutSense);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -754,6 +785,8 @@ void pimegaDetector::getDacsValues(void)
     setParameter(PimegaTpRefB, (int)pimega->digital_dac_values[DAC_TPRefB]);
     //setParameter(PimegaShaperTest, pimega->digital_dac_values[DAC_Test]);
     setParameter(PimegaDiscH,(int)pimega->digital_dac_values[DAC_DiscH]);
+
+    getDacsOutSense();
 }
 
 void pimegaDetector::report(FILE *fp, int details)
@@ -839,7 +872,7 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     setParameter(PimegaMedipixChip, chip_id);
     setParameter(PimegaMedipixBoard, pimega->chip_pos.mfb);
 
-    /* Get e-fuseID from selected chip_id */
+    /* Get e-fuseID from selected chip_id */ 
     rc = US_efuseID_RBV(pimega);
     if (rc != PIMEGA_SUCCESS) return asynError;
     _efuseID = pimega->pimegaParam.efuseID;
@@ -1052,6 +1085,16 @@ asynStatus pimegaDetector::senseDacSel(u_int8_t dac)
     }
 
     setParameter(PimegaSenseDacSel, dac);
+    return asynSuccess;
+}
+
+asynStatus pimegaDetector::getDacsOutSense(void)
+{
+    for (int i=0; i<N_DACS_OUTS; i++) {
+        PimegaDacsOutSense_[i] = (epicsFloat32)(pimega->analog_dac_values[i+1]);
+    }
+    doCallbacksFloat32Array(PimegaDacsOutSense_, N_DACS_OUTS, PimegaDacsOutSense, 0);
+
     return asynSuccess;
 }
 
