@@ -106,8 +106,9 @@ void pimegaDetector::acqTask()
             callParamCallbacks();
             bufferOverflow =0;
 
+            startAcquire();
             acquire = 1;
-            execute_acquire(pimega);
+
         }
 
         if (acquire) {
@@ -216,6 +217,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |=  numExposures(value);
     else if (function == PimegaReset)
         status |=  reset(value);
+    else if (function == PimegaMedipixMode)
+        status |= medipixMode(value);
     //else if (function == ADTriggerMode)
     //    status |=  triggerMode(value);
     //else if (function == PimegaMedipixBoard)
@@ -421,7 +424,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     getParameter(ADStatus,&scanStatus);
 
     if ((function == PimegaBackBuffer) && (scanStatus == ADStatusAcquire)) {
-        *value = pimega->acq_status_return.bufferUsed;
+        //*value = static_cast<int>(pimega->acq_status_return.bufferUsed);
     }
 
     if ((function == ADNumImagesCounter) && (scanStatus == ADStatusAcquire)) {
@@ -520,7 +523,6 @@ pimegaDetector::pimegaDetector(const char *portName,
     pimega = pimega_new(detModel);
     if (pimega) debug(functionName, "Pimega Object created!");
 
-    //pimega_connect_backend(pimega, "127.0.0.1", 5412);
     connect(address, port);
     //pimega->debug_out = fopen("log.txt", "w+");
     //report(pimega->debug_out, 1);
@@ -575,14 +577,15 @@ void pimegaDetector::panic(const char *msg)
 void pimegaDetector::connect(const char *address, unsigned short port)
 {
     unsigned i;
-    int rc;
+    int rc = 0;
 
     for (i = 0; i < 5; i++) {
         // Ethernet test
-        rc = pimega_connect(pimega, 0, address, port);
+        rc |= pimega_connect(pimega, 0, address, port);
         //Serial Test
         //rc = open_serialPort(pimega, "/dev/ttyUSB0");
 
+        rc |= pimega_connect_backend(pimega, "127.0.0.1", 5412);
         if (rc == PIMEGA_SUCCESS) return;
         epicsThreadSleep(1);
     }
@@ -645,6 +648,7 @@ void pimegaDetector::getParameter(int index, double *value)
 
 void pimegaDetector::createParameters(void)
 {
+    createParam(pimegaMedipixModeString,    asynParamInt32,     &PimegaMedipixMode);
     createParam(pimegaefuseIDString,        asynParamOctet,     &PimegaefuseID);
     createParam(pimegaOmrOPModeString,      asynParamInt32,     &PimegaOmrOPMode);
     createParam(pimegaMedipixBoardString,   asynParamInt32,     &PimegaMedipixBoard);
@@ -682,6 +686,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaSenseDacSelString,    asynParamInt32,     &PimegaSenseDacSel);
     createParam(pimegaDacOutSenseString,    asynParamFloat64,   &PimegaDacOutSense);
     createParam(pimegaBackendBufferString,  asynParamInt32,     &PimegaBackBuffer);
+    createParam(pimegaResetRDMABufferString,asynParamInt32,     &PimegaResetRDMABuffer);
     createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
     createParam(pimegaDacsOutSenseString,   asynParamFloat32Array, &PimegaDacsOutSense);
 
@@ -803,6 +808,23 @@ void pimegaDetector::report(FILE *fp, int details)
     ADDriver::report(fp, details);
 }
 
+asynStatus pimegaDetector::startAcquire()
+{
+    int rc;
+    int autoSave;
+    int resetRDMA;
+    char fullFileName[MAX_FILENAME_LEN];
+    
+    /* Create the full filename */
+    createFileName(sizeof(fullFileName), fullFileName);
+    rc = set_file_name_template(pimega, fullFileName);
+
+    getParameter(NDAutoSave,&autoSave);
+    getParameter(PimegaResetRDMABuffer, &resetRDMA);
+    update_backend_acqArgs(pimega, false, autoSave, resetRDMA, 1, 5);
+    execute_acquire(pimega);
+}
+
 asynStatus pimegaDetector::triggerMode(int trigger)
 {
     int rc;
@@ -854,8 +876,19 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
 
     setParameter(PimegaMedipixBoard, board_id);
     return asynSuccess;
+}
 
+asynStatus pimegaDetector::medipixMode(uint8_t mode)
+{
+    int rc;
+    rc = set_medipix_mode(pimega, (pimega_medipix_mode_t)mode);
+    if (rc != PIMEGA_SUCCESS) {
+        error("Invalid Medipix Mode: %s\n", pimega_error_string(rc));
+        return asynError;
+    }
+    setParameter(PimegaMedipixMode, mode);
 
+    return asynSuccess;   
 }
 
 asynStatus pimegaDetector::imgChipID(uint8_t chip_id)

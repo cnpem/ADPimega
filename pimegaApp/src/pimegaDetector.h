@@ -37,9 +37,7 @@
 // pimega lib includes
 #include <pimega.h>
 
-/** Messages to/from Labview command channel */
-#define MAX_MESSAGE_SIZE 256
-#define MAX_FILENAME_LEN 256
+#define MAX_FILENAME_LEN 300
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from Labview */
 #define ASYN_POLL_TIME .01
@@ -57,7 +55,7 @@ static const char *driverName = "pimegaDetector";
 #define error(fmt, ...) asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, \
         "%s:%d " fmt, __FILE__, __LINE__, __VA_ARGS__)
                                   
-
+#define pimegaMedipixModeString         "MEDIPIX_MODE"
 #define pimegaefuseIDString             "EFUSE_ID"
 #define pimegaOmrOPModeString           "OMR_OP_MODE"
 #define pimegaMedipixBoardString        "MEDIPIX_BOARD"
@@ -96,6 +94,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDacOutSenseString         "DAC_OUT_SENSE"
 #define pimegaDacsOutSenseString        "DACS_OUT_SENSE"
 #define pimegaBackendBufferString       "BACK_BUFFER"
+#define pimegaResetRDMABufferString     "RESET_RDMA_BUFFER"
 #define pimegaSensorBiasString          "SENSOR_BIAS"
 
 class pimegaDetector: public ADDriver
@@ -125,6 +124,7 @@ public:
 protected:
     int PimegaReset;
     #define FIRST_PIMEGA_PARAM PimegaReset
+    int PimegaMedipixMode;
     int PimegaefuseID;
     int PimegaOmrOPMode;
     int PimegaMedipixBoard;
@@ -162,6 +162,7 @@ protected:
     int PimegaDacOutSense;
     int PimegaDacsOutSense;
     int PimegaBackBuffer;
+    int PimegaResetRDMABuffer;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -202,7 +203,9 @@ private:
     void getDacsValues(void);
     void setDefaults(void);
     asynStatus getDacsOutSense(void);
+    asynStatus startAcquire();
 
+    asynStatus medipixMode(uint8_t mode);
     asynStatus triggerMode(int trigger);
     asynStatus reset(short action);
     asynStatus setDACValue(pimega_dac_t dac, int value, int parameter);

@@ -16,6 +16,7 @@
 ##  gdatag, template, pimega, $(PORT)_pimega, pimega detector
 
 include "ADBase.template"
+include "NDFile.template"
 
 ##########################################################################
 # Disable records from ADBase etc. that we do not use for pimega
@@ -98,6 +99,31 @@ record(ao, "$(P)$(R)AcquireTime")
 	field(DRVL, "1e-6")
 }
 
+#Medipix Acquire Mode
+record(mbbo, "$(P)$(R)MedipixMode") {
+	field(DESC, "Medipix Acquire Mode")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_MODE")
+	field(ZRST, "Default")        			field(ZRVL, "0")
+	field(ONST, "Precision Counting Mode")	field(ONVL, "1")
+	field(TWST, "Dual Energy")         		field(TWVL, "2")
+	field(THST, "Continuous Read Write")	field(THVL, "3")
+	field(FRST, "Full Dynamic Range")   	field(FRVL, "4")
+	field(VAL, 	"0")
+	field(PINI, "YES")
+}
+
+record(mbbi, "$(P)$(R)MedipixMode_RBV") {
+	field(DESC, "Medipix Acquire Mode Readback")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_MODE")
+	field(ZRST, "Default")        			field(ZRVL, "0")
+	field(ONST, "Precision Counting Mode")	field(ONVL, "1")
+	field(TWST, "Dual Energy")         		field(TWVL, "2")
+	field(THST, "Continuous Read Write")	field(THVL, "3")
+	field(FRST, "Full Dynamic Range")   	field(FRVL, "4")
+	field(SCAN, "I/O Intr")
+}
 
 #e-Fuse chip ID
 record(waveform, "$(P)$(R)eFuseID_RBV")
@@ -770,4 +796,22 @@ record(ai, "$(P)$(R)Backend_BufferUsed_RBV")
 	field(SCAN, ".1 second")
 	field(DESC, "Backend buffer used")
 	field(EGU, "%")
+}
+
+record(bo, "$(P)$(R)Reset_RDMA_Buffer") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_RDMA_BUFFER")
+    field(DESC, "Backend Reset RDMA Buffer")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(VAL,  "0")
+}
+
+record(bi, "$(P)$(R)Reset_RDMA_Buffer_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_RDMA_BUFFER")
+    field(DESC, "Backend Reset RDMA Buffer")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(SCAN, "I/O Intr")
 }

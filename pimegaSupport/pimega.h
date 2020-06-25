@@ -31,7 +31,7 @@ extern "C" {
 
 #define PIMEGA_TIMEOUT 3000000
 #define DATA_SERVER_TIMEOUT 3000000
-#define PIMEGA_MAX_FILE_NAME 100
+#define PIMEGA_MAX_FILE_NAME 300
 
 #define PIMEGA_MIN_GAP 2e-5f
 
@@ -44,78 +44,115 @@ extern "C" {
 #define PIMEGA_MAX_BIASVOLTAGE 100.0
 #define PIMEGA_MIN_BIASVOLTAGE 0
 
-#define DAC_
-
-#define STRUCT_SIZE 112
-
 #define SERIAL 0
 #define ETHERNET 1
 #define COMMUNICATION ETHERNET
 
-/* Backend Structs */
+
+//TODO: Put this struct in another file 
+/* Backend Structs*/
+
+#define STRUCT_SIZE 400
+#define MODULE1 0
+#define MODULE2 1
+#define MODULE3 2
+#define MODULE4 3
+
+
 enum requestTypesEnum {
     INIT_ARGS = 0,
     ACQUIRE_ARGS = 1,
     ACQUIRE_STATUS = 2,
-    FILES_READY = 3,
-    STOP_ACQUIRE = 4,
+    SAVE_STATUS = 3,
+    STOP_ACQUIRE = 5,
 };
 
-enum AckTypesEnum {
-    SIMPLE_ACK = 0,
-    DONE = 1,
-    NOT_DONE = 2,
-    ERROR = 10
+enum OperationTypesEnum {
+    ACK = 0,
+    NAK,
+    DONE,
+    NOT_DONE,
+    ERROR
+};
+
+enum returnTypesEnum {
+    INVALID_SAVE_PATH,
+    INVALID_AQUISITION_MODE,
+	INVALID_NUM_OF_ACQUISITIONS
+};
+
+enum saveModeEnum {
+    SAVE_AFTER = 0,
+    SAVE_DURING = 1,
+    NO_SAVE = 2
+};
+
+
+enum aquisitionModeEnum {
+    B12 = 0,
+    B24 = 1,
+    DUALENERGY = 2
 };
 
 //Size 1
 typedef struct __attribute__((__packed__)){
-      uint8_t  type;
-      uint8_t reserved[STRUCT_SIZE-1];
+    uint8_t  type;
+    uint8_t  error;
+	uint8_t reserved[STRUCT_SIZE-2];
 } simpleArgs;
 
-//Size 110
+//Size 321
 typedef struct __attribute__((__packed__)){
-      uint8_t  type;
-      uint64_t noOfFrames;
-      char fileName[PIMEGA_MAX_FILE_NAME];
-      uint8_t reserved[STRUCT_SIZE-109];
+    uint8_t                type;
+    uint64_t               noOfAquisitions;
+    char                   savefile[300];
+    bool                   useLFSR = false;
+    uint8_t                saveMode;
+    uint8_t                aquisitionMode;
+    bool                   resetRDMABuffer;
+    uint16_t               bcFramesToProcessPerTime = 1;
+    uint8_t                extraDimensions;
+    uint8_t                DimensionsDepth[5];
+    uint8_t                reserved[STRUCT_SIZE-321];
 } acqArgs;
 
-
-//Size 12
+//Size 134
 typedef struct __attribute__((__packed__)){
-      uint8_t  type;
-      uint64_t noOfFrames;
-      uint8_t  bufferUsed; /* This contains a percentage of the buffer usage */
-      uint8_t  bufferState;
-      uint8_t  done;
-      uint8_t reserved[STRUCT_SIZE-12];
+    uint8_t                type;
+    uint64_t               noOfFrames[4]; /* This contains the number of frames acquired */
+    uint64_t               noOfAquisitions[4]; /* This contains the number of aquisitions */
+    float                  bufferUsed[4]; /* This contains a percentage of the buffer usage */
+    bool                   error[4]; /* Reception errors are indicated here */
+    uint64_t               lostFrameCnt[4];
+    uint8_t                done;
+    uint64_t               savedFrameNum;
+    uint64_t               savedAquisitionNum;
+    uint8_t                reserved[STRUCT_SIZE-134];
 } acqStatusArgs;
 
-
-//Size 57
+//Size 22
 typedef struct __attribute__((__packed__)){
-      uint8_t  type;
-      uint8_t SGID[16];
-      uint8_t DGID[16];
-      uint8_t DMAC[8];
-      uint8_t SMAC[8];
-      uint64_t VADDR;
-      uint32_t RKEY;
-      uint32_t QPN;
-      uint8_t reserved[STRUCT_SIZE-64];
-} initArgs;
+    uint8_t                type;
+    uint8_t                done;
+    uint8_t                error[4];
+    uint64_t               savedFrameNum;
+    uint64_t               savedAquisitionNum;
+    uint8_t                reserved[STRUCT_SIZE-22];
+} saveStatusArgs;
 
-typedef enum backend_init_args_t{
-	BACKEND_SGID = 0,
-	BACKEND_DGID,
-	BACKEND_DMAC,
-	BACKEND_VADDR,
-	BACKEND_RKEY,
-	BACKEND_QPN,
-	BACKEND_ENUM_END,
-} backend_init_args_t;
+//Size 257
+typedef struct __attribute__((__packed__)){
+    uint8_t                type;
+    uint8_t                be_gid[4][16];
+    uint8_t                fe_gid[4][16];
+    uint64_t               fe_mac[4];
+    uint64_t               be_mac[4];
+    uint64_t               vaddr[4];
+    uint32_t               rkey[4];
+    uint32_t               qpn[4];
+    uint8_t                reserved[STRUCT_SIZE-257];
+} initArgs;
+/* End backend structs */
 
 typedef enum pimega_detector_model_t{
 	mobipix = 0, pimega45D, pimega135D, pimega540D,
@@ -306,6 +343,15 @@ typedef enum pimega_test_pulse_pattern_t {
 	PIMEGA_TEST_PULSE_ODD_COLUMNS,
 } pimega_test_pulse_pattern_t;
 
+typedef enum pimega_medipix_mode_t {
+	PIMEGA_MEDIPIX_MODE_DEFAULT = 0,
+	PIMEGA_MEDIPIX_MODE_CSM,
+	PIMEGA_MEDIPIX_MODE_DUAL_ENERGY,
+	PIMEGA_MEDIPIX_MODE_CRW,
+	PIMEGA_MEDIPIX_MODE_24BITS,
+	PIMEGA_MEDIPIX_MODE_ENUM_END,
+} pimega_medipix_mode_t;
+
 typedef struct pimega_params_t {
 	pimega_detector_model_t detModel;
 	pimega_dac_t dac;							//US_Set/Get DAC
@@ -351,7 +397,7 @@ typedef enum acquire_status_t{
 typedef struct pimega_acquire_params_t {
 	unsigned numImages;						//US_NumImages
 	uint32_t numImagesCounter;				//US_NumImagesCounter_RBV
-	uint32_t numExposures;					//US_NumExposures
+	uint32_t numExposures = 1;					//US_NumExposures
 	float acquireTime;						//US_AcquireTime
 	float acquirePeriod;
 	bool acquireState;						//US_Acquire_RBV
@@ -394,7 +440,7 @@ typedef struct pimega_t {
 	char file_template[PIMEGA_MAX_FILE_NAME];
 	initArgs init_args;
 	simpleArgs ack;
-    simpleArgs req_args;
+	saveStatusArgs saveargs;
     acqArgs acq_args;
     acqStatusArgs acq_status_return;
 	chip chip_pos;
@@ -512,20 +558,25 @@ int open_serialPort(pimega_t *pimega, const char * device);
 int write_serialPort(int fd, const char *buffer, size_t size);
 int read_serialPort(pimega_t *pimega, int fd, char *buffer, size_t size);
 
+// -------- Backend functions -----------------------------------
 int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
-int send_initArgs(pimega_t *pimega, backend_init_args_t init_args, const char *value);
+int send_initArgs(pimega_t *pimega, initArgs init_args, const char *value);
 int send_allinitArgs(pimega_t *pimega);
-
 int send_acqArgs_toBackend(pimega_t *pimega);
 int get_acqStatus_fromBackend(pimega_t *pimega);
-int get_filesReady_fromBackend(pimega_t *pimega);
+int get_saveStatus_fromBackend(pimega_t *pimega);
 int send_stopAcquire_toBackend(pimega_t *pimega);
+int update_backend_acqArgs(pimega_t *pimega, bool useLFSR, uint8_t saveMode, 
+                    	   bool resetRDMABuffer, uint16_t bcFramesToProcessPerTime,
+						   uint8_t extraDimensions);
+// ---------------------------------------------------------
 
 int select_chipNumber(pimega_t *pimega, int chip_id);
 
 int execute_acquire(pimega_t *pimega);
 int status_acquire(pimega_t *pimega);
-
+int set_file_name_template(pimega_t *pimega, const char *name);
+int set_medipix_mode(pimega_t *pimega, pimega_medipix_mode_t medipix_mode);
 
 const char *pimega_error_string(int error);
 void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
