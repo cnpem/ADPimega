@@ -805,6 +805,7 @@ record(bo, "$(P)$(R)Reset_RDMA_Buffer") {
     field(ZNAM, "False")
     field(ONAM, "True")
     field(VAL,  "0")
+	field(PINI, "YES")
 }
 
 record(bi, "$(P)$(R)Reset_RDMA_Buffer_RBV") {

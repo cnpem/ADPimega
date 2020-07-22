@@ -18,12 +18,13 @@ extern "C" {
 #define PIMEGA_DAC_FAILED -4
 #define PIMEGA_DAC_VALUE_FAILED -5
 #define PIMEGA_DATA_SERVER_DISCONNECTED -6
-#define PIMEGA_INVALID_ERROR_ID -7
+#define PIMEGA_INVALID_MODULE -7
 #define PIMEGA_DATA_SERVER_PARSE_ERROR -8
 #define PIMEGA_INVALID_BIT_RATE -9
 #define PIMEGA_INVALID_IMAGE_COUNT -10
 #define	PIMEGA_OMR_FAILED -11
 #define	PIMEGA_OMR_VALUE_FAILED -12
+#define PIMEGA_INVALID_ERROR_ID -13
 
 #define PIMEGA_SIZE_SEND_MSG 512
 #define PIMEGA_SIZE_READ_MSG 512
@@ -48,6 +49,9 @@ extern "C" {
 #define ETHERNET 1
 #define COMMUNICATION ETHERNET
 
+#define BACKENDOFF 0
+#define BACKENDON 1
+#define BACKEND BACKENDON
 
 //TODO: Put this struct in another file 
 /* Backend Structs*/
@@ -58,6 +62,9 @@ extern "C" {
 #define MODULE3 2
 #define MODULE4 3
 
+#define RDMA_NUM_FRAMES 1000
+#define SEL_IMMD_DATA 1
+#define RDMA_CADENCE 1
 
 enum requestTypesEnum {
     INIT_ARGS = 0,
@@ -288,7 +295,8 @@ typedef enum pimega_dac_t {
 
 typedef enum pimega_trigger_mode_t {
 	PIMEGA_TRIGGER_MODE_INTERNAL = 0,
-	PIMEGA_TRIGGER_MODE_EXTERNAL,
+	PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE,
+	PIMEGA_TRIGGER_MODE_EXTERNAL_NEG_EDGE,
 	PIMEGA_TRIGGER_MODE_ENUM_END,
 }pimega_trigger_mode_t;
 
@@ -296,7 +304,7 @@ typedef enum pimega_trigger_mode_t {
 typedef enum pimega_read_counter_t {
 	PIMEGA_COUNTER_LOW = 0,
 	PIMEGA_COUNTER_HIGH,
-	PIMEGA_COUNTER_BOTH,
+	//PIMEGA_COUNTER_BOTH,
 	PIMEGA_READ_COUNTER_ENUM_END,
 } pimega_read_counter_t;
 
@@ -365,7 +373,6 @@ typedef struct pimega_params_t {
 	char efuseID[8];
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
-	uint16_t sensorPos;							//US_ImgChipNumberID
 	float extBgIn;								//US_ImgChip_ExtBgIN
 	float dacOutput;							//US_ImgChipDACOUTSense_RBV
 } pimega_params_t;
@@ -462,13 +469,15 @@ int US_NumExposures_RBV(pimega_t *pimega);
 int US_NumExposuresCounter_RBV(pimega_t *pimega);
 
 // --------------- K60 functions exclusive -----------------------------------------
-int Config_Discl(pimega_t *pimega, uint32_t value);
-int Pixel_Load(pimega_t *pimega, uint8_t sensor, uint32_t value);
+int config_discl(pimega_t *pimega, uint32_t value);
+int pixel_load(pimega_t *pimega, uint8_t sensor, uint32_t value);
 int Send_Image(pimega_t *pimega, unsigned pattern);
 int Set_Trigger(pimega_t *pimega, bool set_trigger);
 int Set_Trigger_RBV(pimega_t *pimega);
-int Select_Board(pimega_t *pimega, int board_id);
-int Select_Board_RBV(pimega_t *pimega);
+int select_board(pimega_t *pimega, int board_id);
+int select_board_rbv(pimega_t *pimega);
+int select_chipNumber(pimega_t *pimega, int chip_id);
+int select_chipNumber_rbv(int sensor_id, int board);
 // ---------------------------------------------------------------------------------
 
 // -------------- OMR Prototypes ---------------------------------------------------
@@ -554,14 +563,21 @@ void pimega_disconnect(pimega_t *pimega);
 void pimega_disconnect_backend(pimega_t *pimega);
 void pimega_delete(pimega_t *pimega);
 
+int define_master_module(pimega_t *pimega, uint8_t module, bool ext_trigger);
+int select_module(pimega_t *pimega, int module);
+int set_acquireTime(pimega_t *pimega, float acquire_time_s);
+int set_numberExposures(pimega_t *pimega, int num_exposures);
+
+int trigger_out(pimega_t *pimega, bool enable_trigger);
+int trigger_out_get(pimega_t *pimega);
+
 int open_serialPort(pimega_t *pimega, const char * device);
 int write_serialPort(int fd, const char *buffer, size_t size);
 int read_serialPort(pimega_t *pimega, int fd, char *buffer, size_t size);
 
 // -------- Backend functions -----------------------------------
 int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
-int send_initArgs(pimega_t *pimega, initArgs init_args, const char *value);
-int send_allinitArgs(pimega_t *pimega);
+int send_allinitArgs(pimega_t *pimega, int module);
 int send_acqArgs_toBackend(pimega_t *pimega);
 int get_acqStatus_fromBackend(pimega_t *pimega);
 int get_saveStatus_fromBackend(pimega_t *pimega);
@@ -571,7 +587,6 @@ int update_backend_acqArgs(pimega_t *pimega, bool useLFSR, uint8_t saveMode,
 						   uint8_t extraDimensions);
 // ---------------------------------------------------------
 
-int select_chipNumber(pimega_t *pimega, int chip_id);
 
 int execute_acquire(pimega_t *pimega);
 int status_acquire(pimega_t *pimega);
@@ -580,6 +595,9 @@ int set_medipix_mode(pimega_t *pimega, pimega_medipix_mode_t medipix_mode);
 
 const char *pimega_error_string(int error);
 void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
+
+typedef int (*method)(pimega_t *pimega, pimega_dac_t, int);
+int run_dacs_all_chips(pimega_t *pimega, pimega_dac_t dac, int value, method _method);
 
 #ifdef __cplusplus
 } /* extern "C" */

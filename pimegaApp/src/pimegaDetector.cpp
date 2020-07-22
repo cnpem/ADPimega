@@ -451,11 +451,22 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
   * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
   */
 extern "C" int pimegaDetectorConfig(const char *portName,
-        const char *address, int port, int maxSizeX, int maxSizeY, int detectorModel, int maxBuffers,
-        size_t maxMemory, int priority, int stackSize)
+                                    const char *address_module01,
+                                    const char *address_module02,
+                                    const char *address_module03,
+                                    const char *address_module04,
+                                    int port, int maxSizeX, int maxSizeY,
+                                    int detectorModel, int maxBuffers,
+                                    size_t maxMemory, int priority, int stackSize)
 {
-    new pimegaDetector(portName, address, port, maxSizeX,
-            maxSizeY, detectorModel, maxBuffers, maxMemory, priority, stackSize);
+    new pimegaDetector(portName,
+                       address_module01,
+                       address_module02,
+                       address_module03,
+                       address_module04,
+                       port, maxSizeX, maxSizeY,
+                       detectorModel, maxBuffers,
+                       maxMemory, priority, stackSize);
     return (asynSuccess);
 }
 
@@ -475,9 +486,10 @@ extern "C" int pimegaDetectorConfig(const char *portName,
  * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
  */
 pimegaDetector::pimegaDetector(const char *portName,
-        const char *address, int port, int maxSizeX, int maxSizeY, int detectorModel, int maxBuffers,
-        size_t maxMemory, int priority, int stackSize)
-
+                   const char *address_module01, const char *address_module02,
+                   const char *address_module03, const char *address_module04,
+                   int port, int maxSizeX, int maxSizeY,
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize)
 
        : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                 asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask
@@ -493,6 +505,10 @@ pimegaDetector::pimegaDetector(const char *portName,
 {
     int status = asynSuccess;
     const char *functionName = "pimegaDetector::pimegaDetector";
+    const char* ips[] = {address_module01,
+                         address_module02,
+                         address_module03,
+                         address_module04};
 
     pimega_image = (uint32_t*)malloc(p_imageSize * sizeof(uint32_t));
     // initialize random seed:
@@ -523,7 +539,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     pimega = pimega_new(detModel);
     if (pimega) debug(functionName, "Pimega Object created!");
 
-    connect(address, port);
+    connect(ips, port);
     //pimega->debug_out = fopen("log.txt", "w+");
     //report(pimega->debug_out, 1);
     //fflush(pimega->debug_out);
@@ -574,22 +590,27 @@ void pimegaDetector::panic(const char *msg)
     epicsExit(0);
 }
 
-void pimegaDetector::connect(const char *address, unsigned short port)
+void pimegaDetector::connect(const char *address[4], unsigned short port)
 {
     unsigned i;
     int rc = 0;
 
-    for (i = 0; i < 5; i++) {
-        // Ethernet test
-        rc |= pimega_connect(pimega, 0, address, port);
-        //Serial Test
-        //rc = open_serialPort(pimega, "/dev/ttyUSB0");
-
-        rc |= pimega_connect_backend(pimega, "127.0.0.1", 5412);
-        if (rc == PIMEGA_SUCCESS) return;
-        epicsThreadSleep(1);
+    //Serial Test
+    //rc = open_serialPort(pimega, "/dev/ttyUSB0");
+    
+    // Ethernet test
+    for(int _module = 0; _module < 4; _module++) {
+        if (strcmp(address[_module],"0")) {
+            for (i = 0; i < 5; i++) {
+                rc |= pimega_connect(pimega, _module, address[_module], port);
+                if (rc == PIMEGA_SUCCESS) break;
+                epicsThreadSleep(1);
+            }
+            if (rc != PIMEGA_SUCCESS)
+                panic("Unable to connect. Aborting...");
+        } 
     }
-    panic("Unable to connect. Aborting...");
+    //rc |= pimega_connect_backend(pimega, "127.0.0.1", 5412);
 }
 
 void pimegaDetector::setParameter(int index, const char *value)
@@ -868,7 +889,7 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
 {
     int rc;
 
-    rc = Select_Board(pimega, board_id);
+    rc = select_board(pimega, board_id);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid number of boards: %s\n", pimega_error_string(rc));
         return asynError;
@@ -1223,34 +1244,42 @@ asynStatus pimegaDetector::debug(const std::string& method, const std::string& m
   return asynSuccess;
 }
 
+
 /* Code for iocsh registration */
 static const iocshArg pimegaDetectorConfigArg0 = { "Port name", iocshArgString };
-static const iocshArg pimegaDetectorConfigArg1 = { "pimega address", iocshArgString };
-static const iocshArg pimegaDetectorConfigArg2 = { "pimega port", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg3 = { "maxSizeX", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg4 = { "maxSizeY", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg5 = { "detectorModel", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg6 = { "maxBuffers", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg7 = { "maxMemory", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg8 = { "priority", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg9 = { "stackSize", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg1 = { "pimega module 1 address", iocshArgString };
+static const iocshArg pimegaDetectorConfigArg2 = { "pimega module 2 address", iocshArgString };
+static const iocshArg pimegaDetectorConfigArg3 = { "pimega module 3 address", iocshArgString };
+static const iocshArg pimegaDetectorConfigArg4 = { "pimega module 4 address", iocshArgString };
+static const iocshArg pimegaDetectorConfigArg5 = { "pimega port", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg6 = { "maxSizeX", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg7 = { "maxSizeY", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg8 = { "detectorModel", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg9 = { "maxBuffers", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg10 = { "maxMemory", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg11 = { "priority", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg12 = { "stackSize", iocshArgInt };
 static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConfigArg0,
-                                                          &pimegaDetectorConfigArg1,
-                                                          &pimegaDetectorConfigArg2,
-                                                          &pimegaDetectorConfigArg3,
-                                                          &pimegaDetectorConfigArg4,
-                                                          &pimegaDetectorConfigArg5,
-                                                          &pimegaDetectorConfigArg6,
-                                                          &pimegaDetectorConfigArg7,
-                                                          &pimegaDetectorConfigArg8,
-                                                          &pimegaDetectorConfigArg9};
+                                                            &pimegaDetectorConfigArg1,
+                                                            &pimegaDetectorConfigArg2,
+                                                            &pimegaDetectorConfigArg3,
+                                                            &pimegaDetectorConfigArg4,
+                                                            &pimegaDetectorConfigArg5,
+                                                            &pimegaDetectorConfigArg6,
+                                                            &pimegaDetectorConfigArg7,
+                                                            &pimegaDetectorConfigArg8,
+                                                            &pimegaDetectorConfigArg9,
+                                                            &pimegaDetectorConfigArg10,
+                                                            &pimegaDetectorConfigArg11,
+                                                            &pimegaDetectorConfigArg12};
 static const iocshFuncDef configpimegaDetector =
-{ "pimegaDetectorConfig", 9, pimegaDetectorConfigArgs };
+{ "pimegaDetectorConfig", 12, pimegaDetectorConfigArgs };
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args)
 {
-    pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival,
-                        args[4].ival, args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival);
+    pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].sval, args[3].sval, args[4].sval,
+                        args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival,
+                        args[10].ival, args[11].ival, args[12].ival);
 }
 
 static void pimegaDetectorRegister(void)

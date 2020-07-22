@@ -100,8 +100,10 @@ static const char *driverName = "pimegaDetector";
 class pimegaDetector: public ADDriver
 {
 public:
-    pimegaDetector(const char *portName, const char *address, int port, int maxSizeX, int maxSizeY,
-                int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize);
+    pimegaDetector(const char *portName, const char *address_module01, const char *address_module02,
+                   const char *address_module03, const char *address_module04,
+                   int port, int maxSizeX, int maxSizeY,
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize);
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -191,7 +193,7 @@ private:
     epicsFloat32 *PimegaDacsOutSense_;
 
     void panic(const char *msg);
-    void connect(const char *address, unsigned short port);
+    void connect(const char *address[4], unsigned short port);
     void createParameters(void);
     void setParameter(int index, const char *value);
     void setParameter(int index, int value);

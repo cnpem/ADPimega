@@ -10,7 +10,7 @@ epicsEnvSet("PREFIX", "SOL7:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
 # The detector model (0:mobipix; 1:pimega45D; 2:pimega135D; 3:pimega540D)
-epicsEnvSet("DMODEL", "2");
+epicsEnvSet("DMODEL", "3");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
@@ -24,7 +24,10 @@ epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
 epicsEnvSet("CBUFFS", "500")
 # The IP address of the Pimega system
-epicsEnvSet("PIMEGA_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.2")
+epicsEnvSet("PIMEGA_MODULE02_IP", "10.255.255.6")
+epicsEnvSet("PIMEGA_MODULE03_IP", "10.255.255.10")
+epicsEnvSet("PIMEGA_MODULE04_IP", "10.255.255.14")
 #epicsEnvSet("PIMEGA_IP", "10.0.27.46")
 #epicsEnvSet("PIMEGA_IP", "10.2.101.61") 
 #epicsEnvSet("PIMEGA_IP", "143.106.167.170")
@@ -49,7 +52,7 @@ epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "99999999")
 #                                    allowed to allocate. Set this to 0 to allow an unlimited amount of memory.
 #              priority,           # The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
 #              stackSize,          # The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
-pimegaDetectorConfig("$(PORT)",$(PIMEGA_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0)
+pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIMEGA_MODULE03_IP),$(PIMEGA_MODULE04_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0)
 
 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
