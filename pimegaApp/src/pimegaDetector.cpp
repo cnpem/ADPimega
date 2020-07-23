@@ -219,6 +219,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |=  reset(value);
     else if (function == PimegaMedipixMode)
         status |= medipixMode(value);
+    else if (function == PimegaModule)
+        status |= selectModule(value);
     //else if (function == ADTriggerMode)
     //    status |=  triggerMode(value);
     //else if (function == PimegaMedipixBoard)
@@ -670,6 +672,7 @@ void pimegaDetector::getParameter(int index, double *value)
 void pimegaDetector::createParameters(void)
 {
     createParam(pimegaMedipixModeString,    asynParamInt32,     &PimegaMedipixMode);
+    createParam(pimegaModuleString,         asynParamInt32,     &PimegaModule);
     createParam(pimegaefuseIDString,        asynParamOctet,     &PimegaefuseID);
     createParam(pimegaOmrOPModeString,      asynParamInt32,     &PimegaOmrOPMode);
     createParam(pimegaMedipixBoardString,   asynParamInt32,     &PimegaMedipixBoard);
@@ -844,6 +847,18 @@ asynStatus pimegaDetector::startAcquire()
     getParameter(PimegaResetRDMABuffer, &resetRDMA);
     update_backend_acqArgs(pimega, false, autoSave, resetRDMA, 1, 5);
     execute_acquire(pimega);
+}
+
+asynStatus pimegaDetector::selectModule(uint8_t module)
+{
+    int rc;
+    rc = select_module(pimega, module);
+    if (rc != PIMEGA_SUCCESS) {
+        error("Invalid module number: %s\n", pimega_error_string(rc));
+        return asynError;
+    }
+    setParameter(PimegaModule, module);
+    return asynSuccess;    
 }
 
 asynStatus pimegaDetector::triggerMode(int trigger)

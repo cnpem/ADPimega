@@ -99,6 +99,42 @@ record(ao, "$(P)$(R)AcquireTime")
 	field(DRVL, "1e-6")
 }
 
+#Select Pimega Module
+record(mbbo, "$(P)$(R)PimegaModule") {
+	field(DESC, "Pimega Module")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PIMEGA_MODULE")
+	field(ZRSV, "INVALID")
+	field(ONST, "Module 1")					field(ONVL, "1")
+	field(TWST, "Module 2")         		field(TWVL, "2")
+	field(THST, "Module 3")					field(THVL, "3")
+	field(FRST, "Module 4")   				field(FRVL, "4")
+	field(FVSV, "INVALID")
+    field(SXSV, "INVALID")
+    field(SVSV, "INVALID")
+    field(EISV, "INVALID")
+    field(NISV, "INVALID")
+    field(TESV, "INVALID")
+    field(ELSV, "INVALID")
+    field(TVSV, "INVALID")
+    field(TTSV, "INVALID")
+    field(FTSV, "INVALID")
+    field(FFSV, "INVALID")
+    field(IVOA, "1")
+	field(VAL, 	"1")
+}
+
+record(mbbi, "$(P)$(R)PimegaModule_RBV") {
+	field(DESC, "Pimega Module ReadBack")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PIMEGA_MODULE")
+	field(ONST, "Module 1")					field(ONVL, "1")
+	field(TWST, "Module 2")         		field(TWVL, "2")
+	field(THST, "Module 3")					field(THVL, "3")
+	field(FRST, "Module 4")   				field(FRVL, "4")
+	field(SCAN, "I/O Intr")
+}
+
 #Medipix Acquire Mode
 record(mbbo, "$(P)$(R)MedipixMode") {
 	field(DESC, "Medipix Acquire Mode")

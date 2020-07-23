@@ -30,7 +30,7 @@ extern "C" {
 #define PIMEGA_SIZE_READ_MSG 512
 #define PIMEGA_SIZE_RESULT 256
 
-#define PIMEGA_TIMEOUT 3000000
+#define PIMEGA_TIMEOUT 30000000
 #define DATA_SERVER_TIMEOUT 3000000
 #define PIMEGA_MAX_FILE_NAME 300
 
@@ -71,6 +71,7 @@ enum requestTypesEnum {
     ACQUIRE_ARGS = 1,
     ACQUIRE_STATUS = 2,
     SAVE_STATUS = 3,
+    ABORT_SAVE = 4,
     STOP_ACQUIRE = 5,
 };
 
@@ -157,7 +158,8 @@ typedef struct __attribute__((__packed__)){
     uint64_t               vaddr[4];
     uint32_t               rkey[4];
     uint32_t               qpn[4];
-    uint8_t                reserved[STRUCT_SIZE-257];
+    uint32_t               bufferSize;
+    uint8_t                reserved[STRUCT_SIZE-261];
 } initArgs;
 /* End backend structs */
 

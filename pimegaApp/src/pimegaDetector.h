@@ -96,6 +96,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaBackendBufferString       "BACK_BUFFER"
 #define pimegaResetRDMABufferString     "RESET_RDMA_BUFFER"
 #define pimegaSensorBiasString          "SENSOR_BIAS"
+#define pimegaModuleString              "PIMEGA_MODULE"
 
 class pimegaDetector: public ADDriver
 {
@@ -165,6 +166,7 @@ protected:
     int PimegaDacsOutSense;
     int PimegaBackBuffer;
     int PimegaResetRDMABuffer;
+    int PimegaModule;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -207,6 +209,7 @@ private:
     asynStatus getDacsOutSense(void);
     asynStatus startAcquire();
 
+    asynStatus selectModule(uint8_t module);
     asynStatus medipixMode(uint8_t mode);
     asynStatus triggerMode(int trigger);
     asynStatus reset(short action);
