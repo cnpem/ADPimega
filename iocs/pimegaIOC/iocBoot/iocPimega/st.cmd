@@ -69,6 +69,10 @@ set_requestfile_path("$(ADPIMEGA)/pimegaApp/Db")
 
 iocInit()
 
+dbpf(${PREFIX}cam1:FilePath,"/tmp")
+dbpf(${PREFIX}cam1:FileName,"teste")
+dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3h5")
+
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
 

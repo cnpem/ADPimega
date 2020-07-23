@@ -548,6 +548,7 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     createParameters();
     setDefaults();
+    define_master_module(pimega, 1, false);
 
     /* Create the thread that runs acquisition */
     status = (epicsThreadCreate("pimegaDetTask", 
@@ -600,6 +601,8 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
     //Serial Test
     //rc = open_serialPort(pimega, "/dev/ttyUSB0");
     
+    // Connect to backend
+    pimega_connect_backend(pimega, "127.0.0.1", 5412);
     // Ethernet test
     for(int _module = 0; _module < 4; _module++) {
         if (strcmp(address[_module],"0")) {
@@ -612,7 +615,6 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
                 panic("Unable to connect. Aborting...");
         } 
     }
-    //rc |= pimega_connect_backend(pimega, "127.0.0.1", 5412);
 }
 
 void pimegaDetector::setParameter(int index, const char *value)
@@ -763,7 +765,6 @@ void pimegaDetector::setDefaults(void)
     setParameter(ADMinY, 0);
     setParameter(ADReverseX, 0);
     setParameter(ADReverseY, 0);
-    setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
     setParameter(ADFrameType, ADFrameNormal);
     setParameter(ADNumExposures, 1);
     /* String parameters are initialized in st.cmd file because of a bug in asyn
@@ -780,7 +781,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaMedipixChip, 1);
     setParameter(PimegaMedipixBoard, 2);
 
-    getDacsValues();
+    //getDacsValues();
 }
 
 void pimegaDetector::getDacsValues(void)
@@ -956,7 +957,7 @@ asynStatus pimegaDetector::numExposures(unsigned number)
 {
     int rc;
 
-    rc = US_NumExposures(pimega, number);
+    rc = set_numberExposures(pimega, number);
     if (rc != PIMEGA_SUCCESS){
         error("Invalid number of exposures: %s\n", pimega_error_string(rc));
         return asynError;
@@ -1065,8 +1066,6 @@ asynStatus pimegaDetector::counterDepth(int mode)
 {
     int rc;
 
-    printf("Valor de mode do counterDepth: %d\n", mode);
-
     if(!validate_counter_depth(mode)){
         error("Invalid counterDepth value: %d\n", mode); return asynError;
     }
@@ -1114,7 +1113,8 @@ asynStatus pimegaDetector::gainMode(int mode)
 asynStatus pimegaDetector::acqTime(float acquire_time_s)
 {
     int rc;
-    rc = US_AcquireTime(pimega, acquire_time_s);
+
+    rc = set_acquireTime(pimega, acquire_time_s);
     if (rc != PIMEGA_SUCCESS){
         error("Invalid acquire time: %s\n", pimega_error_string(rc));
         return asynError;

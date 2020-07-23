@@ -146,7 +146,6 @@ record(mbbo, "$(P)$(R)MedipixMode") {
 	field(THST, "Continuous Read Write")	field(THVL, "3")
 	field(FRST, "Full Dynamic Range")   	field(FRVL, "4")
 	field(VAL, 	"0")
-	field(PINI, "YES")
 }
 
 record(mbbi, "$(P)$(R)MedipixMode_RBV") {
@@ -305,7 +304,7 @@ record(mbbi,"$(P)$(R)GainMode_RBV") {
 record(ao, "$(P)$(R)SenseDacSel")
 {
 	field(DESC, "Select DAC code to be monitored")
-	field(PINI, "YES")
+	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSE_DAC_SEL")
    	field(VAL,  "0")
