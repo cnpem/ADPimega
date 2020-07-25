@@ -47,13 +47,13 @@ record(ai, "$(P)$(R)Gain_RBV")
 
 record(ai, "$(P)$(R)TimeRemaining_RBV")
 {
-	field(SCAN, ".1 second")
+	field(SCAN, ".5 second")
    	field(EGU, "s")
 }
 
 record(longin, "$(P)$(R)NumImagesCounter_RBV")
 {
-	field(SCAN, ".1 second")	
+	field(SCAN, ".5 second")	
 }
 
 # We redefine the states for the TriggerMode records defined in ADBase.template
@@ -250,14 +250,14 @@ record(mbbi,"$(P)$(R)OmrOMSelec_RBV") {
    	field(DTYP, "asynInt32")
    	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OMR_OP_MODE")
     field(DESC, "OMR  operation mode selection readback")
-    field(ZRVL,"0")
-    field(ONVL,"1")
-    field(TWVL,"2")
-    field(THVL,"3")
-    field(FRVL,"4")
-    field(FVVL,"5")
-    field(SXVL,"6")
-    field(SVVL,"7")
+    field(ZRVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
+    field(THVL, "3")
+    field(FRVL, "4")
+    field(FVVL, "5")
+    field(SXVL, "6")
+    field(SVVL, "7")
    	field(ZRST, "Read Counter Low")
     field(ONST, "Read Counter High")
     field(TWST, "Load Counter Low")

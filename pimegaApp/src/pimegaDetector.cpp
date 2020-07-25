@@ -59,11 +59,11 @@ void pimegaDetector::acqTask()
 {
     int status = asynSuccess;
     int eventStatus=0;
-    int numImages;
+    int numImages, numExposures;
     int imageMode, numImagesCounter;
     int acquire=0;
     NDArray *pImage;
-    double acquireTime, acquirePeriod;
+    double acquireTime, acquirePeriod, delay, elapsedTime;
     int acquireStatus = 0;
     bool bufferOverflow=0;
     int newImage=0;
@@ -87,14 +87,13 @@ void pimegaDetector::acqTask()
             //setIntegerParam(ADNumImagesCounter, 0); 
 
             /* We are acquiring. */
-            /* Get the current time */
-            epicsTimeGetCurrent(&startTime);
 
             getIntegerParam(ADImageMode, &imageMode);
             /* Get the exposure parameters */
             getDoubleParam(ADAcquireTime, &acquireTime);
             getDoubleParam(ADAcquirePeriod, &acquirePeriod);
 
+            getIntegerParam(ADNumExposures, &numExposures);
             getIntegerParam(ADNumImages, &numImages);
             getIntegerParam(ADNumImagesCounter, &numImagesCounter);
 
@@ -108,6 +107,8 @@ void pimegaDetector::acqTask()
 
             startAcquire();
             acquire = 1;
+            /* Get the current time */
+            epicsTimeGetCurrent(&startTime);
 
         }
 
@@ -115,11 +116,24 @@ void pimegaDetector::acqTask()
             // Read detector state
             acquireStatus = status_acquire(pimega);
             numImagesCounter = pimega->acquireParam.numExposuresCounter;
+
+            epicsTimeGetCurrent(&endTime);
+            elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
+            if (acquirePeriod > acquireTime) {
+                delay = (acquirePeriod * numExposures) - elapsedTime;
+            }
+            else {
+                delay = (acquireTime * numExposures)  - elapsedTime;
+            }
+
+            if (delay < 0) delay = 0;
+            setDoubleParam(ADTimeRemaining, delay);
+
             if (newImage != numImagesCounter)
                 {
                     generateImage();
                     newImage = numImagesCounter;
-                }          
+                }
         }
 
         this->unlock();
@@ -163,7 +177,8 @@ void pimegaDetector::acqTask()
                 setIntegerParam(ADAcquire, 0);
                 setIntegerParam(ADStatus, ADStatusIdle);
                 setStringParam(ADStatusMessage, "Acquisition finished");
-                setIntegerParam(ADNumImagesCounter, numImagesCounter+1);
+                US_NumExposuresCounter_RBV(pimega);
+                setIntegerParam(ADNumImagesCounter, pimega->acquireParam.numExposuresCounter);
                 newImage = 0;
             }
 
@@ -209,8 +224,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
     }
 
-    else if (function == ADImageMode)
-        status |= imageMode(value);
     else if (function == PimegaOmrOPMode)
         status |= omrOpMode(value);
     else if (function == ADNumExposures)
@@ -392,13 +405,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     //    setParameter(ADTemperatureActual, pimega->cached_result.actual_temperature);
     //}
 
-    if ((function == ADTimeRemaining) && (scanStatus == ADStatusAcquire)) {
-        //status = US_TimeRemaining_RBV(pimega);
-        //status = US_TemperatureActual(pimega);
-        *value = pimega->acquireParam.timeRemaining;
-    }
-
-    else if (function == PimegaSensorBias){
+    if (function == PimegaSensorBias){
         status = US_SensorBias_RBV(pimega);
         *value = pimega->pimegaParam.bias_voltage;
         setParameter(PimegaSensorBias, *value);
@@ -430,7 +437,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     }
 
     if ((function == ADNumImagesCounter) && (scanStatus == ADStatusAcquire)) {
-        //US_NumExposuresCounter_RBV(pimega);
+        US_NumExposuresCounter_RBV(pimega);
         *value = pimega->acquireParam.numExposuresCounter;
     }
 
@@ -1164,16 +1171,6 @@ asynStatus pimegaDetector::getDacsOutSense(void)
     }
     doCallbacksFloat32Array(PimegaDacsOutSense_, N_DACS_OUTS, PimegaDacsOutSense, 0);
 
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::imageMode(u_int8_t mode)
-{
-    //int rc;
-    //rc = US_ImageMode(pimega, (pimega_image_mode_t)mode);
-    //if (rc != PIMEGA_SUCCESS) return asynError;
-    
-    setParameter(ADImageMode, mode);
     return asynSuccess;
 }
 

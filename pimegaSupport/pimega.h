@@ -354,11 +354,11 @@ typedef enum pimega_test_pulse_pattern_t {
 } pimega_test_pulse_pattern_t;
 
 typedef enum pimega_medipix_mode_t {
-	PIMEGA_MEDIPIX_MODE_DEFAULT = 0,
-	PIMEGA_MEDIPIX_MODE_CSM,
-	PIMEGA_MEDIPIX_MODE_DUAL_ENERGY,
-	PIMEGA_MEDIPIX_MODE_CRW,
-	PIMEGA_MEDIPIX_MODE_24BITS,
+	PIMEGA_MEDIPIX_MODE_DEFAULT = 0,			// Sequential (1x12-bit)
+	PIMEGA_MEDIPIX_MODE_CSM,					// not available 
+	PIMEGA_MEDIPIX_MODE_DUAL_ENERGY,			// not available
+	PIMEGA_MEDIPIX_MODE_CRW,					// Continuous (2x12-bit)
+	PIMEGA_MEDIPIX_MODE_24BITS,					// Sequential (1x24-bit)
 	PIMEGA_MEDIPIX_MODE_ENUM_END,
 } pimega_medipix_mode_t;
 
@@ -412,7 +412,8 @@ typedef struct pimega_acquire_params_t {
 	bool acquireState;						//US_Acquire_RBV
 	char detectorState[512];				//US_DetectorState_RBV
 	float timeRemaining;					//US_TimeRemaining_RBV
-	uint32_t numExposuresCounter;			//US_NumExposuresCounter_RBV
+	uint32_t numExposuresCounter;
+	uint32_t numExposuresTotal;				//US_NumExposuresCounter_RBV
 	acquire_status_t acquireStatus;
 } pimega_acquire_params_t;
 
@@ -446,6 +447,7 @@ typedef struct pimega_t {
 	pimega_acquire_params_t acquireParam;
 	int digital_dac_values[DAC_ENUM_END];
 	float analog_dac_values[DAC_ENUM_END];
+	int omr_values[OMR_ENUM_END];
 	char file_template[PIMEGA_MAX_FILE_NAME];
 	initArgs init_args;
 	simpleArgs ack;
@@ -471,6 +473,7 @@ int US_NumExposures_RBV(pimega_t *pimega);
 int US_NumExposuresCounter_RBV(pimega_t *pimega);
 
 // --------------- K60 functions exclusive -----------------------------------------
+int load_equalization(pimega_t *pimega, u_int8_t cfg_number, u_int8_t sensor);
 int config_discl(pimega_t *pimega, uint32_t value);
 int pixel_load(pimega_t *pimega, uint8_t sensor, uint32_t value);
 int Send_Image(pimega_t *pimega, unsigned pattern);
@@ -483,6 +486,7 @@ int select_chipNumber_rbv(int sensor_id, int board);
 // ---------------------------------------------------------------------------------
 
 // -------------- OMR Prototypes ---------------------------------------------------
+int get_all_omr(pimega_t *pimega);
 int US_OmrOMSelec(pimega_t *pimega, pimega_operation_mode_t operation_mode);
 int US_OmrOMSelec_RBV(pimega_t *pimega);
 int US_ContinuousRW(pimega_t *pimega, pimega_crw_srw_t crw_srw_mode);
@@ -513,6 +517,7 @@ int US_SenseDacSel_RBV(pimega_t *pimega);
 // ----------------------------------------------------------------------------------
 
 int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value);
+int US_Get_OMR(pimega_t *pimega, pimega_omr_t omr);
 
 // ---------------- DAC Prototypes -------------------------------------------
 int Set_DAC_Defaults(pimega_t *pimega);
@@ -568,6 +573,7 @@ void pimega_delete(pimega_t *pimega);
 int define_master_module(pimega_t *pimega, uint8_t module, bool ext_trigger);
 int select_module(pimega_t *pimega, int module);
 int set_acquireTime(pimega_t *pimega, float acquire_time_s);
+int set_periodTime(pimega_t *pimega, float period_time_s);
 int set_numberExposures(pimega_t *pimega, int num_exposures);
 
 int trigger_out(pimega_t *pimega, bool enable_trigger);
