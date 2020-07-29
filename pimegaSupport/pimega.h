@@ -569,8 +569,9 @@ int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short
 void pimega_disconnect(pimega_t *pimega);
 void pimega_disconnect_backend(pimega_t *pimega);
 void pimega_delete(pimega_t *pimega);
+int prepare_pimega(pimega_t *pimega);
 
-int define_master_module(pimega_t *pimega, uint8_t module, bool ext_trigger);
+int define_master_module(pimega_t *pimega, uint8_t module, bool ext_trigger, pimega_trigger_mode_t trigger_mode);
 int select_module(pimega_t *pimega, int module);
 int set_acquireTime(pimega_t *pimega, float acquire_time_s);
 int set_periodTime(pimega_t *pimega, float period_time_s);

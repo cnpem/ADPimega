@@ -549,13 +549,14 @@ pimegaDetector::pimegaDetector(const char *portName,
     if (pimega) debug(functionName, "Pimega Object created!");
 
     connect(ips, port);
+    prepare_pimega(pimega);
     //pimega->debug_out = fopen("log.txt", "w+");
     //report(pimega->debug_out, 1);
     //fflush(pimega->debug_out);
 
     createParameters();
     setDefaults();
-    define_master_module(pimega, 1, false);
+    define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_INTERNAL);
 
     /* Create the thread that runs acquisition */
     status = (epicsThreadCreate("pimegaDetTask", 
@@ -609,7 +610,13 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
     //rc = open_serialPort(pimega, "/dev/ttyUSB0");
     
     // Connect to backend
-    pimega_connect_backend(pimega, "127.0.0.1", 5412);
+    for (i = 0; i < 5; i++) {
+        rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
+        if (rc == PIMEGA_SUCCESS) break;
+        epicsThreadSleep(1);
+    }
+    if (rc != PIMEGA_SUCCESS) panic("Unable to connect with Backend. Aborting...");
+
     // Ethernet test
     for(int _module = 0; _module < 4; _module++) {
         if (strcmp(address[_module],"0")) {
@@ -787,6 +794,7 @@ void pimegaDetector::setDefaults(void)
 
     setParameter(PimegaMedipixChip, 1);
     setParameter(PimegaMedipixBoard, 2);
+    setParameter(PimegaModule, 1);
 
     //getDacsValues();
 }
@@ -889,6 +897,8 @@ asynStatus pimegaDetector::setDACValue(pimega_dac_t dac, int value, int paramete
         return asynError;
     }
 
+    rc = US_ImgChipDACOUTSense_RBV(pimega);
+    setParameter(PimegaDacOutSense, pimega->pimegaParam.dacOutput);
     setParameter(parameter, value);
     return asynSuccess;
 }
@@ -1160,6 +1170,8 @@ asynStatus pimegaDetector::senseDacSel(u_int8_t dac)
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
 
+    rc = US_ImgChipDACOUTSense_RBV(pimega);
+    setParameter(PimegaDacOutSense, pimega->pimegaParam.dacOutput);
     setParameter(PimegaSenseDacSel, dac);
     return asynSuccess;
 }
