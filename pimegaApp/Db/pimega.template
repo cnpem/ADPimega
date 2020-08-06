@@ -56,6 +56,33 @@ record(longin, "$(P)$(R)NumImagesCounter_RBV")
 	field(SCAN, ".5 second")	
 }
 
+record(mbbo,"$(P)$(R)AllModules") {
+    field(DESC, "Send to all modules")
+    field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
+	field(ZRVL, "0")
+    field(ZRST, "Individual")
+	field(ONVL, "1")
+    field(ONST, "All Chips")
+	field(TWVL, "2")
+    field(TWST, "All Modules and Chips")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(mbbi,"$(P)$(R)AllModules_RBV") {
+    field(DESC, "Send to all modules RBV")
+    field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
+	field(ZRVL, "0")
+    field(ZRST, "Individual")
+	field(ONVL, "1")
+    field(ONST, "All Chips")
+	field(TWVL, "2")
+    field(TWST, "All Modules and Chips")
+	field(SCAN, "I/O Intr")
+}
+
 # We redefine the states for the TriggerMode records defined in ADBase.template
 record(mbbo,"$(P)$(R)TriggerMode") {
 	field(DESC,"Trigger mode")
@@ -132,7 +159,7 @@ record(mbbi, "$(P)$(R)PimegaModule_RBV") {
 	field(TWST, "Module 2")         		field(TWVL, "2")
 	field(THST, "Module 3")					field(THVL, "3")
 	field(FRST, "Module 4")   				field(FRVL, "4")
-	field(SCAN, "I/O Intr")
+	field(SCAN, ".1 second")
 }
 
 #Medipix Acquire Mode
@@ -188,7 +215,7 @@ record(ai, "$(P)$(R)SensorBias_RBV") {
 record(mbbo, "$(P)$(R)ReadCounter") {
 	field(DESC, "Selects the counter(s) to be read")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_COUNTER")
-	field(PINI, "YES")
+	#field(PINI, "YES")
 	field(DTYP, "asynInt32")
 	field(VAL, "0")
 	field(ZRST, "Counter Low")      field(ZRVL, "0")
@@ -223,7 +250,7 @@ record(mbbi, "$(P)$(R)ReadCounter_RBV") {
 
 # OMR Operation mode
 record(mbbo,"$(P)$(R)OmrOMSelec") {
-	field(PINI, "YES")
+	#field(PINI, "YES")
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OMR_OP_MODE")
 	field(DESC, "OMR operation mode selection")
@@ -271,7 +298,7 @@ record(mbbi,"$(P)$(R)OmrOMSelec_RBV") {
 
 # Gain mode - Selects the sensor gain mode
 record(mbbo,"$(P)$(R)GainMode") {
-   	field(PINI, "YES")
+   	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_MODE")
     field(DESC, "Sensor gain mode")
@@ -336,7 +363,7 @@ record(waveform, "$(P)$(R)DacsOutSense_RBV") {
 }
 
 record(bo,"$(P)$(R)ContinuousRW") {
-    field(PINI, "YES")
+    #field(PINI, "YES")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CONTINUOUSRW")
     field(DESC, "Enable Continuous Read/Write")
@@ -354,7 +381,7 @@ record(bi,"$(P)$(R)ContinuousRW_RBV") {
 }
 
 record(bo,"$(P)$(R)Polarity") {
-    field(PINI, "YES")
+    #field(PINI, "YES")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))POLARITY")
     field(DESC, "Select pixel polarity")
@@ -373,7 +400,7 @@ record(bi,"$(P)$(R)Polarity_RBV") {
 }
 
 record(bo,"$(P)$(R)Discriminator") {
-    field(PINI, "YES")
+    #field(PINI, "YES")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISCRIMINATOR")
     field(DESC, "Select energy discriminator output")
@@ -410,7 +437,7 @@ record(bi,"$(P)$(R)TestPulse_RBV") {
 
 # Counter depth - number of bits per pixel
 record(mbbo,"$(P)$(R)CounterDepth") {
-   	field(PINI, "YES")
+   	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))COUNTER_DEPTH")
     field(DESC, "Number of bits per pixel")
@@ -850,4 +877,79 @@ record(bi, "$(P)$(R)Reset_RDMA_Buffer_RBV") {
     field(ZNAM, "False")
     field(ONAM, "True")
     field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)Backend_LSFR") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_LSFR")
+    field(DESC, "Backend Backend LSFR")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(VAL,  "1")
+	field(PINI, "YES")
+}
+
+record(bi, "$(P)$(R)Backend_LSFR_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_LSFR")
+    field(DESC, "Backend LSFR RBV")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbo,"$(P)$(R)Select_SendImage") {
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEL_SEND_IMAGE")
+	field(DESC, "OMR operation mode selection")
+    field(DESC, "Send Image")  
+   	field(ZRST, "Mask-bit square")						field(ZRVL, "0")
+    field(ONST, "Pi-Tecnologa logo")					field(ONVL, "1")
+    field(TWST, "Column counter 16-inc")				field(TWVL, "2")
+    field(THST, "Line counter 16-inc")					field(THVL, "3")
+    field(FRST, "Column counter")						field(FRVL, "4")
+    field(FVST, "Line counter")							field(FVVL, "5")
+    field(SXST, "Unique Pixel-ID (LCC)")				field(SXVL, "6")
+    field(SVST, "Unique Pixel-ID (LLC)")				field(SVVL, "7")
+	field(EIST, "First pixel as 0xFFF")					field(EIVL, "8")
+	field(NIST, "Ramp test")							field(NIVL, "9")
+	field(TEST, "Inc Start Counter 1")			field(TEVL, "10")
+	field(ELST, "Inc Start Counter 2")			field(ELVL, "11")
+	field(TVST, "Test Pulse Even Lines")				field(TVVL, "12")
+	field(TTST, "Test Pulse Odd Lines")					field(TTVL, "13")
+	field(FTST, "Test Pulse Even Columns")				field(FTVL, "14")
+	field(FFST, "Test Pulse Odd Columns")				field(FFVL, "15")
+}
+
+record(mbbi,"$(P)$(R)Select_SendImage_RBV") {
+   	field(DTYP, "asynInt32")
+   	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEL_SEND_IMAGE")
+    field(DESC, "Send Image readback")  
+   	field(ZRST, "Mask-bit square")						field(ZRVL, "0")
+    field(ONST, "Pi-Tecnologa logo")					field(ONVL, "1")
+    field(TWST, "Column counter 16-inc")				field(TWVL, "2")
+    field(THST, "Line counter 16-inc")					field(THVL, "3")
+    field(FRST, "Column counter")						field(FRVL, "4")
+    field(FVST, "Line counter)")						field(FVVL, "5")
+    field(SXST, "Unique Pixel-ID (LCC)")				field(SXVL, "6")
+    field(SVST, "Unique Pixel-ID (LLC)")				field(SVVL, "7")
+	field(EIST, "First pixel as 0xFFF")					field(EIVL, "8")
+	field(NIST, "Ramp test")							field(NIVL, "9")
+	field(TEST, "Inc Start Counter 1")					field(TEVL, "10")
+	field(ELST, "Inc Start Counter 2")					field(ELVL, "11")
+	field(TVST, "Test Pulse Even Lines")				field(TVVL, "12")
+	field(TTST, "Test Pulse Odd Lines")					field(TTVL, "13")
+	field(FTST, "Test Pulse Even Columns")				field(FTVL, "14")
+	field(FFST, "Test Pulse Odd Columns")				field(FFVL, "15")
+   	field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SendImage") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Send Image test to detector")
+	field(VAL,  "1")
+	field(ZNAM, "No send")
+	field(ONAM, "Send")
+	#field(HIGH, "0.1")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_IMAGE")
 }

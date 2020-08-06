@@ -97,6 +97,10 @@ static const char *driverName = "pimegaDetector";
 #define pimegaResetRDMABufferString     "RESET_RDMA_BUFFER"
 #define pimegaSensorBiasString          "SENSOR_BIAS"
 #define pimegaModuleString              "PIMEGA_MODULE"
+#define pimegaAllModulesString          "ALL_MODULES"
+#define pimegaBackendLSFRString         "BACK_LSFR"
+#define pimegaSendImageString           "SEND_IMAGE"
+#define pimegaSelSendImageString        "SEL_SEND_IMAGE"
 
 class pimegaDetector: public ADDriver
 {
@@ -166,7 +170,11 @@ protected:
     int PimegaDacsOutSense;
     int PimegaBackBuffer;
     int PimegaResetRDMABuffer;
+    int PimegaBackLSFR;
     int PimegaModule;
+    int PimegaAllModules;
+    int PimegaSendImage;
+    int PimegaSelSendImage;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -205,6 +213,7 @@ private:
     void getParameter(int index, double *value);
 
     void getDacsValues(void);
+    
     void setDefaults(void);
     asynStatus getDacsOutSense(void);
     asynStatus startAcquire();
@@ -214,6 +223,7 @@ private:
     asynStatus triggerMode(int trigger);
     asynStatus reset(short action);
     asynStatus setDACValue(pimega_dac_t dac, int value, int parameter);
+    asynStatus setOMRValue(pimega_omr_t dac, int value, int parameter);
     asynStatus imgChipID(uint8_t chip_id);
     asynStatus medipixBoard(uint8_t board_id);
     asynStatus numExposures(unsigned number);
@@ -231,6 +241,7 @@ private:
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
     asynStatus imageMode(u_int8_t mode);
+    asynStatus sendImage(void);
 
 };
 

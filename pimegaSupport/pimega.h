@@ -439,6 +439,7 @@ typedef struct pimega_t {
 	uint8_t max_num_boards;  // MFB Boards
 	uint8_t max_num_chips;	 // Chips
 	int pimega_interface;
+	uint8_t pimega_module;
 	int fd[4];
 	int backend_socket;
 	FILE *debug_out;
@@ -476,7 +477,7 @@ int US_NumExposuresCounter_RBV(pimega_t *pimega);
 int load_equalization(pimega_t *pimega, u_int8_t cfg_number, u_int8_t sensor);
 int config_discl(pimega_t *pimega, uint32_t value);
 int pixel_load(pimega_t *pimega, uint8_t sensor, uint32_t value);
-int Send_Image(pimega_t *pimega, unsigned pattern);
+int send_image(pimega_t *pimega, uint8_t send_to_all, uint8_t pattern);
 int Set_Trigger(pimega_t *pimega, bool set_trigger);
 int Set_Trigger_RBV(pimega_t *pimega);
 int select_board(pimega_t *pimega, int board_id);
@@ -576,6 +577,8 @@ int select_module(pimega_t *pimega, int module);
 int set_acquireTime(pimega_t *pimega, float acquire_time_s);
 int set_periodTime(pimega_t *pimega, float period_time_s);
 int set_numberExposures(pimega_t *pimega, int num_exposures);
+
+int dac_scan(pimega_t *pimega, pimega_dac_t dac, int initial, int final, int step);
 
 int trigger_out(pimega_t *pimega, bool enable_trigger);
 int trigger_out_get(pimega_t *pimega);
