@@ -101,6 +101,8 @@ static const char *driverName = "pimegaDetector";
 #define pimegaBackendLSFRString         "BACK_LSFR"
 #define pimegaSendImageString           "SEND_IMAGE"
 #define pimegaSelSendImageString        "SEL_SEND_IMAGE"
+#define pimegaSendDacDoneString         "SEND_DAC_DONE"
+#define pimegaConfigDiscLString         "CONFIG_DISCL"
 
 class pimegaDetector: public ADDriver
 {
@@ -175,6 +177,8 @@ protected:
     int PimegaAllModules;
     int PimegaSendImage;
     int PimegaSelSendImage;
+    int PimegaSendDacDone;
+    int PimegaConfigDiscL;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -220,6 +224,7 @@ private:
 
     asynStatus selectModule(uint8_t module);
     asynStatus medipixMode(uint8_t mode);
+    asynStatus configDiscL(int value);
     asynStatus triggerMode(int trigger);
     asynStatus reset(short action);
     asynStatus setDACValue(pimega_dac_t dac, int value, int parameter);

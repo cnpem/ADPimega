@@ -56,6 +56,15 @@ record(longin, "$(P)$(R)NumImagesCounter_RBV")
 	field(SCAN, ".5 second")	
 }
 
+record(bi,"$(P)$(R)SendDAC_Done_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_DAC_DONE")
+    field(DESC, "Send DAC is done readback")
+    field(ZNAM, "Sending")
+    field(ONAM, "Done")
+    field(SCAN, "I/O Intr")
+}
+
 record(mbbo,"$(P)$(R)AllModules") {
     field(DESC, "Send to all modules")
     field(DTYP, "asynInt32")
@@ -63,9 +72,11 @@ record(mbbo,"$(P)$(R)AllModules") {
 	field(ZRVL, "0")
     field(ZRST, "Individual")
 	field(ONVL, "1")
-    field(ONST, "All Chips")
+    field(ONST, "All Chips in one Module")
 	field(TWVL, "2")
-    field(TWST, "All Modules and Chips")
+    field(TWST, "One chip in all modules")
+	field(THVL, "3")
+	field(THST, "All Chips and All Modules")
 	field(VAL,  "0")
 	field(PINI, "YES")
 }
@@ -77,9 +88,11 @@ record(mbbi,"$(P)$(R)AllModules_RBV") {
 	field(ZRVL, "0")
     field(ZRST, "Individual")
 	field(ONVL, "1")
-    field(ONST, "All Chips")
+    field(ONST, "All Chips in one Module")
 	field(TWVL, "2")
-    field(TWST, "All Modules and Chips")
+    field(TWST, "One chip in all modules")
+	field(THVL, "3")
+	field(THST, "All Chips and All Modules")
 	field(SCAN, "I/O Intr")
 }
 
@@ -564,7 +577,6 @@ record(ai, "$(P)$(R)DAC_Bias_RBV")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DAC_BIAS")
 	field(DESC, "External DAC Bias monitor readback")
 	field(SCAN, "I/O Intr")
-
 }
 
 record(ai, "$(P)$(R)DAC_ThresholdEnergy0_RBV")
@@ -952,4 +964,22 @@ record(bo, "$(P)$(R)SendImage") {
 	field(ONAM, "Send")
 	#field(HIGH, "0.1")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_IMAGE")
+}
+
+record(ai, "$(P)$(R)ConfigDiscL_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CONFIG_DISCL")
+	field(SCAN, "I/O Intr")
+	field(DESC, "DAC Config DiscL value")
+}
+
+record(ao, "$(P)$(R)ConfigDiscL")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CONFIG_DISCL")
+	field(DESC, "DAC Config DiscL value")
+	field(VAL, "0")
+	field(DRVL, "0")
+	field(DRVH, "4095")
 }

@@ -239,6 +239,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |= selectModule(value);
     //else if (function == ADTriggerMode)
     //    status |=  triggerMode(value);
+    else if (function == PimegaConfigDiscL)
+        status |= configDiscL(value);
     else if (function == PimegaMedipixBoard)
         status |= medipixBoard(value);
     else if (function == PimegaMedipixChip)
@@ -262,8 +264,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaReadCounter)
         status |= readCounter(value);
     else if (function == PimegaSenseDacSel)
-        status |= senseDacSel(value);
-
+        status |= setOMRValue(OMR_Sense_DAC, value, function);
     //DACS functions
     else if (function == PimegaCas)
         status |= setDACValue(DAC_CAS, value, function);
@@ -740,6 +741,8 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDacsOutSenseString,   asynParamFloat32Array, &PimegaDacsOutSense);
     createParam(pimegaSendImageString,      asynParamInt32,     &PimegaSendImage);
     createParam(pimegaSelSendImageString,   asynParamInt32,     &PimegaSelSendImage);
+    createParam(pimegaSendDacDoneString,    asynParamInt32,     &PimegaSendDacDone);
+    createParam(pimegaConfigDiscLString,    asynParamInt32,     &PimegaConfigDiscL);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -807,6 +810,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaMedipixBoard, 2);
     setParameter(PimegaModule, 1);
 
+    Set_DAC_Defaults(pimega);
     //getDacsValues();
 }
 
@@ -875,6 +879,7 @@ asynStatus pimegaDetector::startAcquire()
     getParameter(PimegaResetRDMABuffer, &resetRDMA);
     getParameter(PimegaBackLSFR, &lsfr);
 
+    //define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
     pimega->pimegaParam.software_trigger = true;
     update_backend_acqArgs(pimega, lsfr, autoSave, resetRDMA, 1, 5);
     execute_acquire(pimega);
@@ -902,49 +907,36 @@ asynStatus pimegaDetector::triggerMode(int trigger)
     }
 }
 
+asynStatus pimegaDetector::configDiscL(int value)
+{
+    int rc;
+    int all_modules;
+    getParameter(PimegaAllModules, &all_modules);
+    rc = US_ConfigDiscL(pimega, value, (pimega_send_to_all_t)all_modules);
+    if (rc != PIMEGA_SUCCESS) {
+        error("Value out the range: %s\n", pimega_error_string(rc));
+        return asynError;
+    }
+}
+
 asynStatus pimegaDetector::setDACValue(pimega_dac_t dac, int value, int parameter)
 {
     int rc;
     int all_modules;
 
+    setParameter(PimegaSendDacDone, 0);
+    callParamCallbacks();
+
     getParameter(PimegaAllModules, &all_modules);
-
-    if (all_modules == 0) {
-        rc = US_Set_DAC_Variable(pimega, dac, (unsigned)value);
-        if (rc != PIMEGA_SUCCESS) {
-            error("Unable to change DAC value: %s\n", pimega_error_string(rc));
-            return asynError;
-        }
-    }
-    
-    else if (all_modules == 1) {
-        for (int _chip = 1; _chip <= 36; _chip++) {
-            rc |= select_chipNumber(pimega, _chip);
-            rc = US_Set_DAC_Variable(pimega, dac, (unsigned)value);
-            if (rc != PIMEGA_SUCCESS) {
-                error("Unable to change DAC value: %s\n", pimega_error_string(rc));
-                return asynError;
-            }
-        }
+    rc = US_Set_DAC_Variable(pimega, dac, (unsigned)value, (pimega_send_to_all_t)all_modules);
+    if (rc != PIMEGA_SUCCESS) {
+        error("Unable to change DAC value: %s\n", pimega_error_string(rc));
+        return asynError;
     }
 
-    else if (all_modules == 2) {
-        for (int _module = 1; _module <= 4; _module++) {
-            select_module(pimega, _module);
-            for (int _chip = 1; _chip <= 36; _chip++) {
-                rc |= select_chipNumber(pimega, _chip);
-                rc = US_Set_DAC_Variable(pimega, dac, (unsigned)value);
-                if (rc != PIMEGA_SUCCESS) {
-                    error("Unable to change DAC value: %s\n", pimega_error_string(rc));
-                    return asynError;
-                }
-            }
-        }
-    
-    }
-
-    rc = US_ImgChipDACOUTSense_RBV(pimega);
-    setParameter(PimegaDacOutSense, pimega->pimegaParam.dacOutput);
+    setParameter(PimegaSendDacDone, 1);
+    //rc = US_ImgChipDACOUTSense_RBV(pimega);
+    //setParameter(PimegaDacOutSense, pimega->pimegaParam.dacOutput);
     setParameter(parameter, value);
     return asynSuccess;
 }
@@ -955,39 +947,10 @@ asynStatus pimegaDetector::setOMRValue(pimega_omr_t omr, int value, int paramete
     int all_modules;
 
     getParameter(PimegaAllModules, &all_modules);
-
-    if (all_modules == 0) {
-        rc = US_Set_OMR(pimega, omr, (unsigned)value);
-        if (rc != PIMEGA_SUCCESS) {
-            error("Unable to change OMR value: %s\n", pimega_error_string(rc));
-            return asynError;
-        }
-    }
-    
-    else if (all_modules == 1) {
-        for (int _chip = 1; _chip <= 36; _chip++) {
-            rc |= select_chipNumber(pimega, _chip);
-            rc |= US_Set_OMR(pimega, omr, (unsigned)value);
-            if (rc != PIMEGA_SUCCESS) {
-                error("Unable to change OMR value: %s\n", pimega_error_string(rc));
-                return asynError;
-            }
-        }
-    }
-
-    else if (all_modules == 2) {
-        for (int _module = 1; _module <= 4; _module++) {
-            select_module(pimega, _module);
-            for (int _chip = 1; _chip <= 36; _chip++) {
-                rc |= select_chipNumber(pimega, _chip);
-                rc |= US_Set_OMR(pimega, omr, (unsigned)value);
-                if (rc != PIMEGA_SUCCESS) {
-                    error("Unable to change OMR value: %s\n", pimega_error_string(rc));
-                    return asynError;
-                }
-            }
-        }
-    
+    rc = US_Set_OMR(pimega, omr, (unsigned)value, (pimega_send_to_all_t)all_modules);
+    if (rc != PIMEGA_SUCCESS) {
+        error("Unable to change OMR value: %s\n", pimega_error_string(rc));
+        return asynError;
     }
 
     setParameter(parameter, value);
@@ -1064,10 +1027,10 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     setParameter(PimegaMedipixBoard, pimega->chip_pos.mfb);
 
     /* Get e-fuseID from selected chip_id */ 
-    rc = US_efuseID_RBV(pimega);
-    if (rc != PIMEGA_SUCCESS) return asynError;
-    _efuseID = pimega->pimegaParam.efuseID;
-    setParameter(PimegaefuseID, _efuseID);
+    //rc = US_efuseID_RBV(pimega);
+    //if (rc != PIMEGA_SUCCESS) return asynError;
+    //_efuseID = pimega->pimegaParam.efuseID;
+    //setParameter(PimegaefuseID, _efuseID);
 
     //getDacsValues();
     return asynSuccess;   
