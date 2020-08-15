@@ -103,6 +103,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaSelSendImageString        "SEL_SEND_IMAGE"
 #define pimegaSendDacDoneString         "SEND_DAC_DONE"
 #define pimegaConfigDiscLString         "CONFIG_DISCL"
+#define pimegaLoadEqString              "LOAD_EQUALIZATION"
 
 class pimegaDetector: public ADDriver
 {
@@ -179,6 +180,7 @@ protected:
     int PimegaSelSendImage;
     int PimegaSendDacDone;
     int PimegaConfigDiscL;
+    int PimegaLoadEqualization;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -222,6 +224,7 @@ private:
     asynStatus getDacsOutSense(void);
     asynStatus startAcquire();
 
+    asynStatus dac_scan_tmp(pimega_dac_t dac);
     asynStatus selectModule(uint8_t module);
     asynStatus medipixMode(uint8_t mode);
     asynStatus configDiscL(int value);
@@ -247,6 +250,8 @@ private:
     asynStatus senseDacSel(u_int8_t dac);
     asynStatus imageMode(u_int8_t mode);
     asynStatus sendImage(void);
+    asynStatus loadEqualization(int cfg);
+
 
 };
 

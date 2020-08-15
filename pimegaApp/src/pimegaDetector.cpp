@@ -204,6 +204,9 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     int acquiring;
 
     getParamName(function, &paramName);
+    printf("Int Function Idx: %d\n", function);
+    printf("Int Function Name: %s\n", paramName);
+    printf("Int Function Value: %d\n", value);
 
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
@@ -227,6 +230,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaSendImage) {
         if (value) status |= sendImage();
     }
+    else if (function == PimegaLoadEqualization)
+        status |= loadEqualization(value);
     else if (function == PimegaOmrOPMode)
         status |= setOMRValue(OMR_M, value, function);
     else if (function == ADNumExposures)
@@ -267,7 +272,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |= setOMRValue(OMR_Sense_DAC, value, function);
     //DACS functions
     else if (function == PimegaCas)
-        status |= setDACValue(DAC_CAS, value, function);
+        status |= dac_scan_tmp(DAC_CAS);
     else if (function == PimegaDelay)
         status |=  setDACValue(DAC_Delay, value, function);
     else if (function == PimegaDisc)
@@ -279,9 +284,9 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaDiscLS)
         status |=  setDACValue(DAC_DiscLS, value, function);
     else if (function == PimegaFbk)
-        status |=  setDACValue(DAC_FBK, value, function);
+        status |=  dac_scan_tmp(DAC_FBK);
     else if (function == PimegaGnd)
-        status |=  setDACValue(DAC_GND, value, function);
+        status |=  dac_scan_tmp(DAC_GND);
     else if (function == PimegaIkrum)
         status |=  setDACValue(DAC_IKrum, value, function);
     else if (function == PimegaPreamp)
@@ -333,9 +338,9 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     const char *functionName = "writeFloat64";
 
     getParamName(function, &paramName);
-    printf("Valor de function: %d\n", function);
-    printf("Nome da funcao: %s\n", paramName);
-    printf("Valor de value: %f\n", value);
+    printf("Float Function Idx: %d\n", function);
+    printf("Float Function Name: %s\n", paramName);
+    printf("Float Function Value: %f\n", value);
 
     status |= setDoubleParam(function, value);
 
@@ -564,7 +569,7 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     createParameters();
     setDefaults();
-    define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_INTERNAL);
+    define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
 
     /* Create the thread that runs acquisition */
     status = (epicsThreadCreate("pimegaDetTask", 
@@ -743,6 +748,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaSelSendImageString,   asynParamInt32,     &PimegaSelSendImage);
     createParam(pimegaSendDacDoneString,    asynParamInt32,     &PimegaSendDacDone);
     createParam(pimegaConfigDiscLString,    asynParamInt32,     &PimegaConfigDiscL);
+    createParam(pimegaLoadEqString,         asynParamInt32,     &PimegaLoadEqualization);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -810,7 +816,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaMedipixBoard, 2);
     setParameter(PimegaModule, 1);
 
-    Set_DAC_Defaults(pimega);
+    //Set_DAC_Defaults(pimega);
     //getDacsValues();
 }
 
@@ -879,10 +885,53 @@ asynStatus pimegaDetector::startAcquire()
     getParameter(PimegaResetRDMABuffer, &resetRDMA);
     getParameter(PimegaBackLSFR, &lsfr);
 
+    select_module(pimega, 2);
+    rc |= US_Acquire(pimega, 1);
+    select_module(pimega, 3);
+    rc |= US_Acquire(pimega, 1);
+    select_module(pimega, 4);
+    rc |= US_Acquire(pimega, 1);
+
     //define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
-    pimega->pimegaParam.software_trigger = true;
+    pimega->pimegaParam.software_trigger = false;
     update_backend_acqArgs(pimega, lsfr, autoSave, resetRDMA, 1, 5);
     execute_acquire(pimega);
+}
+
+asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac)
+{
+    int rc = 0;
+    printf("DAC: %d\n", dac);
+    if(dac == DAC_GND) {
+       	rc = US_DAC_Scan(pimega, DAC_GND, 90, 150, 1, PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
+        select_module(pimega, 4);
+        select_chipNumber(pimega, 36);
+        rc = US_DAC_Scan(pimega, DAC_GND, 50, 100, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    }
+
+    else if(dac == DAC_FBK) {
+       	rc = US_DAC_Scan(pimega, DAC_FBK, 140, 200, 1, PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);;
+        select_module(pimega, 4);
+        select_chipNumber(pimega, 36);
+        rc = US_DAC_Scan(pimega, DAC_FBK, 80, 130, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    }
+
+    else if(dac == DAC_CAS) {
+       	rc = US_DAC_Scan(pimega, DAC_CAS, 140, 200, 1, PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
+        select_module(pimega, 4);
+        select_chipNumber(pimega, 36);
+        rc = US_DAC_Scan(pimega, DAC_CAS, 80, 130, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    }
+
+    select_module(pimega, 1);
+	select_chipNumber(pimega, 6);
+	US_ImgChip_ExtBgIn(pimega, 0.637);
+	US_Set_OMR(pimega, OMR_Ext_BG_Sel, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+
+	select_module(pimega, 2);
+	select_chipNumber(pimega, 31);
+	US_ImgChip_ExtBgIn(pimega, 0.637);
+	US_Set_OMR(pimega, OMR_Ext_BG_Sel, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
 }
 
 asynStatus pimegaDetector::selectModule(uint8_t module)
@@ -954,6 +1003,23 @@ asynStatus pimegaDetector::setOMRValue(pimega_omr_t omr, int value, int paramete
     }
 
     setParameter(parameter, value);
+    return asynSuccess;
+}
+
+asynStatus pimegaDetector::loadEqualization(int cfg)
+{
+    int rc, send_to_all, sensor;
+
+    getParameter(PimegaAllModules, &send_to_all);
+    getParameter(PimegaMedipixChip, &sensor);
+    
+    if ((send_to_all == 0) || (send_to_all == 2))
+        rc |= US_Load_Equalization(pimega, cfg, sensor);
+    else {
+        rc |= US_Load_Equalization(pimega, cfg, 0);
+    }
+
+    if (rc != PIMEGA_SUCCESS) return asynError;
     return asynSuccess;
 }
 

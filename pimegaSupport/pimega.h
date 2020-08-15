@@ -28,7 +28,7 @@ extern "C" {
 
 #define PIMEGA_SIZE_SEND_MSG 512
 #define PIMEGA_SIZE_READ_MSG 512
-#define PIMEGA_SIZE_RESULT 256
+#define PIMEGA_SIZE_RESULT 1024
 
 #define PIMEGA_TIMEOUT 30000000
 #define DATA_SERVER_TIMEOUT 3000000
@@ -166,6 +166,14 @@ typedef struct __attribute__((__packed__)){
 typedef enum pimega_detector_model_t{
 	mobipix = 0, pimega45D, pimega135D, pimega540D,
 } pimega_detector_model_t;
+
+typedef enum pimega_thread_t {
+	PIMEGA_THREAD_MAIN = 10,
+	PIMEGA_THREAD_MODULE1 = 0,
+	PIMEGA_THREAD_MODULE2 = 1, 
+	PIMEGA_THREAD_MODULE3 = 2,
+	PIMEGA_THREAD_MODULE4 = 3 
+} pimega_thread_t;
 
 typedef enum pimega_operation_mode_t {
 	PIMEGA_READ_COUNTER_L = 0,
@@ -426,6 +434,14 @@ enum moduleLoc{
     SINGLE = 5,
 };
 
+typedef enum pimega_send_to_all_t
+{
+	PIMEGA_SEND_ONE_CHIP_ONE_MODULE = 0,
+	PIMEGA_SEND_ALL_CHIPS_ONE_MODULE,
+	PIMEGA_SEND_ONE_CHIP_ALL_MODULES,
+	PIMEGA_SEND_ALL_CHIPS_ALL_MODULES,
+} pimega_send_to_all_t;
+
 typedef struct chip {
     enum moduleLoc module;
     int mfb;
@@ -437,7 +453,8 @@ extern struct chip decoder540D[144];
 typedef struct pimega_t {
 	uint8_t max_num_modules; // Modules (135D)
 	uint8_t max_num_boards;  // MFB Boards
-	uint8_t max_num_chips;	 // Chips
+	uint8_t max_num_chips;	 // Chips by mfb
+	uint8_t num_all_chips;	 // All chips by module 
 	int pimega_interface;
 	uint8_t pimega_module;
 	int fd[4];
@@ -458,8 +475,27 @@ typedef struct pimega_t {
 	chip chip_pos;
 } pimega_t;
 
+typedef struct dac_scan_t {
+	pimega_dac_t dac;
+	int initial;
+	int final;
+	int step;
+	float acquireTime;
+} dac_scan_t;
+
+typedef struct pimega_dac_write_context
+{
+	dac_scan_t * scan_rq;
+	pimega_t *pimega;
+	pimega_thread_t owner;
+} pimega_dac_write_context;
+
 
 pimega_t *pimega_new(pimega_detector_model_t detModel);
+
+int write_dac_all_modules(pimega_t *pimega, pimega_dac_t dac, int value);
+int write_dac_all_modules_serial(pimega_t *pimega, pimega_dac_t dac, int value);
+
 
 int US_DetectorState_RBV(pimega_t *pimega);
 int US_efuseID_RBV(pimega_t *pimega);
@@ -474,8 +510,8 @@ int US_NumExposures_RBV(pimega_t *pimega);
 int US_NumExposuresCounter_RBV(pimega_t *pimega);
 
 // --------------- K60 functions exclusive -----------------------------------------
-int load_equalization(pimega_t *pimega, u_int8_t cfg_number, u_int8_t sensor);
-int config_discl(pimega_t *pimega, uint32_t value);
+int US_Load_Equalization(pimega_t *pimega, u_int8_t cfg_number, u_int8_t sensor);
+int US_ConfigDiscL(pimega_t *pimega, uint32_t value, pimega_send_to_all_t send_to);
 int pixel_load(pimega_t *pimega, uint8_t sensor, uint32_t value);
 int send_image(pimega_t *pimega, uint8_t send_to_all, uint8_t pattern);
 int Set_Trigger(pimega_t *pimega, bool set_trigger);
@@ -517,7 +553,7 @@ int US_SenseDacSel_RBV(pimega_t *pimega);
 
 // ----------------------------------------------------------------------------------
 
-int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value);
+int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value, pimega_send_to_all_t send_to);
 int US_Get_OMR(pimega_t *pimega, pimega_omr_t omr);
 
 // ---------------- DAC Prototypes -------------------------------------------
@@ -526,7 +562,7 @@ int get_dacs_values(pimega_t *pimega, int chip_id);
 int get_digital_dac_value(pimega_t *pimega, pimega_dac_t dac);
 float get_analog_dac_value(pimega_t *pimega, pimega_dac_t dac);
 
-int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value);
+int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value, pimega_send_to_all_t send_to);
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
 int US_DACBias_RBV(pimega_t *pimega);
 // --------------------------------------------------------------------------
@@ -552,7 +588,6 @@ int US_TriggerMode_RBV(pimega_t *pimega);
 int US_SoftawareTrigger(pimega_t *pimega, bool software_trigger);
 int US_SoftawareTrigger_RBV(pimega_t *pimega);
 
-int US_ImgChipNumberID(pimega_t *pimega, uint16_t sensor);
 int US_ImgChipNumberID_RBV(pimega_t *pimega);
 
 int US_ReadCounter(pimega_t *pimega, pimega_read_counter_t counter);
@@ -578,7 +613,8 @@ int set_acquireTime(pimega_t *pimega, float acquire_time_s);
 int set_periodTime(pimega_t *pimega, float period_time_s);
 int set_numberExposures(pimega_t *pimega, int num_exposures);
 
-int dac_scan(pimega_t *pimega, pimega_dac_t dac, int initial, int final, int step);
+int US_DAC_Scan(pimega_t *pimega, pimega_dac_t dac, int initial, int final, int step,
+				pimega_send_to_all_t send_to);
 
 int trigger_out(pimega_t *pimega, bool enable_trigger);
 int trigger_out_get(pimega_t *pimega);

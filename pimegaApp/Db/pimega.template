@@ -528,6 +528,21 @@ record(bi,"$(P)$(R)PixelMode_RBV") {
     field(SCAN, "I/O Intr")
 }
 
+record(ao, "$(P)$(R)LoadEqualization")
+{
+	field(DESC, "LoadEqualization_CFG")
+   	field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LOAD_EQUALIZATION")
+}
+
+record(ai, "$(P)$(R)LoadEqualization_RBV")
+{
+	field(DESC, "Config File to LoadEqualization Readback")
+   	field(DTYP, "asynInt32")
+   	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LOAD_EQUALIZATION")
+   	field(SCAN,  "I/O Intr")
+}
+
 record(ao, "$(P)$(R)MedipixBoard")
 {
 	field(DESC, "Medipix Board Number")
