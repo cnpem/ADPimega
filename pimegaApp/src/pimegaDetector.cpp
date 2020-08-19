@@ -266,10 +266,12 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |= setOMRValue(OMR_Equalization, value, function);
     else if (function == PimegaGain)
         status |= setOMRValue(OMR_Gain_Mode, value, function);
+    else if (function == PimegaExtBgSel)
+        status |= setOMRValue(OMR_Ext_BG_Sel, value, function);
     else if (function == PimegaReadCounter)
         status |= readCounter(value);
     else if (function == PimegaSenseDacSel)
-        status |= setOMRValue(OMR_Sense_DAC, value, function);
+        status |= senseDacSel(value);
     //DACS functions
     else if (function == PimegaCas)
         status |= dac_scan_tmp(DAC_CAS);
@@ -349,6 +351,9 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
     else if (function == PimegaSensorBias)
         status |= sensorBias(value);
+
+    else if (function == PimegaExtBgIn)
+        status |= setExtBgIn(value);
 
     else {
     /* If this parameter belongs to a base class call its method */
@@ -749,6 +754,8 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaSendDacDoneString,    asynParamInt32,     &PimegaSendDacDone);
     createParam(pimegaConfigDiscLString,    asynParamInt32,     &PimegaConfigDiscL);
     createParam(pimegaLoadEqString,         asynParamInt32,     &PimegaLoadEqualization);
+    createParam(pimegaExtBgInString,        asynParamFloat64,   &PimegaExtBgIn);
+    createParam(pimegaExtBgSelString,       asynParamInt32,     &PimegaExtBgSel);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -816,6 +823,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaMedipixBoard, 2);
     setParameter(PimegaModule, 1);
 
+    set_OptimizedDiscL(pimega);
     //Set_DAC_Defaults(pimega);
     //getDacsValues();
 }
@@ -937,11 +945,17 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac)
 asynStatus pimegaDetector::selectModule(uint8_t module)
 {
     int rc;
+    int mfb;
+    getParameter(PimegaMedipixBoard, &mfb);
+
     rc = select_module(pimega, module);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid module number: %s\n", pimega_error_string(rc));
         return asynError;
     }
+    rc |= select_board(pimega, mfb);
+    rc |= US_SensorBias_RBV(pimega);
+    setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage);
     setParameter(PimegaModule, module);
     return asynSuccess;    
 }
@@ -1093,10 +1107,10 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     setParameter(PimegaMedipixBoard, pimega->chip_pos.mfb);
 
     /* Get e-fuseID from selected chip_id */ 
-    //rc = US_efuseID_RBV(pimega);
-    //if (rc != PIMEGA_SUCCESS) return asynError;
-    //_efuseID = pimega->pimegaParam.efuseID;
-    //setParameter(PimegaefuseID, _efuseID);
+    rc = US_efuseID_RBV(pimega);
+    if (rc != PIMEGA_SUCCESS) return asynError;
+    _efuseID = pimega->pimegaParam.efuseID;
+    setParameter(PimegaefuseID, _efuseID);
 
     //getDacsValues();
     return asynSuccess;   
@@ -1273,12 +1287,28 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s)
     return asynSuccess;
 }
 
+asynStatus pimegaDetector::setExtBgIn(float voltage)
+{
+    int rc;
+
+    rc = US_ImgChip_ExtBgIn(pimega, voltage);
+    if (rc != PIMEGA_SUCCESS) {
+        error("Invalid value: %s\n", pimega_error_string(rc));
+        return asynError;
+    }
+    setParameter(PimegaExtBgIn, voltage);
+    return asynSuccess;
+}
+
 asynStatus pimegaDetector::sensorBias(float voltage)
 {
     int rc;
-    rc = set_sensorBias(pimega, voltage);
+    int all_modules;
+
+    getParameter(PimegaAllModules, &all_modules);
+    rc = setSensorBias(pimega, voltage, (pimega_send_to_all_t)all_modules);
     if (rc != PIMEGA_SUCCESS) {
-        error("Invalid voltage value: %s\n", pimega_error_string(rc));
+        error("Invalid value: %s\n", pimega_error_string(rc));
         return asynError;
     }
     setParameter(PimegaSensorBias, voltage);
@@ -1298,11 +1328,9 @@ asynStatus pimegaDetector::readCounter(int counter)
 
 asynStatus pimegaDetector::senseDacSel(u_int8_t dac)
 {
-    int rc;
-    rc = US_SenseDacSel(pimega, dac);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
+    int rc = 0;
+    rc = setOMRValue(OMR_Sense_DAC, dac, PimegaSenseDacSel);
+    if (rc != PIMEGA_SUCCESS) return asynError;
     rc = US_ImgChipDACOUTSense_RBV(pimega);
     setParameter(PimegaDacOutSense, pimega->pimegaParam.dacOutput);
     setParameter(PimegaSenseDacSel, dac);

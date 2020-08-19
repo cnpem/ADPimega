@@ -70,13 +70,19 @@ record(mbbo,"$(P)$(R)AllModules") {
     field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
 	field(ZRVL, "0")
-    field(ZRST, "Individual")
+    field(ZRST, "Individual Chip")
 	field(ONVL, "1")
     field(ONST, "All Chips in one Module")
 	field(TWVL, "2")
     field(TWST, "One chip in all modules")
 	field(THVL, "3")
 	field(THST, "All Chips and All Modules")
+	field(FRVL, "4")
+	field(FRST, "Individual MFB")
+	field(FVVL, "5")
+	field(FVST, "All MFBs in one Module")
+	field(SXVL, "6")
+    field(SXST, "All MBFs and All Modules")
 	field(VAL,  "0")
 	field(PINI, "YES")
 }
@@ -93,6 +99,12 @@ record(mbbi,"$(P)$(R)AllModules_RBV") {
     field(TWST, "One chip in all modules")
 	field(THVL, "3")
 	field(THST, "All Chips and All Modules")
+	field(FRVL, "4")
+	field(FRST, "Individual MFB")
+	field(FVVL, "5")
+	field(FVST, "All MFBs in one Module")
+	field(SXVL, "6")
+    field(SXST, "All MBFs and All Modules")
 	field(SCAN, "I/O Intr")
 }
 
@@ -197,6 +209,20 @@ record(mbbi, "$(P)$(R)MedipixMode_RBV") {
 	field(TWST, "Dual Energy")         		field(TWVL, "2")
 	field(THST, "Continuous Read Write")	field(THVL, "3")
 	field(FRST, "Full Dynamic Range")   	field(FRVL, "4")
+	field(SCAN, "I/O Intr")
+}
+
+#ExtBgIn
+record(ao, "$(P)$(R)ExtBgIn") {
+	field(DESC, "Set external Band-Gap voltage")
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EXT_BGIN")
+}
+
+record(ai, "$(P)$(R)ExtBgIn_RBV") {
+	field(DESC, "Set external Band-Gap voltage Readback")
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EXT_BGIN")
 	field(SCAN, "I/O Intr")
 }
 
@@ -525,6 +551,24 @@ record(bi,"$(P)$(R)PixelMode_RBV") {
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PIXEL_MODE")
     field(ZNAM, "Single Pixel Mode")
     field(ONAM, "Charge Summing Mode")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo,"$(P)$(R)ExtBgSel") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EXT_BGSEL")
+    field(DESC, "Select External Bang Gap mode")
+    field(ZNAM, "Internal Band-Gap")
+    field(ONAM, "External Band-Gap")
+    field(VAL,  "0")
+}
+
+record(bi,"$(P)$(R)ExtBgSel_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EXT_BGSEL")
+    field(DESC, "Select External Bang Gap mode")
+    field(ZNAM, "Internal Band-Gap")
+    field(ONAM, "External Band-Gap")
     field(SCAN, "I/O Intr")
 }
 
@@ -998,3 +1042,4 @@ record(ao, "$(P)$(R)ConfigDiscL")
 	field(DRVL, "0")
 	field(DRVH, "4095")
 }
+
