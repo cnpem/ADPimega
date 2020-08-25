@@ -242,8 +242,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |= medipixMode(value);
     else if (function == PimegaModule)
         status |= selectModule(value);
-    //else if (function == ADTriggerMode)
-    //    status |=  triggerMode(value);
+    else if (function == ADTriggerMode)
+        status |=  triggerMode(value);
     else if (function == PimegaConfigDiscL)
         status |= configDiscL(value);
     else if (function == PimegaMedipixBoard)
@@ -379,16 +379,20 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
 {
     int function = pasynUser->reason;
     int addr;
-    int numPoints = N_DACS_OUTS;
+    int numPoints = 0;
     epicsFloat32 *inPtr;
     const char *paramName;
     static const char *functionName = "pimegaDetector::readFloat32Array";
 
     this->getAddress(pasynUser, &addr);
  
-    if(function == PimegaDacsOutSense)
-    {
+    if(function == PimegaDacsOutSense) {
         inPtr = PimegaDacsOutSense_;
+        numPoints = N_DACS_OUTS;
+    }
+    else if (function == PimegaMFBTemperature){
+        inPtr = PimegaMFBTemperature_;
+        numPoints = N_SENSOR_MFB_TEMPERATURE;
     }
     else {
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
@@ -399,7 +403,7 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
 
     *nIn = nElements;
     if (*nIn > (size_t) numPoints) *nIn = (size_t) numPoints;
-        memcpy(value, inPtr, *nIn*sizeof(epicsFloat32)); 
+    memcpy(value, inPtr, *nIn*sizeof(epicsFloat32)); 
 
     return asynSuccess;
 }
@@ -543,6 +547,10 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     //Alocate memory for PimegaDacsOutSense_
     PimegaDacsOutSense_ = (epicsFloat32 *)calloc(N_DACS_OUTS, sizeof(epicsFloat32));
+
+    PimegaMFBTemperature_ = (epicsFloat32 *)calloc(N_SENSOR_MFB_TEMPERATURE,
+                                                   sizeof(epicsFloat32));
+
 
     // Initialise the debugger
     initDebugger(1);
@@ -756,6 +764,8 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaLoadEqString,         asynParamInt32,     &PimegaLoadEqualization);
     createParam(pimegaExtBgInString,        asynParamFloat64,   &PimegaExtBgIn);
     createParam(pimegaExtBgSelString,       asynParamInt32,     &PimegaExtBgSel);
+    createParam(pimegaMfbTemperatureString, asynParamFloat32Array, &PimegaMFBTemperature);
+
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -963,6 +973,7 @@ asynStatus pimegaDetector::selectModule(uint8_t module)
 asynStatus pimegaDetector::triggerMode(int trigger)
 {
     int rc;
+    select_module(pimega, 1);
     rc = US_TriggerMode(pimega, (pimega_trigger_mode_t)trigger);
     if (rc != PIMEGA_SUCCESS) {
         error("TriggerMode out the range: %s\n", pimega_error_string(rc));
@@ -1075,6 +1086,7 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
 
     rc = US_SensorBias_RBV(pimega);
     setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage);
+    //getMfbTemperature();
     setParameter(PimegaMedipixBoard, board_id);
     return asynSuccess;
 }
@@ -1344,6 +1356,22 @@ asynStatus pimegaDetector::getDacsOutSense(void)
     }
     doCallbacksFloat32Array(PimegaDacsOutSense_, N_DACS_OUTS, PimegaDacsOutSense, 0);
 
+    return asynSuccess;
+}
+
+asynStatus pimegaDetector::getMfbTemperature(void)
+{
+    int module;
+    puts("\n\nINSIDE getMfbTemperature\n\n");
+    getParameter(PimegaModule, &module);
+    getMFB_Temperature(pimega, module);
+    for (int i=0; i<N_SENSOR_MFB_TEMPERATURE; i++) {
+        PimegaMFBTemperature_[i] = (epicsFloat32)(pimega->pimegaParam.mfb_temperature[module-1][i]);
+    }
+    doCallbacksFloat32Array(PimegaMFBTemperature_,
+                            N_SENSOR_MFB_TEMPERATURE,
+                            PimegaMFBTemperature,
+                            0);
     return asynSuccess;
 }
 

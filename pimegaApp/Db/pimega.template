@@ -112,22 +112,22 @@ record(mbbi,"$(P)$(R)AllModules_RBV") {
 record(mbbo,"$(P)$(R)TriggerMode") {
 	field(DESC,"Trigger mode")
     field(ZRVL,"0")
-    field(ZRST,"Debug Push Button")
+    field(ZRST,"Internal")
     field(ONVL,"1")
-    field(ONST,"External I/O")
+    field(ONST,"External positive edge")
     field(TWVL,"2")
-    field(TWST,"MCU GPIO (in-system)")
+    field(TWST,"External negative edge")
     field(IVOA, "Don't drive outputs")
 }
 
 record(mbbi,"$(P)$(R)TriggerMode_RBV") {
     field(DESC,"Trigger mode")
     field(ZRVL,"0")
-    field(ZRST,"Debug Push Button")
+    field(ZRST,"Internal")
     field(ONVL,"1")
-    field(ONST,"External I/O")
+    field(ONST,"External positive edge")
     field(TWVL,"2")
-    field(TWST,"MCU GPIO (in-system)")
+    field(TWST,"External negative edge")
 }
 
 # Add new items for the ImageMode records defined in ADBase.template
@@ -400,6 +400,26 @@ record(waveform, "$(P)$(R)DacsOutSense_RBV") {
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DACS_OUT_SENSE")
     field(SCAN, "I/O Intr")
 }
+
+record(waveform, "$(P)$(R)MFB_Temperature_RBV") {
+	field(DESC, "Temperature Sensor from MFBs")
+	field(NELM, "48")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_SENSOR_TEMPERATURE")
+    field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)MFB_SensorNumber") {
+    field(DTYP,"Soft Channel")
+	field(VAL, "16")
+}
+
+record(ao, "$(P)$(R)MFB_Number") {
+    field(DTYP,"Soft Channel")
+	field(VAL, "3")
+}
+
 
 record(bo,"$(P)$(R)ContinuousRW") {
     #field(PINI, "YES")

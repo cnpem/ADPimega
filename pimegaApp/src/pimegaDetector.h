@@ -49,6 +49,7 @@
 #define DEFAULT_POLL_TIME 2
 
 #define N_DACS_OUTS 31
+#define N_SENSOR_MFB_TEMPERATURE 48
 
 static const char *driverName = "pimegaDetector";
 
@@ -106,6 +107,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaLoadEqString              "LOAD_EQUALIZATION"
 #define pimegaExtBgInString             "EXT_BGIN"
 #define pimegaExtBgSelString            "EXT_BGSEL"
+#define pimegaMfbTemperatureString      "MFB_SENSOR_TEMPERATURE"
 
 class pimegaDetector: public ADDriver
 {
@@ -185,6 +187,7 @@ protected:
     int PimegaLoadEqualization;
     int PimegaExtBgIn;
     int PimegaExtBgSel;
+    int PimegaMFBTemperature;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -211,6 +214,8 @@ private:
     int itemp;
 
     epicsFloat32 *PimegaDacsOutSense_;
+    epicsFloat32 *PimegaMFBTemperature_;
+
 
     void panic(const char *msg);
     void connect(const char *address[4], unsigned short port);
@@ -226,6 +231,7 @@ private:
     
     void setDefaults(void);
     asynStatus getDacsOutSense(void);
+    asynStatus getMfbTemperature(void);
     asynStatus startAcquire();
 
     asynStatus dac_scan_tmp(pimega_dac_t dac);
