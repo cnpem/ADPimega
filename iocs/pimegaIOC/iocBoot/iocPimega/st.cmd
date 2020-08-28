@@ -14,16 +14,20 @@ epicsEnvSet("DMODEL", "3");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
-epicsEnvSet("XSIZE",  "1536")
+epicsEnvSet("XSIZE",  "3072")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
-epicsEnvSet("YSIZE",  "1536")
+epicsEnvSet("YSIZE",  "3072")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "256")
+epicsEnvSet("NELEMENTS", "9437184")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
 epicsEnvSet("CBUFFS", "500")
 # The IP address of the Pimega system
+#epicsEnvSet("PIMEGA_MODULE01_IP", "127.0.0.1")
+#epicsEnvSet("PIMEGA_MODULE02_IP", "127.0.0.1")
+#epicsEnvSet("PIMEGA_MODULE03_IP", "127.0.0.1")
+#epicsEnvSet("PIMEGA_MODULE04_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.2")
 epicsEnvSet("PIMEGA_MODULE02_IP", "10.255.255.6")
 epicsEnvSet("PIMEGA_MODULE03_IP", "10.255.255.10")

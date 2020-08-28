@@ -31,7 +31,7 @@ extern "C" {
 #define PIMEGA_SIZE_RESULT 1024
 
 #define PIMEGA_TIMEOUT 30000000
-#define DATA_SERVER_TIMEOUT 3000000
+#define DATA_SERVER_TIMEOUT 300000000
 #define PIMEGA_MAX_FILE_NAME 300
 
 #define PIMEGA_MIN_GAP 2e-5f
@@ -62,9 +62,9 @@ extern "C" {
 #define MODULE3 2
 #define MODULE4 3
 
-#define RDMA_NUM_FRAMES 1000
 #define SEL_IMMD_DATA 1
 #define RDMA_CADENCE 1
+#define FRAME_SIZE_540D 3072UL * 3072UL
 
 enum requestTypesEnum {
     INIT_ARGS = 0,
@@ -73,6 +73,7 @@ enum requestTypesEnum {
     SAVE_STATUS = 3,
     ABORT_SAVE = 4,
     STOP_ACQUIRE = 5,
+    ARRAY_DATA = 6
 };
 
 enum OperationTypesEnum {
@@ -101,6 +102,7 @@ enum aquisitionModeEnum {
     B24 = 1,
     DUALENERGY = 2
 };
+
 
 //Size 1
 typedef struct __attribute__((__packed__)){
@@ -161,6 +163,14 @@ typedef struct __attribute__((__packed__)){
     uint32_t               bufferSize;
     uint8_t                reserved[STRUCT_SIZE-261];
 } initArgs;
+
+struct guess_end_context{
+    struct timespec  sample_time;
+    acqStatusArgs    cached_status;
+    uint64_t         acquire_time_us;
+    uint64_t         reqAcquisitions;
+};
+
 /* End backend structs */
 
 typedef enum pimega_detector_model_t{
@@ -376,10 +386,13 @@ typedef struct pimega_params_t {
 	pimega_trigger_mode_t trigger_mode;			//US_TriggerMode
 	bool discard_data;							//US_DiscardData
 	float bias_voltage;							//US_SensorBias_RBV
-	float temperature;
-	float actual_temperature;
 	pimega_read_counter_t read_counter;
 	pimega_image_mode_t image_mode;
+	float mfb_temperature[4][48];
+	float mfb_sensor_temp;
+	float chip_temperature;
+	float allchip_temperature[4][36];
+	float avg_chip_temperature;
 	char efuseID[8];
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
@@ -440,6 +453,9 @@ typedef enum pimega_send_to_all_t
 	PIMEGA_SEND_ALL_CHIPS_ONE_MODULE,
 	PIMEGA_SEND_ONE_CHIP_ALL_MODULES,
 	PIMEGA_SEND_ALL_CHIPS_ALL_MODULES,
+	PIMEGA_SEND_ONE_MFB_ONE_MODULE,
+	PIMEGA_SEND_ALL_MFBS_ONE_MODEULE,
+	PIMEGA_SEND_ALL_MFBS_ALL_MODULES,
 } pimega_send_to_all_t;
 
 typedef struct chip {
@@ -565,6 +581,7 @@ float get_analog_dac_value(pimega_t *pimega, pimega_dac_t dac);
 int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value, pimega_send_to_all_t send_to);
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
 int US_DACBias_RBV(pimega_t *pimega);
+int set_OptimizedDiscL(pimega_t *pimega);
 // --------------------------------------------------------------------------
 
 int US_ImgChipDACOUTSense_RBV(pimega_t *pimega);
@@ -574,7 +591,7 @@ int US_BandGapOutput_RBV(pimega_t *pimega);
 int US_BandGapTemperature_RBV(pimega_t *pimega);
 int US_CascodeBias_RBV(pimega_t *pimega);
 
-int set_sensorBias(pimega_t *pimega, float voltage);
+int setSensorBias(pimega_t *pimega, float voltage, pimega_send_to_all_t send_to);
 int US_SensorBias(pimega_t *pimega, float bias_voltage);
 int US_SensorBias_RBV(pimega_t *pimega);
 
@@ -592,13 +609,14 @@ int US_ImgChipNumberID_RBV(pimega_t *pimega);
 
 int US_ReadCounter(pimega_t *pimega, pimega_read_counter_t counter);
 int US_ReadCounter_RBV(pimega_t *pimega);
-int US_ImageMode(pimega_t *pimega, pimega_image_mode_t imagemode);
+int US_ImageMode(pimega_t *pimega, uint8_t image_mode);
 int US_ImageMode_RBV(pimega_t *pimega);
-int US_Temperature(pimega_t *pimega, float temperature);
-int US_Temperature_RBV(pimega_t *pimega);
-int US_TemperatureActual(pimega_t *pimega);
 int US_DiscardData(pimega_t *pimega, bool discard_data);
 int US_DiscardData_RBV(pimega_t *pimega);
+int getMFB_Temperature(pimega_t *pimega, int module);
+int getChip_Temperature(pimega_t *pimega, int module);
+int US_TemperatureChipAvg(pimega_t *pimega);
+int US_TemperatureMFB_RBV(pimega_t *pimega, u_int8_t sensorMFB);
 
 int pimega_connect(pimega_t *pimega, int fd, const char *address, unsigned short port);
 int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short port);
@@ -628,11 +646,13 @@ int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
 int send_allinitArgs(pimega_t *pimega, int module);
 int send_acqArgs_toBackend(pimega_t *pimega);
 int get_acqStatus_fromBackend(pimega_t *pimega);
-int get_saveStatus_fromBackend(pimega_t *pimega);
+int get_saveStatus_fromBackend(pimega_t *pimega, uint64_t *savedAcquisitions);
 int send_stopAcquire_toBackend(pimega_t *pimega);
 int update_backend_acqArgs(pimega_t *pimega, bool useLFSR, uint8_t saveMode, 
                     	   bool resetRDMABuffer, uint16_t bcFramesToProcessPerTime,
 						   uint8_t extraDimensions);
+int get_array_data(pimega_t *pimega, uint32_t * array_data);
+void decode_backend_error(uint8_t ret, char *error);
 // ---------------------------------------------------------
 
 
@@ -646,6 +666,7 @@ void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
 
 typedef int (*method)(pimega_t *pimega, pimega_dac_t, int);
 int run_dacs_all_chips(pimega_t *pimega, pimega_dac_t dac, int value, method _method);
+
 
 #ifdef __cplusplus
 } /* extern "C" */

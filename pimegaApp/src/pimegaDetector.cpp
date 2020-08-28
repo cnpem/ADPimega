@@ -26,9 +26,11 @@ void pimegaDetector::generateImage(void)
     const char *functionName = "generateImage";
 
     // simulate a image
-    for(int i=0; i <= p_imageSize ;i++) {
-        pimega_image[i] = rand()%UINT16_MAX;
-        }
+    get_array_data(pimega, pimega_image);
+
+    //for(int i=0; i <= p_imageSize ;i++) {
+    //    pimega_image[i] = rand()%UINT16_MAX;
+    //    }
     //*****************************************************
 
     getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
@@ -105,11 +107,16 @@ void pimegaDetector::acqTask()
             callParamCallbacks();
             bufferOverflow =0;
 
-            startAcquire();
-            acquire = 1;
-            /* Get the current time */
-            epicsTimeGetCurrent(&startTime);
-
+            status = startAcquire();
+            if (status != asynSuccess) {
+                epicsEventSignal(this->stopEventId_);
+                epicsThreadSleep(.1);
+            }
+            else {
+                acquire = 1;
+                /* Get the current time */
+                epicsTimeGetCurrent(&startTime);
+            }
         }
 
         if (acquire) {
@@ -142,7 +149,7 @@ void pimegaDetector::acqTask()
 
         if (eventStatus == epicsEventWaitOK) {
             US_Acquire(pimega,0);
-            //send_stopAcquire_toBackend(pimega);
+            send_stopAcquire_toBackend(pimega);
             setShutter(0);
             setIntegerParam(ADAcquire, 0);
             acquire=0;
@@ -391,6 +398,7 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
         numPoints = N_DACS_OUTS;
     }
     else if (function == PimegaMFBTemperature){
+        getMfbTemperature();
         inPtr = PimegaMFBTemperature_;
         numPoints = N_SENSOR_MFB_TEMPERATURE;
     }
@@ -432,6 +440,17 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     else if (function == PimegaDacOutSense){
         status = US_ImgChipDACOUTSense_RBV(pimega);
         *value = pimega->pimegaParam.dacOutput;
+    }
+
+    else if (function == PimegaMFBTSensor){
+        int sensor;
+        getParameter(PimegaMFBSelTSensor,&sensor);
+        *value = pimega->pimegaParam.mfb_temperature[0][sensor-1];
+    }
+
+    else if (function == PimegaMPAvgTemperature){
+        status = US_TemperatureChipAvg(pimega);
+        *value = pimega->pimegaParam.avg_chip_temperature;
     }
 
     //Other functions we call the base class method
@@ -631,7 +650,10 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
 {
     unsigned i;
     int rc = 0;
-
+    
+#ifdef USE_SIMULATOR
+    unsigned short simPorts[4] = {10000, 20000, 30000, 40000};
+#endif    
     //Serial Test
     //rc = open_serialPort(pimega, "/dev/ttyUSB0");
     
@@ -647,7 +669,11 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
     for(int _module = 0; _module < 4; _module++) {
         if (strcmp(address[_module],"0")) {
             for (i = 0; i < 5; i++) {
-                rc |= pimega_connect(pimega, _module, address[_module], port);
+#ifdef USE_SIMULATOR
+                rc |= pimega_connect(pimega, _module, address[_module], simPorts[_module]);
+#else                
+                rc |= pimega_connect(pimega, _module, address[_module], port);    
+#endif            
                 if (rc == PIMEGA_SUCCESS) break;
                 epicsThreadSleep(1);
             }
@@ -765,7 +791,9 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaExtBgInString,        asynParamFloat64,   &PimegaExtBgIn);
     createParam(pimegaExtBgSelString,       asynParamInt32,     &PimegaExtBgSel);
     createParam(pimegaMfbTemperatureString, asynParamFloat32Array, &PimegaMFBTemperature);
-
+    createParam(pimegaMfbSelTSensorString,  asynParamInt32,     &PimegaMFBSelTSensor);
+    createParam(pimegaMfbTSensorString,     asynParamFloat64,   &PimegaMFBTSensor);
+    createParam(pimegaMPAvgTString,         asynParamFloat64,   &PimegaMPAvgTemperature);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -776,8 +804,8 @@ void pimegaDetector::setDefaults(void)
 {
 
     //TODO remove this variables after test
-    int maxSizeX = 16;
-    int maxSizeY = 16;
+    int maxSizeX = 3072;
+    int maxSizeY = 3072;
 
     setParameter(ADMaxSizeX, maxSizeX);
     setParameter(ADMaxSizeY, maxSizeY);
@@ -887,9 +915,9 @@ void pimegaDetector::report(FILE *fp, int details)
     ADDriver::report(fp, details);
 }
 
-asynStatus pimegaDetector::startAcquire()
+int pimegaDetector::startAcquire(void)
 {
-    int rc;
+    int rc = 0;
     int autoSave;
     int resetRDMA;
     int lsfr;
@@ -903,17 +931,19 @@ asynStatus pimegaDetector::startAcquire()
     getParameter(PimegaResetRDMABuffer, &resetRDMA);
     getParameter(PimegaBackLSFR, &lsfr);
 
-    select_module(pimega, 2);
+    rc |= select_module(pimega, 2);
     rc |= US_Acquire(pimega, 1);
-    select_module(pimega, 3);
+    rc |= select_module(pimega, 3);
     rc |= US_Acquire(pimega, 1);
-    select_module(pimega, 4);
+    rc |= select_module(pimega, 4);
     rc |= US_Acquire(pimega, 1);
 
     //define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
     pimega->pimegaParam.software_trigger = false;
-    update_backend_acqArgs(pimega, lsfr, autoSave, resetRDMA, 1, 5);
-    execute_acquire(pimega);
+    rc |= update_backend_acqArgs(pimega, lsfr, autoSave, resetRDMA, 1, 5);
+    rc |= execute_acquire(pimega);
+
+    return rc;
 }
 
 asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac)

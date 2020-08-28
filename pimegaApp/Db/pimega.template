@@ -402,24 +402,91 @@ record(waveform, "$(P)$(R)DacsOutSense_RBV") {
 }
 
 record(waveform, "$(P)$(R)MFB_Temperature_RBV") {
-	field(DESC, "Temperature Sensor from MFBs")
+	field(DESC, "All Temperatures on MFB sensors")
 	field(NELM, "48")
 	field(FTVL, "FLOAT")
 	field(DTYP, "asynFloat32ArrayIn")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_SENSOR_TEMPERATURE")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE")
     field(SCAN, "I/O Intr")
+	field(PREC, "2")
 }
 
-record(ao, "$(P)$(R)MFB_SensorNumber") {
+record(longout, "$(P)$(R)MFB_SensorNumber") {
     field(DTYP,"Soft Channel")
 	field(VAL, "16")
 }
 
-record(ao, "$(P)$(R)MFB_Number") {
+record(longout, "$(P)$(R)MFB_Number") {
     field(DTYP,"Soft Channel")
 	field(VAL, "3")
 }
 
+record(longout, "$(P)$(R)MFB_SelectSensor") {
+	field(PINI, "YES")
+	field(DESC, "Select temperatura sensor from MFB")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_SEL_TSENSOR")
+	field(VAL,  "1")
+}
+
+record(longin, "$(P)$(R)MFB_SelectSensor_RBV") {
+	field(DESC, "Select temperature MFB sensor Readback")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_SEL_TSENSOR")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai,"$(P)$(R)MFB_SensorTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M1")
+    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+#Module 1
+record(ai,"$(P)$(R)Module1:MFB_AvgSensorTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M2")
+    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+#Module 2
+record(ai,"$(P)$(R)Module2:MFB_AvgSensorTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M3")
+    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+#Module 3
+record(ai,"$(P)$(R)Module3:MFB_AvgSensorTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M4")
+    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+#Module 4
+record(ai,"$(P)$(R)Module4:MFB_AvgSensorTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TSENSOR")
+    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)Medipix_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_SENSOR")
+    field(DESC, "Medipix average Temperature sensors")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
 
 record(bo,"$(P)$(R)ContinuousRW") {
     #field(PINI, "YES")
