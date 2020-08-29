@@ -37,7 +37,7 @@
 // pimega lib includes
 #include <pimega.h>
 
-#define USE_SIMULATOR 1
+//#define USE_SIMULATOR 1
 #define MAX_FILENAME_LEN 300
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from Labview */
@@ -50,8 +50,6 @@
 #define DEFAULT_POLL_TIME 2
 
 #define N_DACS_OUTS 31
-#define N_SENSOR_MFB_TEMPERATURE 48
-
 static const char *driverName = "pimegaDetector";
 
 #define error(fmt, ...) asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, \
@@ -108,7 +106,14 @@ static const char *driverName = "pimegaDetector";
 #define pimegaLoadEqString              "LOAD_EQUALIZATION"
 #define pimegaExtBgInString             "EXT_BGIN"
 #define pimegaExtBgSelString            "EXT_BGSEL"
-#define pimegaMfbTemperatureString      "MFB_TEMPERATURE"
+#define pimegaMfbM1TempString           "MFB_TEMPERATURE_M1"
+#define pimegaMfbM2TempString           "MFB_TEMPERATURE_M2"
+#define pimegaMfbM3TempString           "MFB_TEMPERATURE_M3"
+#define pimegaMfbM4TempString           "MFB_TEMPERATURE_M4"
+#define pimegaMFBAvgM1String            "MFB_AVG_TSENSOR_M1"
+#define pimegaMFBAvgM2String            "MFB_AVG_TSENSOR_M2"
+#define pimegaMFBAvgM3String            "MFB_AVG_TSENSOR_M3"
+#define pimegaMFBAvgM4String            "MFB_AVG_TSENSOR_M4"
 #define pimegaMfbSelTSensorString       "MFB_SEL_TSENSOR"
 #define pimegaMfbTSensorString          "MFB_TSENSOR"
 #define pimegaMPAvgM1String             "MP_AVG_TSENSOR_M1"
@@ -194,7 +199,14 @@ protected:
     int PimegaLoadEqualization;
     int PimegaExtBgIn;
     int PimegaExtBgSel;
-    int PimegaMFBTemperature;
+    int PimegaMFBTemperatureM1;
+    int PimegaMFBTemperatureM2;
+    int PimegaMFBTemperatureM3;
+    int PimegaMFBTemperatureM4;
+    int PimegaMFBAvgTSensorM1;
+    int PimegaMFBAvgTSensorM2;
+    int PimegaMFBAvgTSensorM3;
+    int PimegaMFBAvgTSensorM4;
     int PimegaMFBSelTSensor;
     int PimegaMFBTSensor;
     int PimegaMPAvgTSensorM1;

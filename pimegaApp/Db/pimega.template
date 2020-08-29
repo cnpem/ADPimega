@@ -401,12 +401,74 @@ record(waveform, "$(P)$(R)DacsOutSense_RBV") {
     field(SCAN, "I/O Intr")
 }
 
-record(waveform, "$(P)$(R)MFB_Temperature_RBV") {
-	field(DESC, "All Temperatures on MFB sensors")
+record(waveform, "$(P)$(R)M1:MFB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MFB sensors M1")
 	field(NELM, "48")
 	field(FTVL, "FLOAT")
 	field(DTYP, "asynFloat32ArrayIn")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M1")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)M1:MFB_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M1")
+    field(DESC, "MFB Avg Temperature Mod 1 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M2:MFB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MFB sensors M2")
+	field(NELM, "48")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M2")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)M2:MFB_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M2")
+    field(DESC, "MFB Avg Temperature Mod 2 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M3:MFB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MFB sensors M3")
+	field(NELM, "48")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M3")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)M3:MFB_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M3")
+    field(DESC, "MFB Avg Temperature Mod 3 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M4:MFB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MFB sensors M4")
+	field(NELM, "48")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M4")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)M4:MFB_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M4")
+    field(DESC, "MFB Avg Temperature Mod 4 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }

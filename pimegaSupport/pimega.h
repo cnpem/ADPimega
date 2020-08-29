@@ -44,6 +44,7 @@ extern "C" {
 #define PIMEGA_BIAS_DELAY 0.1
 #define PIMEGA_MAX_BIASVOLTAGE 100.0
 #define PIMEGA_MIN_BIASVOLTAGE 0
+#define PIMEGA_MFB_SENSOR_TEMPERATURE 16
 
 #define SERIAL 0
 #define ETHERNET 1
@@ -51,7 +52,7 @@ extern "C" {
 
 #define BACKENDOFF 0
 #define BACKENDON 1
-#define BACKEND BACKENDOFF
+#define BACKEND BACKENDON
 
 //TODO: Put this struct in another file 
 /* Backend Structs*/
@@ -471,6 +472,7 @@ typedef struct pimega_t {
 	uint8_t max_num_boards;  // MFB Boards
 	uint8_t max_num_chips;	 // Chips by mfb
 	uint8_t num_all_chips;	 // All chips by module 
+	uint8_t num_mfb_tsensors;
 	int pimega_interface;
 	uint8_t pimega_module;
 	int fd[4];
@@ -623,6 +625,7 @@ int getChip_Temperature(pimega_t *pimega, int module);
 int US_TemperatureChipAvg(pimega_t *pimega);
 int US_TemperatureMFB_RBV(pimega_t *pimega, u_int8_t sensorMFB);
 int US_GetTemperature(pimega_t *pimega);
+int US_GetMFBTemperature(pimega_t *pimega);
 
 int pimega_connect(pimega_t *pimega, int fd, const char *address, unsigned short port);
 int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short port);
