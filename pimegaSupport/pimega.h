@@ -51,7 +51,7 @@ extern "C" {
 
 #define BACKENDOFF 0
 #define BACKENDON 1
-#define BACKEND BACKENDON
+#define BACKEND BACKENDOFF
 
 //TODO: Put this struct in another file 
 /* Backend Structs*/
@@ -392,7 +392,7 @@ typedef struct pimega_params_t {
 	float mfb_sensor_temp;
 	float chip_temperature;
 	float allchip_temperature[4][36];
-	float avg_chip_temperature;
+	float avg_chip_temperature[4];
 	char efuseID[8];
 	bool software_trigger;						//US_SotwareTrigger
 	bool external_band_gap;
@@ -506,6 +506,11 @@ typedef struct pimega_dac_write_context
 	pimega_thread_t owner;
 } pimega_dac_write_context;
 
+typedef struct pimega_temperature_context
+{
+	pimega_t *pimega;
+	pimega_thread_t owner;
+} pimega_temperature_context;
 
 pimega_t *pimega_new(pimega_detector_model_t detModel);
 
@@ -617,6 +622,7 @@ int getMFB_Temperature(pimega_t *pimega, int module);
 int getChip_Temperature(pimega_t *pimega, int module);
 int US_TemperatureChipAvg(pimega_t *pimega);
 int US_TemperatureMFB_RBV(pimega_t *pimega, u_int8_t sensorMFB);
+int US_GetTemperature(pimega_t *pimega);
 
 int pimega_connect(pimega_t *pimega, int fd, const char *address, unsigned short port);
 int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short port);

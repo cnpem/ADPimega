@@ -438,44 +438,43 @@ record(longin, "$(P)$(R)MFB_SelectSensor_RBV") {
 
 record(ai,"$(P)$(R)MFB_SensorTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M1")
-    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TSENSOR")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 
 #Module 1
-record(ai,"$(P)$(R)Module1:MFB_AvgSensorTemperature_RBV") {
+record(ai,"$(P)$(R)M1:Medipix_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M2")
-    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M1")
+    field(DESC, "Medipix Avg Temperature Mod 1 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 
 #Module 2
-record(ai,"$(P)$(R)Module2:MFB_AvgSensorTemperature_RBV") {
+record(ai,"$(P)$(R)M2:Medipix_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M3")
-    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M2")
+    field(DESC, "Medipix Avg Temperature Mod 3 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 
 #Module 3
-record(ai,"$(P)$(R)Module3:MFB_AvgSensorTemperature_RBV") {
+record(ai,"$(P)$(R)M3:Medipix_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M4")
-    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M3")
+    field(DESC, "Medipix Avg Temperature Mod 3 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 
 #Module 4
-record(ai,"$(P)$(R)Module4:MFB_AvgSensorTemperature_RBV") {
+record(ai,"$(P)$(R)M4:Medipix_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TSENSOR")
-    field(DESC, "MFB Temperature Sensor value ReadBack")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M4")
+    field(DESC, "Medipix Avg Temperature Mod 4 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }

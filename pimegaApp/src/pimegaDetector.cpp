@@ -432,6 +432,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     //}
 
     if (function == PimegaSensorBias){
+        select_module(pimega, 1);
         status = US_SensorBias_RBV(pimega);
         *value = pimega->pimegaParam.bias_voltage;
         setParameter(PimegaSensorBias, *value);
@@ -448,9 +449,9 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
         *value = pimega->pimegaParam.mfb_temperature[0][sensor-1];
     }
 
-    else if (function == PimegaMPAvgTemperature){
-        status = US_TemperatureChipAvg(pimega);
-        *value = pimega->pimegaParam.avg_chip_temperature;
+    else if (function == PimegaMPAvgTSensorM1){
+        status = getMedipixTemperature();
+        *value = pimega->pimegaParam.avg_chip_temperature[0];
     }
 
     //Other functions we call the base class method
@@ -658,11 +659,11 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
     //rc = open_serialPort(pimega, "/dev/ttyUSB0");
     
     // Connect to backend
-    for (i = 0; i < 5; i++) {
-        rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
-        if (rc == PIMEGA_SUCCESS) break;
-        epicsThreadSleep(1);
-    }
+    //for (i = 0; i < 5; i++) {
+    //    rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
+    //    if (rc == PIMEGA_SUCCESS) break;
+    //    epicsThreadSleep(1);
+    //}
     if (rc != PIMEGA_SUCCESS) panic("Unable to connect with Backend. Aborting...");
 
     // Ethernet test
@@ -793,7 +794,10 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaMfbTemperatureString, asynParamFloat32Array, &PimegaMFBTemperature);
     createParam(pimegaMfbSelTSensorString,  asynParamInt32,     &PimegaMFBSelTSensor);
     createParam(pimegaMfbTSensorString,     asynParamFloat64,   &PimegaMFBTSensor);
-    createParam(pimegaMPAvgTString,         asynParamFloat64,   &PimegaMPAvgTemperature);
+    createParam(pimegaMPAvgM1String,        asynParamFloat64,   &PimegaMPAvgTSensorM1);
+    createParam(pimegaMPAvgM2String,        asynParamFloat64,   &PimegaMPAvgTSensorM2);
+    createParam(pimegaMPAvgM3String,        asynParamFloat64,   &PimegaMPAvgTSensorM3);
+    createParam(pimegaMPAvgM4String,        asynParamFloat64,   &PimegaMPAvgTSensorM4);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -1402,6 +1406,19 @@ asynStatus pimegaDetector::getMfbTemperature(void)
                             N_SENSOR_MFB_TEMPERATURE,
                             PimegaMFBTemperature,
                             0);
+    return asynSuccess;
+}
+
+
+asynStatus pimegaDetector::getMedipixTemperature(void)
+{
+    US_GetTemperature(pimega);
+    for (int x = 1; x <=4; x++)
+		printf("Avg Temperature Module[%d]: %f\n", x, pimega->pimegaParam.avg_chip_temperature[x-1]);
+    setParameter(PimegaMPAvgTSensorM2, pimega->pimegaParam.avg_chip_temperature[1]);
+    setParameter(PimegaMPAvgTSensorM3, pimega->pimegaParam.avg_chip_temperature[2]);
+    setParameter(PimegaMPAvgTSensorM4, pimega->pimegaParam.avg_chip_temperature[3]);
+    callParamCallbacks();
     return asynSuccess;
 }
 

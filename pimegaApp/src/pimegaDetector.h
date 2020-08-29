@@ -37,7 +37,7 @@
 // pimega lib includes
 #include <pimega.h>
 
-//#define USE_SIMULATOR 1
+#define USE_SIMULATOR 1
 #define MAX_FILENAME_LEN 300
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from Labview */
@@ -111,7 +111,10 @@ static const char *driverName = "pimegaDetector";
 #define pimegaMfbTemperatureString      "MFB_TEMPERATURE"
 #define pimegaMfbSelTSensorString       "MFB_SEL_TSENSOR"
 #define pimegaMfbTSensorString          "MFB_TSENSOR"
-#define pimegaMPAvgTString              "MP_AVG_SENSOR"
+#define pimegaMPAvgM1String             "MP_AVG_TSENSOR_M1"
+#define pimegaMPAvgM2String             "MP_AVG_TSENSOR_M2"
+#define pimegaMPAvgM3String             "MP_AVG_TSENSOR_M3"
+#define pimegaMPAvgM4String             "MP_AVG_TSENSOR_M4"
 
 class pimegaDetector: public ADDriver
 {
@@ -194,7 +197,10 @@ protected:
     int PimegaMFBTemperature;
     int PimegaMFBSelTSensor;
     int PimegaMFBTSensor;
-    int PimegaMPAvgTemperature;
+    int PimegaMPAvgTSensorM1;
+    int PimegaMPAvgTSensorM2;
+    int PimegaMPAvgTSensorM3;
+    int PimegaMPAvgTSensorM4;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -239,6 +245,8 @@ private:
     void setDefaults(void);
     asynStatus getDacsOutSense(void);
     asynStatus getMfbTemperature(void);
+    asynStatus getMedipixTemperature(void);
+
     int startAcquire(void);
 
     asynStatus dac_scan_tmp(pimega_dac_t dac);
