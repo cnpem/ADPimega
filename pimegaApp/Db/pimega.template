@@ -147,7 +147,7 @@ record(mbbi,"$(P)$(R)ImageMode_RBV") {
 
 record(ao, "$(P)$(R)AcquireTime")
 {
-	field(DRVH, "1000")
+	field(DRVH, "30000")
 	field(DRVL, "1e-6")
 }
 

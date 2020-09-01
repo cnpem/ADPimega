@@ -64,7 +64,7 @@ void pimegaDetector::acqTask()
     int numImages, numExposures;
     int imageMode, numImagesCounter;
     int acquire=0;
-    NDArray *pImage;
+    //NDArray *pImage;
     double acquireTime, acquirePeriod, delay, elapsedTime;
     int acquireStatus = 0;
     bool bufferOverflow=0;
@@ -208,7 +208,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     const char *paramName;
 
     int adstatus;
-    int acquiring;
+    //int acquiring;
 
     getParamName(function, &paramName);
     printf("Int Function Idx: %d\n", function);
@@ -281,7 +281,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |= senseDacSel(value);
     //DACS functions
     else if (function == PimegaCas)
-        status |= dac_scan_tmp(DAC_CAS);
+        status |= setDACValue(DAC_CAS, value, function);
     else if (function == PimegaDelay)
         status |=  setDACValue(DAC_Delay, value, function);
     else if (function == PimegaDisc)
@@ -293,9 +293,9 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaDiscLS)
         status |=  setDACValue(DAC_DiscLS, value, function);
     else if (function == PimegaFbk)
-        status |=  dac_scan_tmp(DAC_FBK);
+        status |=  setDACValue(DAC_FBK, value, function);
     else if (function == PimegaGnd)
-        status |=  dac_scan_tmp(DAC_GND);
+        status |=  setDACValue(DAC_GND, value, function);
     else if (function == PimegaIkrum)
         status |=  setDACValue(DAC_IKrum, value, function);
     else if (function == PimegaPreamp)
@@ -344,7 +344,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     int function = pasynUser->reason;
     int status = asynSuccess;
     const char *paramName;
-    const char *functionName = "writeFloat64";
+    //const char *functionName = "writeFloat64";
 
     getParamName(function, &paramName);
     printf("Float Function Idx: %d\n", function);
@@ -388,7 +388,7 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
     int addr;
     int numPoints = 0;
     epicsFloat32 *inPtr;
-    const char *paramName;
+    //const char *paramName;
     static const char *functionName = "pimegaDetector::readFloat32Array";
 
     this->getAddress(pasynUser, &addr);
@@ -421,7 +421,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
     int function = pasynUser->reason;
     int status=0;
-    static const char *functionName = "readFloat64";
+    //static const char *functionName = "readFloat64";
     int scanStatus;
 
     getParameter(ADStatus,&scanStatus);
@@ -465,7 +465,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
 {
     int function = pasynUser->reason;
     int status=0;
-    static const char *functionName = "readInt32";
+    //static const char *functionName = "readInt32";
     int scanStatus;
 
     getParameter(ADStatus,&scanStatus);
@@ -874,6 +874,9 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaModule, 1);
 
     set_OptimizedDiscL(pimega);
+    set_OptimizedFBK(pimega);
+    set_OptimizedGND(pimega);
+    set_OptimizedCAS(pimega);
     //Set_DAC_Defaults(pimega);
     //getDacsValues();
 }
@@ -933,7 +936,7 @@ int pimegaDetector::startAcquire(void)
     int autoSave;
     int resetRDMA;
     int lsfr;
-    char fullFileName[MAX_FILENAME_LEN];
+    char fullFileName[PIMEGA_MAX_FILENAME_LEN];
     
     /* Create the full filename */
     createFileName(sizeof(fullFileName), fullFileName);
@@ -958,9 +961,9 @@ int pimegaDetector::startAcquire(void)
     return rc;
 }
 
-asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac)
+asynStatus pimegaDetector::cfg_outlier_chips()
 {
-    int rc = 0;
+/*    int rc = 0;
     printf("DAC: %d\n", dac);
     if(dac == DAC_GND) {
        	rc = US_DAC_Scan(pimega, DAC_GND, 90, 150, 1, PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
@@ -981,7 +984,7 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac)
         select_module(pimega, 4);
         select_chipNumber(pimega, 36);
         rc = US_DAC_Scan(pimega, DAC_CAS, 80, 130, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
-    }
+    }*/
 
     select_module(pimega, 1);
 	select_chipNumber(pimega, 6);
@@ -992,6 +995,7 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac)
 	select_chipNumber(pimega, 31);
 	US_ImgChip_ExtBgIn(pimega, 0.637);
 	US_Set_OMR(pimega, OMR_Ext_BG_Sel, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+	return asynSuccess;
 }
 
 asynStatus pimegaDetector::selectModule(uint8_t module)
@@ -1021,6 +1025,7 @@ asynStatus pimegaDetector::triggerMode(int trigger)
         error("TriggerMode out the range: %s\n", pimega_error_string(rc));
         return asynError;
     }
+    return asynSuccess;
 }
 
 asynStatus pimegaDetector::configDiscL(int value)
@@ -1033,6 +1038,7 @@ asynStatus pimegaDetector::configDiscL(int value)
         error("Value out the range: %s\n", pimega_error_string(rc));
         return asynError;
     }
+    return asynSuccess;
 }
 
 asynStatus pimegaDetector::setDACValue(pimega_dac_t dac, int value, int parameter)
@@ -1075,7 +1081,7 @@ asynStatus pimegaDetector::setOMRValue(pimega_omr_t omr, int value, int paramete
 
 asynStatus pimegaDetector::loadEqualization(int cfg)
 {
-    int rc, send_to_all, sensor;
+    int rc = 0, send_to_all, sensor;
 
     getParameter(PimegaAllModules, &send_to_all);
     getParameter(PimegaMedipixChip, &sensor);
@@ -1092,7 +1098,7 @@ asynStatus pimegaDetector::loadEqualization(int cfg)
 
 asynStatus pimegaDetector::sendImage(void)
 {
-    int rc, send_to_all, pattern;
+    int rc = 0, send_to_all, pattern;
 
     getParameter(PimegaSelSendImage, &pattern);
     getParameter(PimegaAllModules, &send_to_all);
@@ -1149,7 +1155,7 @@ asynStatus pimegaDetector::medipixMode(uint8_t mode)
 asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
 {
     int rc;
-    int OmrOp;
+    //int OmrOp;
     char *_efuseID;
 
     rc = select_chipNumber(pimega, chip_id);

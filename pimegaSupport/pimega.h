@@ -30,7 +30,7 @@ extern "C" {
 #define PIMEGA_SIZE_READ_MSG 512
 #define PIMEGA_SIZE_RESULT 1024
 
-#define PIMEGA_TIMEOUT 30000000
+#define PIMEGA_TIMEOUT 600000000UL
 #define DATA_SERVER_TIMEOUT 300000000
 #define PIMEGA_MAX_FILE_NAME 300
 
@@ -589,6 +589,10 @@ int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value, pimega_se
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
 int US_DACBias_RBV(pimega_t *pimega);
 int set_OptimizedDiscL(pimega_t *pimega);
+int set_OptimizedFBK(pimega_t *pimega);
+int set_OptimizedGND(pimega_t *pimega);
+int set_OptimizedCAS(pimega_t *pimega);
+
 // --------------------------------------------------------------------------
 
 int US_ImgChipDACOUTSense_RBV(pimega_t *pimega);

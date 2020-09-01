@@ -38,7 +38,7 @@
 #include <pimega.h>
 
 //#define USE_SIMULATOR 1
-#define MAX_FILENAME_LEN 300
+#define PIMEGA_MAX_FILENAME_LEN 300
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from Labview */
 #define ASYN_POLL_TIME .01
@@ -261,7 +261,7 @@ private:
 
     int startAcquire(void);
 
-    asynStatus dac_scan_tmp(pimega_dac_t dac);
+    asynStatus cfg_outlier_chips();
     asynStatus selectModule(uint8_t module);
     asynStatus medipixMode(uint8_t mode);
     asynStatus configDiscL(int value);
