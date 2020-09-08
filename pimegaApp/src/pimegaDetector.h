@@ -261,7 +261,7 @@ private:
 
     int startAcquire(void);
 
-    asynStatus cfg_outlier_chips();
+    int dac_scan_tmp(pimega_dac_t dac);
     asynStatus selectModule(uint8_t module);
     asynStatus medipixMode(uint8_t mode);
     asynStatus configDiscL(int value);

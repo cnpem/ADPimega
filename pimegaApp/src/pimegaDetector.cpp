@@ -281,7 +281,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |= senseDacSel(value);
     //DACS functions
     else if (function == PimegaCas)
-        status |= setDACValue(DAC_CAS, value, function);
+        status |=  setDACValue(DAC_CAS, value, function);
     else if (function == PimegaDelay)
         status |=  setDACValue(DAC_Delay, value, function);
     else if (function == PimegaDisc)
@@ -874,10 +874,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaModule, 1);
 
     set_OptimizedDiscL(pimega);
-    set_OptimizedFBK(pimega);
-    set_OptimizedGND(pimega);
-    set_OptimizedCAS(pimega);
-    //Set_DAC_Defaults(pimega);
+    Set_DAC_Defaults(pimega);
     //getDacsValues();
 }
 
@@ -961,9 +958,10 @@ int pimegaDetector::startAcquire(void)
     return rc;
 }
 
-asynStatus pimegaDetector::cfg_outlier_chips()
+
+int pimegaDetector::dac_scan_tmp(pimega_dac_t dac)
 {
-/*    int rc = 0;
+    int rc = 0;
     printf("DAC: %d\n", dac);
     if(dac == DAC_GND) {
        	rc = US_DAC_Scan(pimega, DAC_GND, 90, 150, 1, PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
@@ -984,19 +982,12 @@ asynStatus pimegaDetector::cfg_outlier_chips()
         select_module(pimega, 4);
         select_chipNumber(pimega, 36);
         rc = US_DAC_Scan(pimega, DAC_CAS, 80, 130, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
-    }*/
+    }
 
-    select_module(pimega, 1);
-	select_chipNumber(pimega, 6);
-	US_ImgChip_ExtBgIn(pimega, 0.637);
-	US_Set_OMR(pimega, OMR_Ext_BG_Sel, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
-
-	select_module(pimega, 2);
-	select_chipNumber(pimega, 31);
-	US_ImgChip_ExtBgIn(pimega, 0.637);
-	US_Set_OMR(pimega, OMR_Ext_BG_Sel, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
-	return asynSuccess;
+	return rc;
 }
+
+
 
 asynStatus pimegaDetector::selectModule(uint8_t module)
 {
@@ -1172,7 +1163,7 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     _efuseID = pimega->pimegaParam.efuseID;
     setParameter(PimegaefuseID, _efuseID);
 
-    //getDacsValues();
+    getDacsValues();
     return asynSuccess;   
 
 }

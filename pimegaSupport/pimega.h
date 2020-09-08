@@ -589,9 +589,7 @@ int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value, pimega_se
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);
 int US_DACBias_RBV(pimega_t *pimega);
 int set_OptimizedDiscL(pimega_t *pimega);
-int set_OptimizedFBK(pimega_t *pimega);
-int set_OptimizedGND(pimega_t *pimega);
-int set_OptimizedCAS(pimega_t *pimega);
+
 
 // --------------------------------------------------------------------------
 
