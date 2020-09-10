@@ -423,10 +423,11 @@ typedef enum acquire_status_t{
 	ACQUIRING = 2,
 	BUFFER_OVERFLOW = 3,
     STOPPED = 4,
+	DONE_BCK_ACQ = 5,
 } acquire_status_t;
 
 typedef struct pimega_acquire_params_t {
-	unsigned numImages;						//US_NumImages
+	uint32_t numImages;						//US_NumImages
 	uint32_t numImagesCounter;				//US_NumImagesCounter_RBV
 	uint32_t numExposures = 1;					//US_NumExposures
 	float acquireTime;						//US_AcquireTime
@@ -436,6 +437,7 @@ typedef struct pimega_acquire_params_t {
 	float timeRemaining;					//US_TimeRemaining_RBV
 	uint32_t numExposuresCounter;
 	uint32_t numExposuresTotal;				//US_NumExposuresCounter_RBV
+	int numCapture;
 	acquire_status_t acquireStatus;
 } pimega_acquire_params_t;
 

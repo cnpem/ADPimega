@@ -56,6 +56,11 @@ record(longin, "$(P)$(R)NumImagesCounter_RBV")
 	field(SCAN, ".5 second")	
 }
 
+record(longin, "$(P)$(R)NumCaptured_RBV")
+{
+	field(SCAN, ".1 second")	
+}
+
 record(bi,"$(P)$(R)SendDAC_Done_RBV") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_DAC_DONE")
@@ -131,19 +136,19 @@ record(mbbi,"$(P)$(R)TriggerMode_RBV") {
 }
 
 # Add new items for the ImageMode records defined in ADBase.template
-record(mbbo,"$(P)$(R)ImageMode") {
-	field(THST,"Threshold")
-	field(THVL,"3")
-	field(FRST,"TestPulse")
-	field(FRVL,"4")
-}
-
-record(mbbi,"$(P)$(R)ImageMode_RBV") {
-	field(THST,"Threshold")
-	field(THVL,"3")
-	field(FRST,"TestPulse")
-	field(FRVL,"4")
-}
+#record(mbbo,"$(P)$(R)ImageMode") {
+#	field(THST,"Threshold")
+#	field(THVL,"3")
+#	field(FRST,"TestPulse")
+#	field(FRVL,"4")
+#}
+#
+#record(mbbi,"$(P)$(R)ImageMode_RBV") {
+#	field(THST,"Threshold")
+#	field(THVL,"3")
+#	field(FRST,"TestPulse")
+#	field(FRVL,"4")
+#}
 
 record(ao, "$(P)$(R)AcquireTime")
 {

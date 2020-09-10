@@ -241,6 +241,7 @@ private:
     epicsFloat32 *PimegaDacsOutSense_;
     epicsFloat32 *PimegaMFBTemperature_;
 
+    int numImageSaved = 0;
 
     void panic(const char *msg);
     void connect(const char *address[4], unsigned short port);
@@ -260,6 +261,7 @@ private:
     asynStatus getMedipixTemperature(void);
 
     int startAcquire(void);
+    int startCaptureBackend(void);
 
     int dac_scan_tmp(pimega_dac_t dac);
     asynStatus selectModule(uint8_t module);

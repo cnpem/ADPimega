@@ -138,7 +138,7 @@ void pimegaDetector::acqTask()
 
             if (newImage != numImagesCounter)
                 {
-                    generateImage();
+                    //generateImage();
                     newImage = numImagesCounter;
                 }
         }
@@ -168,9 +168,9 @@ void pimegaDetector::acqTask()
             }
             callParamCallbacks();
         }
-
+      
         if (acquireStatus == DONE_ACQ && acquire) {
-            generateImage();
+            //generateImage();
             if (imageMode == ADImageSingle) {
                 acquire=0;
                 newImage = 0;
@@ -234,6 +234,16 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
     }
 
+    else if (function == NDFileCapture) {
+        if (value) {
+            status |= startCaptureBackend();
+        }
+        if (!value) { 
+            if (send_stopAcquire_toBackend(pimega) == DONE) 
+                status |= PIMEGA_SUCCESS;
+            else return asynError;
+        }
+    }
     else if (function == PimegaSendImage) {
         if (value) status |= sendImage();
     }
@@ -467,8 +477,10 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     int status=0;
     //static const char *functionName = "readInt32";
     int scanStatus;
+    int backendStatus;
 
-    getParameter(ADStatus,&scanStatus);
+    getParameter(ADStatus, &scanStatus);
+    getParameter(NDFileCapture, &backendStatus);
 
     if ((function == PimegaBackBuffer) && (scanStatus == ADStatusAcquire)) {
         //*value = static_cast<int>(pimega->acq_status_return.bufferUsed);
@@ -481,6 +493,26 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
 
     else if (function == PimegaModule) {
         *value = pimega->pimega_module;
+    }
+
+    else if ((function == NDFileNumCaptured) && (backendStatus)) {
+        get_acqStatus_fromBackend(pimega);
+        *value = pimega->acq_status_return.savedAquisitionNum;
+
+        if (pimega->acquireParam.numCapture != 0 && 
+            pimega->acq_status_return.savedAquisitionNum != 0) 
+        {
+            //if (*value != numImageSaved) {
+            //    generateImage();
+            //    numImageSaved = *value;
+            //}
+
+            if (pimega->acq_status_return.savedAquisitionNum == pimega->acquireParam.numCapture)
+            {
+                send_stopAcquire_toBackend(pimega);
+                setParameter(NDFileCapture, 0);
+            }
+        }
     }
 
     //Other functions we call the base class method
@@ -661,7 +693,11 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
     
     // Connect to backend
     for (i = 0; i < 5; i++) {
+#ifdef USE_SIMULATOR
+        rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
+#else    
         rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
+#endif
         if (rc == PIMEGA_SUCCESS) break;
         epicsThreadSleep(1);
     }
@@ -930,6 +966,22 @@ void pimegaDetector::report(FILE *fp, int details)
 int pimegaDetector::startAcquire(void)
 {
     int rc = 0;
+    rc |= select_module(pimega, 2);
+    rc |= US_Acquire(pimega, 1);
+    rc |= select_module(pimega, 3);
+    rc |= US_Acquire(pimega, 1);
+    rc |= select_module(pimega, 4);
+    rc |= US_Acquire(pimega, 1);
+
+    //define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
+    pimega->pimegaParam.software_trigger = false;
+    rc |= execute_acquire(pimega);
+    return rc;
+}
+
+int pimegaDetector::startCaptureBackend(void)
+{
+    int rc = 0;
     int autoSave;
     int resetRDMA;
     int lsfr;
@@ -942,19 +994,10 @@ int pimegaDetector::startAcquire(void)
     getParameter(NDAutoSave,&autoSave);
     getParameter(PimegaResetRDMABuffer, &resetRDMA);
     getParameter(PimegaBackLSFR, &lsfr);
-
-    rc |= select_module(pimega, 2);
-    rc |= US_Acquire(pimega, 1);
-    rc |= select_module(pimega, 3);
-    rc |= US_Acquire(pimega, 1);
-    rc |= select_module(pimega, 4);
-    rc |= US_Acquire(pimega, 1);
-
-    //define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
-    pimega->pimegaParam.software_trigger = false;
     rc |= update_backend_acqArgs(pimega, lsfr, autoSave, resetRDMA, 1, 5);
-    rc |= execute_acquire(pimega);
 
+    getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+    rc |= send_acqArgs_toBackend(pimega);
     return rc;
 }
 
@@ -1163,7 +1206,7 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     _efuseID = pimega->pimegaParam.efuseID;
     setParameter(PimegaefuseID, _efuseID);
 
-    getDacsValues();
+    //getDacsValues();
     return asynSuccess;   
 
 }
