@@ -16,6 +16,7 @@
 ##  gdatag, template, pimega, $(PORT)_pimega, pimega detector
 
 include "ADBase.template"
+include "NDFile.template"
 
 ##########################################################################
 # Disable records from ADBase etc. that we do not use for pimega
@@ -46,64 +47,197 @@ record(ai, "$(P)$(R)Gain_RBV")
 
 record(ai, "$(P)$(R)TimeRemaining_RBV")
 {
-	field(SCAN, ".1 second")
+	field(SCAN, ".5 second")
    	field(EGU, "s")
 }
 
 record(longin, "$(P)$(R)NumImagesCounter_RBV")
 {
+	field(SCAN, ".5 second")	
+}
+
+record(longin, "$(P)$(R)NumCaptured_RBV")
+{
 	field(SCAN, ".1 second")	
+}
+
+record(bi,"$(P)$(R)SendDAC_Done_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_DAC_DONE")
+    field(DESC, "Send DAC is done readback")
+    field(ZNAM, "Sending")
+    field(ONAM, "Done")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbo,"$(P)$(R)AllModules") {
+    field(DESC, "Send to all modules")
+    field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
+	field(ZRVL, "0")
+    field(ZRST, "Individual Chip")
+	field(ONVL, "1")
+    field(ONST, "All Chips in one Module")
+	field(TWVL, "2")
+    field(TWST, "One chip in all modules")
+	field(THVL, "3")
+	field(THST, "All Chips and All Modules")
+	field(FRVL, "4")
+	field(FRST, "Individual MFB")
+	field(FVVL, "5")
+	field(FVST, "All MFBs in one Module")
+	field(SXVL, "6")
+    field(SXST, "All MBFs and All Modules")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(mbbi,"$(P)$(R)AllModules_RBV") {
+    field(DESC, "Send to all modules RBV")
+    field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
+	field(ZRVL, "0")
+    field(ZRST, "Individual")
+	field(ONVL, "1")
+    field(ONST, "All Chips in one Module")
+	field(TWVL, "2")
+    field(TWST, "One chip in all modules")
+	field(THVL, "3")
+	field(THST, "All Chips and All Modules")
+	field(FRVL, "4")
+	field(FRST, "Individual MFB")
+	field(FVVL, "5")
+	field(FVST, "All MFBs in one Module")
+	field(SXVL, "6")
+    field(SXST, "All MBFs and All Modules")
+	field(SCAN, "I/O Intr")
 }
 
 # We redefine the states for the TriggerMode records defined in ADBase.template
 record(mbbo,"$(P)$(R)TriggerMode") {
 	field(DESC,"Trigger mode")
     field(ZRVL,"0")
-    field(ZRST,"Debug Push Button")
+    field(ZRST,"Internal")
     field(ONVL,"1")
-    field(ONST,"External I/O")
+    field(ONST,"External positive edge")
     field(TWVL,"2")
-    field(TWST,"MCU GPIO (in-system)")
+    field(TWST,"External negative edge")
     field(IVOA, "Don't drive outputs")
 }
 
 record(mbbi,"$(P)$(R)TriggerMode_RBV") {
     field(DESC,"Trigger mode")
     field(ZRVL,"0")
-    field(ZRST,"Debug Push Button")
+    field(ZRST,"Internal")
     field(ONVL,"1")
-    field(ONST,"External I/O")
+    field(ONST,"External positive edge")
     field(TWVL,"2")
-    field(TWST,"MCU GPIO (in-system)")
+    field(TWST,"External negative edge")
 }
 
 # Add new items for the ImageMode records defined in ADBase.template
-record(mbbo,"$(P)$(R)ImageMode") {
-	field(THST,"Threshold")
-	field(THVL,"3")
-	field(FRST,"TestPulse")
-	field(FRVL,"4")
-}
-
-record(mbbi,"$(P)$(R)ImageMode_RBV") {
-	field(THST,"Threshold")
-	field(THVL,"3")
-	field(FRST,"TestPulse")
-	field(FRVL,"4")
-}
+#record(mbbo,"$(P)$(R)ImageMode") {
+#	field(THST,"Threshold")
+#	field(THVL,"3")
+#	field(FRST,"TestPulse")
+#	field(FRVL,"4")
+#}
+#
+#record(mbbi,"$(P)$(R)ImageMode_RBV") {
+#	field(THST,"Threshold")
+#	field(THVL,"3")
+#	field(FRST,"TestPulse")
+#	field(FRVL,"4")
+#}
 
 record(ao, "$(P)$(R)AcquireTime")
 {
-	field(DRVH, "1000")
+	field(DRVH, "30000")
 	field(DRVL, "1e-6")
 }
 
+#Select Pimega Module
+record(mbbo, "$(P)$(R)PimegaModule") {
+	field(DESC, "Pimega Module")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PIMEGA_MODULE")
+	field(ZRSV, "INVALID")
+	field(ONST, "Module 1")					field(ONVL, "1")
+	field(TWST, "Module 2")         		field(TWVL, "2")
+	field(THST, "Module 3")					field(THVL, "3")
+	field(FRST, "Module 4")   				field(FRVL, "4")
+	field(FVSV, "INVALID")
+    field(SXSV, "INVALID")
+    field(SVSV, "INVALID")
+    field(EISV, "INVALID")
+    field(NISV, "INVALID")
+    field(TESV, "INVALID")
+    field(ELSV, "INVALID")
+    field(TVSV, "INVALID")
+    field(TTSV, "INVALID")
+    field(FTSV, "INVALID")
+    field(FFSV, "INVALID")
+    field(IVOA, "1")
+	field(VAL, 	"1")
+}
+
+record(mbbi, "$(P)$(R)PimegaModule_RBV") {
+	field(DESC, "Pimega Module ReadBack")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PIMEGA_MODULE")
+	field(ONST, "Module 1")					field(ONVL, "1")
+	field(TWST, "Module 2")         		field(TWVL, "2")
+	field(THST, "Module 3")					field(THVL, "3")
+	field(FRST, "Module 4")   				field(FRVL, "4")
+	field(SCAN, ".1 second")
+}
+
+#Medipix Acquire Mode
+record(mbbo, "$(P)$(R)MedipixMode") {
+	field(DESC, "Medipix Acquire Mode")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_MODE")
+	field(ZRST, "Default")        			field(ZRVL, "0")
+	field(ONST, "Precision Counting Mode")	field(ONVL, "1")
+	field(TWST, "Dual Energy")         		field(TWVL, "2")
+	field(THST, "Continuous Read Write")	field(THVL, "3")
+	field(FRST, "Full Dynamic Range")   	field(FRVL, "4")
+	field(VAL, 	"0")
+}
+
+record(mbbi, "$(P)$(R)MedipixMode_RBV") {
+	field(DESC, "Medipix Acquire Mode Readback")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_MODE")
+	field(ZRST, "Default")        			field(ZRVL, "0")
+	field(ONST, "Precision Counting Mode")	field(ONVL, "1")
+	field(TWST, "Dual Energy")         		field(TWVL, "2")
+	field(THST, "Continuous Read Write")	field(THVL, "3")
+	field(FRST, "Full Dynamic Range")   	field(FRVL, "4")
+	field(SCAN, "I/O Intr")
+}
+
+#ExtBgIn
+record(ao, "$(P)$(R)ExtBgIn") {
+	field(DESC, "Set external Band-Gap voltage")
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EXT_BGIN")
+}
+
+record(ai, "$(P)$(R)ExtBgIn_RBV") {
+	field(DESC, "Set external Band-Gap voltage Readback")
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EXT_BGIN")
+	field(SCAN, "I/O Intr")
+}
 
 #e-Fuse chip ID
-record(ai, "$(P)$(R)eFuseID_RBV")
+record(waveform, "$(P)$(R)eFuseID_RBV")
 {
-	field(DTYP, "asynFloat64")
+    field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EFUSE_ID")
+    field(FTVL, "CHAR")
+    field(NELM, "8")
     field(SCAN, "I/O Intr")
 }
 
@@ -112,9 +246,6 @@ record(ao, "$(P)$(R)SensorBias") {
 	field(DESC, "Sensor Bias Voltage")
 	field(DTYP, "asynFloat64")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS")
-	field(VAL, "85")
-	field(PINI, "YES")
-
 }
 
 record(ai, "$(P)$(R)SensorBias_RBV") {
@@ -128,7 +259,7 @@ record(ai, "$(P)$(R)SensorBias_RBV") {
 record(mbbo, "$(P)$(R)ReadCounter") {
 	field(DESC, "Selects the counter(s) to be read")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_COUNTER")
-	field(PINI, "YES")
+	#field(PINI, "YES")
 	field(DTYP, "asynInt32")
 	field(VAL, "0")
 	field(ZRST, "Counter Low")      field(ZRVL, "0")
@@ -163,7 +294,7 @@ record(mbbi, "$(P)$(R)ReadCounter_RBV") {
 
 # OMR Operation mode
 record(mbbo,"$(P)$(R)OmrOMSelec") {
-	field(PINI, "YES")
+	#field(PINI, "YES")
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OMR_OP_MODE")
 	field(DESC, "OMR operation mode selection")
@@ -176,12 +307,12 @@ record(mbbo,"$(P)$(R)OmrOMSelec") {
     field(SXVL,"6")
     field(SVVL,"7")
     field(ZRST, "Read Counter Low")
-    field(ONST, "Load DACs")
+    field(ONST, "Read Counter High")
     field(TWST, "Load Counter Low")
-    field(THST, "Read DACs")
-    field(FRST, "Read Counter High")
+    field(THST, "Load Counter High")
+    field(FRST, "Load DACs")
     field(FVST, "Load CTPR")
-    field(SXST, "Load Counter High")
+    field(SXST, "Read DACs")
     field(SVST, "Read OMR and ID")
     field(VAL, "1")
 }
@@ -190,28 +321,28 @@ record(mbbi,"$(P)$(R)OmrOMSelec_RBV") {
    	field(DTYP, "asynInt32")
    	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OMR_OP_MODE")
     field(DESC, "OMR  operation mode selection readback")
-    field(ZRVL,"0")
-    field(ONVL,"1")
-    field(TWVL,"2")
-    field(THVL,"3")
-    field(FRVL,"4")
-    field(FVVL,"5")
-    field(SXVL,"6")
-    field(SVVL,"7")
+    field(ZRVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
+    field(THVL, "3")
+    field(FRVL, "4")
+    field(FVVL, "5")
+    field(SXVL, "6")
+    field(SVVL, "7")
    	field(ZRST, "Read Counter Low")
-    field(ONST, "Load DACs")
+    field(ONST, "Read Counter High")
     field(TWST, "Load Counter Low")
-    field(THST, "Read DACs")
-    field(FRST, "Read Counter High")
+    field(THST, "Load Counter High")
+    field(FRST, "Load DACs")
     field(FVST, "Load CTPR")
-    field(SXST, "Load Counter High")
+    field(SXST, "Read DACs")
     field(SVST, "Read OMR and ID")
    	field(SCAN, "I/O Intr")
 }
 
 # Gain mode - Selects the sensor gain mode
 record(mbbo,"$(P)$(R)GainMode") {
-   	field(PINI, "YES")
+   	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_MODE")
     field(DESC, "Sensor gain mode")
@@ -244,7 +375,7 @@ record(mbbi,"$(P)$(R)GainMode_RBV") {
 record(ao, "$(P)$(R)SenseDacSel")
 {
 	field(DESC, "Select DAC code to be monitored")
-	field(PINI, "YES")
+	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSE_DAC_SEL")
    	field(VAL,  "0")
@@ -258,39 +389,173 @@ record(ai, "$(P)$(R)SenseDacSel_RBV")
    	field(SCAN,  "I/O Intr")
 }
 
-record(mbbo,"$(P)$(R)CounterDepth") {
-   	field(PINI, "YES")
-   	field(DTYP, "asynInt32")
-   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))COUNTER_DEPTH")
-    field(DESC, "Number of bits per pixel")
-    field(ZRVL, "0")
-    field(ZRST, "1 bit")
-    field(ONVL, "1")
-    field(ONST, "6 bits")
-    field(TWVL, "2")
-    field(TWST, "12 bits")
-    field(THVL, "3")
-    field(THST, "24 bits")
-    field(VAL, "2")
+record(ai, "$(P)$(R)DacOutSense_RBV") {
+	field(DESC, "Dac voltage monitor")
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DAC_OUT_SENSE")
+	field(SCAN, "I/O Intr")
+	field(PREC, "8")
 }
 
-record(mbbi,"$(P)$(R)CounterDepth_RBV") {
-   	field(DTYP, "asynInt32")
-   	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))COUNTER_DEPTH")
-    field(DESC,"Number of bits per pixel")
-    field(ZRVL, "0")
-    field(ZRST, "1 bit")
-    field(ONVL, "1")
-    field(ONST, "6 bits")
-    field(TWVL, "2")
-    field(TWST, "12 bits")
-    field(THVL, "3")
-    field(THST, "24 bits")
-   	field(SCAN, "I/O Intr")
+record(waveform, "$(P)$(R)DacsOutSense_RBV") {
+	field(DESC, "Dacs voltages monitor")
+	field(NELM, "31")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DACS_OUT_SENSE")
+    field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)M1:MFB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MFB sensors M1")
+	field(NELM, "48")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M1")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)M1:MFB_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M1")
+    field(DESC, "MFB Avg Temperature Mod 1 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M2:MFB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MFB sensors M2")
+	field(NELM, "48")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M2")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)M2:MFB_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M2")
+    field(DESC, "MFB Avg Temperature Mod 2 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M3:MFB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MFB sensors M3")
+	field(NELM, "48")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M3")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)M3:MFB_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M3")
+    field(DESC, "MFB Avg Temperature Mod 3 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M4:MFB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MFB sensors M4")
+	field(NELM, "48")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M4")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)M4:MFB_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M4")
+    field(DESC, "MFB Avg Temperature Mod 4 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(longout, "$(P)$(R)MFB_SensorNumber") {
+    field(DTYP,"Soft Channel")
+	field(VAL, "16")
+}
+
+record(longout, "$(P)$(R)MFB_Number") {
+    field(DTYP,"Soft Channel")
+	field(VAL, "3")
+}
+
+record(longout, "$(P)$(R)MFB_SelectSensor") {
+	field(PINI, "YES")
+	field(DESC, "Select temperatura sensor from MFB")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_SEL_TSENSOR")
+	field(VAL,  "1")
+}
+
+record(longin, "$(P)$(R)MFB_SelectSensor_RBV") {
+	field(DESC, "Select temperature MFB sensor Readback")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_SEL_TSENSOR")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai,"$(P)$(R)MFB_SensorTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TSENSOR")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+#Module 1
+record(ai,"$(P)$(R)M1:Medipix_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M1")
+    field(DESC, "Medipix Avg Temperature Mod 1 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+#Module 2
+record(ai,"$(P)$(R)M2:Medipix_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M2")
+    field(DESC, "Medipix Avg Temperature Mod 3 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+#Module 3
+record(ai,"$(P)$(R)M3:Medipix_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M3")
+    field(DESC, "Medipix Avg Temperature Mod 3 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+#Module 4
+record(ai,"$(P)$(R)M4:Medipix_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M4")
+    field(DESC, "Medipix Avg Temperature Mod 4 ReadBack")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(ai,"$(P)$(R)Medipix_AvgTemperature_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_SENSOR")
+    field(DESC, "Medipix average Temperature sensors")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
 }
 
 record(bo,"$(P)$(R)ContinuousRW") {
-    field(PINI, "YES")
+    #field(PINI, "YES")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CONTINUOUSRW")
     field(DESC, "Enable Continuous Read/Write")
@@ -308,7 +573,7 @@ record(bi,"$(P)$(R)ContinuousRW_RBV") {
 }
 
 record(bo,"$(P)$(R)Polarity") {
-    field(PINI, "YES")
+    #field(PINI, "YES")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))POLARITY")
     field(DESC, "Select pixel polarity")
@@ -327,7 +592,7 @@ record(bi,"$(P)$(R)Polarity_RBV") {
 }
 
 record(bo,"$(P)$(R)Discriminator") {
-    field(PINI, "YES")
+    #field(PINI, "YES")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISCRIMINATOR")
     field(DESC, "Select energy discriminator output")
@@ -364,15 +629,19 @@ record(bi,"$(P)$(R)TestPulse_RBV") {
 
 # Counter depth - number of bits per pixel
 record(mbbo,"$(P)$(R)CounterDepth") {
-   	field(PINI, "YES")
+   	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))COUNTER_DEPTH")
     field(DESC, "Number of bits per pixel")
+    field(ZRVL, "0")
     field(ZRST, "1 bit")
-    field(ONST, "6 bits")
-    field(TWST, "12 bits")
-    field(THST, "24 bits")
-    field(VAL, "2")
+    field(ONVL, "1")
+    field(ONST, "12 bits")
+    field(TWVL, "2")
+    field(TWST, "6 bits")
+    field(THVL, "3")
+	field(THST, "24 bits")
+    field(VAL, "1")
     field(FRSV, "INVALID")
     #field(FVSV, "INVALID")
     #field(SXSV, "INVALID")
@@ -396,9 +665,9 @@ record(mbbi,"$(P)$(R)CounterDepth_RBV") {
     field(ZRVL, "0")
     field(ZRST, "1 bit")
     field(ONVL, "1")
-    field(ONST, "6 bits")
+    field(ONST, "12 bits")
     field(TWVL, "2")
-    field(TWST, "12 bits")
+    field(TWST, "6 bits")
     field(THVL, "3")
     field(THST, "24 bits")
    	field(SCAN, "I/O Intr")
@@ -438,13 +707,46 @@ record(bi,"$(P)$(R)PixelMode_RBV") {
     field(SCAN, "I/O Intr")
 }
 
+record(bo,"$(P)$(R)ExtBgSel") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EXT_BGSEL")
+    field(DESC, "Select External Bang Gap mode")
+    field(ZNAM, "Internal Band-Gap")
+    field(ONAM, "External Band-Gap")
+    field(VAL,  "0")
+}
+
+record(bi,"$(P)$(R)ExtBgSel_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))EXT_BGSEL")
+    field(DESC, "Select External Bang Gap mode")
+    field(ZNAM, "Internal Band-Gap")
+    field(ONAM, "External Band-Gap")
+    field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)LoadEqualization")
+{
+	field(DESC, "LoadEqualization_CFG")
+   	field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LOAD_EQUALIZATION")
+}
+
+record(ai, "$(P)$(R)LoadEqualization_RBV")
+{
+	field(DESC, "Config File to LoadEqualization Readback")
+   	field(DTYP, "asynInt32")
+   	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LOAD_EQUALIZATION")
+   	field(SCAN,  "I/O Intr")
+}
+
 record(ao, "$(P)$(R)MedipixBoard")
 {
 	field(DESC, "Medipix Board Number")
-	field(PINI, "YES")
+	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_BOARD")
-   	field(VAL,  "1")
+   	#field(VAL,  "0")
 }
 
 record(ai, "$(P)$(R)MedipixBoard_RBV")
@@ -458,10 +760,10 @@ record(ai, "$(P)$(R)MedipixBoard_RBV")
 record(ao, "$(P)$(R)ImgChipNumberID")
 {
 	field(DESC, "Image Chip Number ID")
-	field(PINI, "YES")
+	#field(PINI, "YES")
    	field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_CHIP")
-   	field(VAL,  "1")
+   	#field(VAL,  "1")
 }
 
 record(ai, "$(P)$(R)ImgChipNumberID_RBV")
@@ -487,7 +789,6 @@ record(ai, "$(P)$(R)DAC_Bias_RBV")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DAC_BIAS")
 	field(DESC, "External DAC Bias monitor readback")
 	field(SCAN, "I/O Intr")
-
 }
 
 record(ai, "$(P)$(R)DAC_ThresholdEnergy0_RBV")
@@ -503,8 +804,6 @@ record(ao, "$(P)$(R)DAC_ThresholdEnergy0")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD0")
 	field(DESC, "Threshold 0 for photon detection")
-	field(PINI, "YES")
-	field(VAL,  "77")
 }
 
 record(ai, "$(P)$(R)DAC_ThresholdEnergy1_RBV")
@@ -520,8 +819,6 @@ record(ao, "$(P)$(R)DAC_ThresholdEnergy1")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD1")
 	field(DESC, "Threshold 1 for photon detection")
-	field(PINI, "YES")
-	field(VAL,  "77")
 }
 
 record(ai, "$(P)$(R)DAC_Preamp_RBV")
@@ -537,8 +834,6 @@ record(ao, "$(P)$(R)DAC_Preamp")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))PREAMP")
 	field(DESC, "Preamplifier current")
-	field(PINI, "YES")
-	field(VAL,  "100")
 }
 
 record(ai, "$(P)$(R)DAC_IKrum_RBV")
@@ -554,8 +849,6 @@ record(ao, "$(P)$(R)DAC_IKrum")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))IKRUM")
 	field(DESC, "Krummenacher current")
-	field(PINI, "YES")
-	field(VAL,  "5")
 }
 
 record(ai, "$(P)$(R)DAC_Shaper_RBV")
@@ -571,8 +864,6 @@ record(ao, "$(P)$(R)DAC_Shaper")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SHAPER")
 	field(DESC, "Shaper current")
-	field(PINI, "YES")
-	field(VAL,  "125")
 }
 
 record(ai, "$(P)$(R)DAC_Disc_RBV")
@@ -588,8 +879,6 @@ record(ao, "$(P)$(R)DAC_Disc")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC")
 	field(DESC, "Discriminator current")
-	field(PINI, "YES")
-	field(VAL,  "125")
 }
 
 record(ai, "$(P)$(R)DAC_DiscLS_RBV")
@@ -603,8 +892,6 @@ record(ao, "$(P)$(R)DAC_DiscLS")
 {
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_LS")
-	field(VAL,  "100")
-	field(PINI, "YES")
 }
 
 record(ai, "$(P)$(R)DAC_DiscL_RBV")
@@ -620,8 +907,6 @@ record(ao, "$(P)$(R)DAC_DiscL")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_L")
 	field(DESC, "Low discriminator current")
-	field(PINI, "YES")
-	field(VAL,  "68")
 }
 
 record(ai, "$(P)$(R)DAC_Delay_RBV")
@@ -635,8 +920,6 @@ record(ao, "$(P)$(R)DAC_Delay")
 {
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DELAY")
-	field(PINI, "YES")
-	field(VAL,  "30")
 }
 
 record(ai, "$(P)$(R)DAC_TPBufferIn_RBV")
@@ -652,8 +935,6 @@ record(ao, "$(P)$(R)DAC_TPBufferIn")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_BUFFER_IN")
 	field(DESC, "Test pulse input buffer current")
-	field(PINI, "YES")
-	field(VAL,  "128")
 }
 
 record(ai, "$(P)$(R)DAC_TPBufferOut_RBV")
@@ -669,8 +950,6 @@ record(ao, "$(P)$(R)DAC_TPBufferOut")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_BUFFER_OUT")
 	field(DESC, "Test pulse output buffer current")
-	field(PINI, "YES")
-	field(VAL,  "4")
 }
 
 record(ai, "$(P)$(R)DAC_RPZ_RBV")
@@ -686,8 +965,6 @@ record(ao, "$(P)$(R)DAC_RPZ")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))RPZ")
 	field(DESC, "Shaper pole zero voltage")
-	field(PINI, "YES")
-	field(VAL,  "255")
 }
 
 record(ai, "$(P)$(R)DAC_GND_RBV")
@@ -703,8 +980,6 @@ record(ao, "$(P)$(R)DAC_GND")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))GND")
 	field(DESC, "Preamplifier virtual ground voltage")
-	field(PINI, "YES")
-	field(VAL,  "133")
 }
 
 record(ai, "$(P)$(R)DAC_TPRef_RBV")
@@ -720,8 +995,6 @@ record(ao, "$(P)$(R)DAC_TPRef")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF")
 	field(DESC, "Test pulses 1 and 2 reference voltage")
-	field(PINI, "YES")
-	field(VAL,  "120")
 }
 
 record(ai, "$(P)$(R)DAC_FBK_RBV")
@@ -737,8 +1010,6 @@ record(ao, "$(P)$(R)DAC_FBK")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FBK")
 	field(DESC, "Preamplifier feedback voltage")
-	field(PINI, "YES")
-	field(VAL,  "171")
 }
 
 record(ai, "$(P)$(R)DAC_CAS_RBV")
@@ -755,8 +1026,6 @@ record(ao, "$(P)$(R)DAC_CAS")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAS")
 	field(DESC, "DAC cascode bias")
-	field(VAL,  "175")
-	field(PINI, "YES")
 	field(DRVL, 0)
 	field(DRVH, 255)
 }
@@ -774,9 +1043,6 @@ record(ao, "$(P)$(R)DAC_TPRefA")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF_A")
 	field(DESC, "Test pulse 1 voltage")
-	field(VAL,  "311")
-	field(PINI, "YES")
-
 }
 
 record(ai, "$(P)$(R)DAC_TPRefB_RBV")
@@ -792,9 +1058,6 @@ record(ao, "$(P)$(R)DAC_TPRefB")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TP_REF_B")
 	field(DESC, "Test pulse 2 voltage")
-	field(PINI, "YES")
-	field(VAL,  "311")
-
 }
 
 record(ai, "$(P)$(R)DAC_DiscH_RBV")
@@ -810,8 +1073,6 @@ record(ao, "$(P)$(R)DAC_DiscH")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISC_H")
 	field(DESC, "High discriminator current")
-	field(PINI, "YES")
-	field(VAL,  "72")
 }
 
 record(ai, "$(P)$(R)Backend_BufferUsed_RBV")
@@ -822,3 +1083,116 @@ record(ai, "$(P)$(R)Backend_BufferUsed_RBV")
 	field(DESC, "Backend buffer used")
 	field(EGU, "%")
 }
+
+record(bo, "$(P)$(R)Reset_RDMA_Buffer") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_RDMA_BUFFER")
+    field(DESC, "Backend Reset RDMA Buffer")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(bi, "$(P)$(R)Reset_RDMA_Buffer_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_RDMA_BUFFER")
+    field(DESC, "Backend Reset RDMA Buffer")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)Backend_LSFR") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_LSFR")
+    field(DESC, "Backend Backend LSFR")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(VAL,  "1")
+	field(PINI, "YES")
+}
+
+record(bi, "$(P)$(R)Backend_LSFR_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_LSFR")
+    field(DESC, "Backend LSFR RBV")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbo,"$(P)$(R)Select_SendImage") {
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEL_SEND_IMAGE")
+	field(DESC, "OMR operation mode selection")
+    field(DESC, "Send Image")  
+   	field(ZRST, "Mask-bit square")						field(ZRVL, "0")
+    field(ONST, "Pi-Tecnologa logo")					field(ONVL, "1")
+    field(TWST, "Column counter 16-inc")				field(TWVL, "2")
+    field(THST, "Line counter 16-inc")					field(THVL, "3")
+    field(FRST, "Column counter")						field(FRVL, "4")
+    field(FVST, "Line counter")							field(FVVL, "5")
+    field(SXST, "Unique Pixel-ID (LCC)")				field(SXVL, "6")
+    field(SVST, "Unique Pixel-ID (LLC)")				field(SVVL, "7")
+	field(EIST, "First pixel as 0xFFF")					field(EIVL, "8")
+	field(NIST, "Ramp test")							field(NIVL, "9")
+	field(TEST, "Inc Start Counter 1")			field(TEVL, "10")
+	field(ELST, "Inc Start Counter 2")			field(ELVL, "11")
+	field(TVST, "Test Pulse Even Lines")				field(TVVL, "12")
+	field(TTST, "Test Pulse Odd Lines")					field(TTVL, "13")
+	field(FTST, "Test Pulse Even Columns")				field(FTVL, "14")
+	field(FFST, "Test Pulse Odd Columns")				field(FFVL, "15")
+}
+
+record(mbbi,"$(P)$(R)Select_SendImage_RBV") {
+   	field(DTYP, "asynInt32")
+   	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEL_SEND_IMAGE")
+    field(DESC, "Send Image readback")  
+   	field(ZRST, "Mask-bit square")						field(ZRVL, "0")
+    field(ONST, "Pi-Tecnologa logo")					field(ONVL, "1")
+    field(TWST, "Column counter 16-inc")				field(TWVL, "2")
+    field(THST, "Line counter 16-inc")					field(THVL, "3")
+    field(FRST, "Column counter")						field(FRVL, "4")
+    field(FVST, "Line counter)")						field(FVVL, "5")
+    field(SXST, "Unique Pixel-ID (LCC)")				field(SXVL, "6")
+    field(SVST, "Unique Pixel-ID (LLC)")				field(SVVL, "7")
+	field(EIST, "First pixel as 0xFFF")					field(EIVL, "8")
+	field(NIST, "Ramp test")							field(NIVL, "9")
+	field(TEST, "Inc Start Counter 1")					field(TEVL, "10")
+	field(ELST, "Inc Start Counter 2")					field(ELVL, "11")
+	field(TVST, "Test Pulse Even Lines")				field(TVVL, "12")
+	field(TTST, "Test Pulse Odd Lines")					field(TTVL, "13")
+	field(FTST, "Test Pulse Even Columns")				field(FTVL, "14")
+	field(FFST, "Test Pulse Odd Columns")				field(FFVL, "15")
+   	field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SendImage") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Send Image test to detector")
+	field(VAL,  "1")
+	field(ZNAM, "No send")
+	field(ONAM, "Send")
+	#field(HIGH, "0.1")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_IMAGE")
+}
+
+record(ai, "$(P)$(R)ConfigDiscL_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CONFIG_DISCL")
+	field(SCAN, "I/O Intr")
+	field(DESC, "DAC Config DiscL value")
+}
+
+record(ao, "$(P)$(R)ConfigDiscL")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CONFIG_DISCL")
+	field(DESC, "DAC Config DiscL value")
+	field(VAL, "0")
+	field(DRVL, "0")
+	field(DRVH, "4095")
+}
+

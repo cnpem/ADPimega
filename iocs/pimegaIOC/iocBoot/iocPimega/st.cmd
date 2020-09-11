@@ -9,24 +9,33 @@ pimegaApp_registerRecordDeviceDriver(pdbbase)
 epicsEnvSet("PREFIX", "SOL7:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
-# The detector model (0:mobipix; 1:pimega540D)
-epicsEnvSet("DMODEL", "1");
+# The detector model (0:mobipix; 1:pimega45D; 2:pimega135D; 3:pimega540D)
+epicsEnvSet("DMODEL", "3");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
-epicsEnvSet("XSIZE",  "1536")
+epicsEnvSet("XSIZE",  "3072")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
-epicsEnvSet("YSIZE",  "1536")
+epicsEnvSet("YSIZE",  "3072")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "256")
+epicsEnvSet("NELEMENTS", "9437184")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
 epicsEnvSet("CBUFFS", "500")
 # The IP address of the Pimega system
-epicsEnvSet("PIMEGA_IP", "127.0.0.1")
+#epicsEnvSet("PIMEGA_MODULE01_IP", "127.0.0.1")
+#epicsEnvSet("PIMEGA_MODULE02_IP", "127.0.0.1")
+#epicsEnvSet("PIMEGA_MODULE03_IP", "127.0.0.1")
+#epicsEnvSet("PIMEGA_MODULE04_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.2")
+epicsEnvSet("PIMEGA_MODULE02_IP", "10.255.255.6")
+epicsEnvSet("PIMEGA_MODULE03_IP", "10.255.255.10")
+epicsEnvSet("PIMEGA_MODULE04_IP", "10.255.255.14")
 #epicsEnvSet("PIMEGA_IP", "10.0.27.46")
 #epicsEnvSet("PIMEGA_IP", "10.2.101.61") 
+#epicsEnvSet("PIMEGA_IP", "143.106.167.170")
+#epicsEnvSet("PIMEGA_IP", "10.255.255.2")
 # The IP port for the command socket
 epicsEnvSet("PIMEGA_PORT", "60000")
 # The search path for database files
@@ -47,7 +56,7 @@ epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "99999999")
 #                                    allowed to allocate. Set this to 0 to allow an unlimited amount of memory.
 #              priority,           # The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
 #              stackSize,          # The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
-pimegaDetectorConfig("$(PORT)",$(PIMEGA_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0)
+pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIMEGA_MODULE03_IP),$(PIMEGA_MODULE04_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0)
 
 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
@@ -63,6 +72,10 @@ set_requestfile_path("$(ADPIMEGA)/pimegaApp/Db")
 
 
 iocInit()
+
+dbpf(${PREFIX}cam1:FilePath,"/tmp")
+dbpf(${PREFIX}cam1:FileName,"teste")
+dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.h5")
 
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")

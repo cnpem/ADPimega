@@ -5,11 +5,40 @@
  *      Author: Douglas Araujo
  */
 
-#include <epicsEvent.h>
+// Standard includes
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <stdint.h>
+#include <map>
 
-/** Messages to/from Labview command channel */
-#define MAX_MESSAGE_SIZE 256
-#define MAX_FILENAME_LEN 256
+// EPICS includes
+#include <epicsThread.h>
+#include <epicsEvent.h>
+#include <epicsString.h>
+#include <iocsh.h>
+#include <epicsExport.h>
+
+#include <epicsStdio.h>
+#include <epicsMutex.h>
+#include <cantProceed.h>
+#include <epicsExit.h>
+
+// Asyn driver includes
+#include <asynOctetSyncIO.h>
+
+// areaDetector includes
+#include "ADDriver.h"
+
+// pimega lib includes
+#include <pimega.h>
+
+//#define USE_SIMULATOR 1
+#define PIMEGA_MAX_FILENAME_LEN 300
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from Labview */
 #define ASYN_POLL_TIME .01
@@ -20,12 +49,13 @@
 #define DIMS 2
 #define DEFAULT_POLL_TIME 2
 
+#define N_DACS_OUTS 31
 static const char *driverName = "pimegaDetector";
 
 #define error(fmt, ...) asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, \
         "%s:%d " fmt, __FILE__, __LINE__, __VA_ARGS__)
                                   
-
+#define pimegaMedipixModeString         "MEDIPIX_MODE"
 #define pimegaefuseIDString             "EFUSE_ID"
 #define pimegaOmrOPModeString           "OMR_OP_MODE"
 #define pimegaMedipixBoardString        "MEDIPIX_BOARD"
@@ -61,29 +91,66 @@ static const char *driverName = "pimegaDetector";
 #define pimegaResetString               "RESET"
 #define pimegaReadCounterString         "READ_COUNTER"
 #define pimegaSenseDacSelString         "SENSE_DAC_SEL"
+#define pimegaDacOutSenseString         "DAC_OUT_SENSE"
+#define pimegaDacsOutSenseString        "DACS_OUT_SENSE"
 #define pimegaBackendBufferString       "BACK_BUFFER"
+#define pimegaResetRDMABufferString     "RESET_RDMA_BUFFER"
 #define pimegaSensorBiasString          "SENSOR_BIAS"
+#define pimegaModuleString              "PIMEGA_MODULE"
+#define pimegaAllModulesString          "ALL_MODULES"
+#define pimegaBackendLSFRString         "BACK_LSFR"
+#define pimegaSendImageString           "SEND_IMAGE"
+#define pimegaSelSendImageString        "SEL_SEND_IMAGE"
+#define pimegaSendDacDoneString         "SEND_DAC_DONE"
+#define pimegaConfigDiscLString         "CONFIG_DISCL"
+#define pimegaLoadEqString              "LOAD_EQUALIZATION"
+#define pimegaExtBgInString             "EXT_BGIN"
+#define pimegaExtBgSelString            "EXT_BGSEL"
+#define pimegaMfbM1TempString           "MFB_TEMPERATURE_M1"
+#define pimegaMfbM2TempString           "MFB_TEMPERATURE_M2"
+#define pimegaMfbM3TempString           "MFB_TEMPERATURE_M3"
+#define pimegaMfbM4TempString           "MFB_TEMPERATURE_M4"
+#define pimegaMFBAvgM1String            "MFB_AVG_TSENSOR_M1"
+#define pimegaMFBAvgM2String            "MFB_AVG_TSENSOR_M2"
+#define pimegaMFBAvgM3String            "MFB_AVG_TSENSOR_M3"
+#define pimegaMFBAvgM4String            "MFB_AVG_TSENSOR_M4"
+#define pimegaMfbSelTSensorString       "MFB_SEL_TSENSOR"
+#define pimegaMfbTSensorString          "MFB_TSENSOR"
+#define pimegaMPAvgM1String             "MP_AVG_TSENSOR_M1"
+#define pimegaMPAvgM2String             "MP_AVG_TSENSOR_M2"
+#define pimegaMPAvgM3String             "MP_AVG_TSENSOR_M3"
+#define pimegaMPAvgM4String             "MP_AVG_TSENSOR_M4"
 
 class pimegaDetector: public ADDriver
 {
 public:
-    pimegaDetector(const char *portName, const char *address, int port, int maxSizeX, int maxSizeY,
-                int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize);
+    pimegaDetector(const char *portName, const char *address_module01, const char *address_module02,
+                   const char *address_module03, const char *address_module04,
+                   int port, int maxSizeX, int maxSizeY,
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize);
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
     virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
     virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
+    virtual asynStatus readFloat32Array(asynUser *pasynUser, epicsFloat32 *value, size_t nElements, size_t *nIn);
 
     virtual void report(FILE *fp, int details);
-    virtual void pollerThread(void);
     virtual void acqTask(void);
     virtual void generateImage(void);
 
+    // Debugging routines
+    asynStatus initDebugger(int initDebug);
+    asynStatus debugLevel(const std::string& method, int onOff);
+    asynStatus debug(const std::string& method, const std::string& msg);
+    asynStatus debug(const std::string& method, const std::string& msg, int value);
+    asynStatus debug(const std::string& method, const std::string& msg, double value);
+    asynStatus debug(const std::string& method, const std::string& msg, const std::string& value);
 
 protected:
     int PimegaReset;
     #define FIRST_PIMEGA_PARAM PimegaReset
+    int PimegaMedipixMode;
     int PimegaefuseID;
     int PimegaOmrOPMode;
     int PimegaMedipixBoard;
@@ -118,11 +185,41 @@ protected:
     int PimegaTpRefB;
     int PimegaReadCounter;
     int PimegaSenseDacSel;
+    int PimegaDacOutSense;
+    int PimegaDacsOutSense;
     int PimegaBackBuffer;
+    int PimegaResetRDMABuffer;
+    int PimegaBackLSFR;
+    int PimegaModule;
+    int PimegaAllModules;
+    int PimegaSendImage;
+    int PimegaSelSendImage;
+    int PimegaSendDacDone;
+    int PimegaConfigDiscL;
+    int PimegaLoadEqualization;
+    int PimegaExtBgIn;
+    int PimegaExtBgSel;
+    int PimegaMFBTemperatureM1;
+    int PimegaMFBTemperatureM2;
+    int PimegaMFBTemperatureM3;
+    int PimegaMFBTemperatureM4;
+    int PimegaMFBAvgTSensorM1;
+    int PimegaMFBAvgTSensorM2;
+    int PimegaMFBAvgTSensorM3;
+    int PimegaMFBAvgTSensorM4;
+    int PimegaMFBSelTSensor;
+    int PimegaMFBTSensor;
+    int PimegaMPAvgTSensorM1;
+    int PimegaMPAvgTSensorM2;
+    int PimegaMPAvgTSensorM3;
+    int PimegaMPAvgTSensorM4;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
 private:
+
+    // debug map
+    std::map<std::string, int>         debugMap_;
 
     // ***** poller control variables ****
     double pollTime_;
@@ -135,14 +232,19 @@ private:
     pimega_t *pimega;
     pimega_detector_model_t detModel;
 
-    int p_imageSize = 256;
+    int p_imageSize = 3072 * 3072;
     uint32_t *pimega_image; 
     int arrayCallbacks;
     size_t dims[2];
     int itemp;
 
+    epicsFloat32 *PimegaDacsOutSense_;
+    epicsFloat32 *PimegaMFBTemperature_;
+
+    int numImageSaved = 0;
+
     void panic(const char *msg);
-    void connect(const char *address, unsigned short port);
+    void connect(const char *address[4], unsigned short port);
     void createParameters(void);
     void setParameter(int index, const char *value);
     void setParameter(int index, int value);
@@ -151,12 +253,24 @@ private:
     void getParameter(int index, int *value);
     void getParameter(int index, double *value);
 
+    void getDacsValues(void);
+    
     void setDefaults(void);
-    void prepareScan(unsigned board);
+    asynStatus getDacsOutSense(void);
+    asynStatus getMfbTemperature(void);
+    asynStatus getMedipixTemperature(void);
 
+    int startAcquire(void);
+    int startCaptureBackend(void);
+
+    int dac_scan_tmp(pimega_dac_t dac);
+    asynStatus selectModule(uint8_t module);
+    asynStatus medipixMode(uint8_t mode);
+    asynStatus configDiscL(int value);
     asynStatus triggerMode(int trigger);
     asynStatus reset(short action);
     asynStatus setDACValue(pimega_dac_t dac, int value, int parameter);
+    asynStatus setOMRValue(pimega_omr_t dac, int value, int parameter);
     asynStatus imgChipID(uint8_t chip_id);
     asynStatus medipixBoard(uint8_t board_id);
     asynStatus numExposures(unsigned number);
@@ -174,6 +288,11 @@ private:
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
     asynStatus imageMode(u_int8_t mode);
+    asynStatus sendImage(void);
+    asynStatus loadEqualization(int cfg);
+    asynStatus setExtBgIn(float voltage);
+
+
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)

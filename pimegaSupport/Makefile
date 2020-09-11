@@ -10,9 +10,10 @@ INC += pimega.h
 
 ifeq (linux-x86_64, $(findstring linux-x86_64, $(T_A)))
 LIB_INSTALLS_Linux += ../os/linux-x86_64/libpimega.so
+endif
 
-
-
+ifeq (linux-ppc64, $(findstring linux-ppc64, $(T_A)))
+LIB_INSTALLS_Linux += ../os/linux-ppc64/libpimega.so
 endif
 
 #=============================
