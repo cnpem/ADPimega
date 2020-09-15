@@ -1,4 +1,5 @@
 #include <inttypes.h>
+#include <pthread.h>
 
 #ifndef _PIMEGA_H_INCLUDED_
 #define _PIMEGA_H_INCLUDED_
@@ -31,7 +32,7 @@ extern "C" {
 #define PIMEGA_SIZE_RESULT 1024
 
 #define PIMEGA_TIMEOUT 600000000UL
-#define DATA_SERVER_TIMEOUT 300000000
+#define DATA_SERVER_TIMEOUT 300000000UL
 #define PIMEGA_MAX_FILE_NAME 300
 
 #define PIMEGA_MIN_GAP 2e-5f
@@ -74,7 +75,8 @@ enum requestTypesEnum {
     SAVE_STATUS = 3,
     ABORT_SAVE = 4,
     STOP_ACQUIRE = 5,
-    ARRAY_DATA = 6
+    ARRAY_DATA = 6,
+	GEOMETRY = 7
 };
 
 enum OperationTypesEnum {
@@ -88,13 +90,16 @@ enum OperationTypesEnum {
 enum returnTypesEnum {
     INVALID_SAVE_PATH,
     INVALID_AQUISITION_MODE,
-	INVALID_NUM_OF_ACQUISITIONS
+    INVALID_NUM_OF_ACQUISITIONS,
+    INVALID_GEOMETRY_FILE
 };
 
+
+
 enum saveModeEnum {
-    SAVE_AFTER = 0,
+    SAVE_AFTER = 2,
     SAVE_DURING = 1,
-    NO_SAVE = 2
+    NO_SAVE = 0
 };
 
 
@@ -105,12 +110,18 @@ enum aquisitionModeEnum {
 };
 
 
-//Size 1
+//Size 2
 typedef struct __attribute__((__packed__)){
     uint8_t  type;
     uint8_t  error;
 	uint8_t reserved[STRUCT_SIZE-2];
 } simpleArgs;
+
+typedef struct __attribute__((__packed__)){
+    uint8_t  type;
+    char     jsonfile[300];
+    uint8_t reserved[STRUCT_SIZE-301];
+} geometryArgs;
 
 //Size 321
 typedef struct __attribute__((__packed__)){
@@ -164,6 +175,13 @@ typedef struct __attribute__((__packed__)){
     uint32_t               bufferSize;
     uint8_t                reserved[STRUCT_SIZE-261];
 } initArgs;
+
+struct array_data
+{
+    pthread_mutex_t * mutex;
+    int32_t * sample_frame;
+};
+
 
 struct guess_end_context{
     struct timespec  sample_time;
@@ -493,6 +511,8 @@ typedef struct pimega_t {
     acqArgs acq_args;
     acqStatusArgs acq_status_return;
 	chip chip_pos;
+	pthread_mutex_t        backend_socket_mutex; 
+	struct array_data      adata;
 } pimega_t;
 
 typedef struct dac_scan_t {
@@ -664,7 +684,8 @@ int send_stopAcquire_toBackend(pimega_t *pimega);
 int update_backend_acqArgs(pimega_t *pimega, bool useLFSR, uint8_t saveMode, 
                     	   bool resetRDMABuffer, uint16_t bcFramesToProcessPerTime,
 						   uint8_t extraDimensions);
-int get_array_data(pimega_t *pimega, uint32_t * array_data);
+int init_array_data(struct array_data *adata);
+void get_array_data(pimega_t *pimega, int32_t * frame);
 void decode_backend_error(uint8_t ret, char *error);
 // ---------------------------------------------------------
 

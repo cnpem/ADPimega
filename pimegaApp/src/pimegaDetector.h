@@ -233,7 +233,7 @@ private:
     pimega_detector_model_t detModel;
 
     int p_imageSize = 3072 * 3072;
-    uint32_t *pimega_image; 
+    int32_t *pimega_image;
     int arrayCallbacks;
     size_t dims[2];
     int itemp;
