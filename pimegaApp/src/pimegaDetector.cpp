@@ -38,7 +38,7 @@ void pimegaDetector::generateImage(void)
     getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
     getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
 
-    this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, p_imageSize * sizeof(uint32_t), pimega_image);
+    this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, p_imageSize * sizeof(int32_t), pimega_image);
 
     setIntegerParam(NDArraySizeX, dims[0]);
     setIntegerParam(NDArraySizeY, dims[1]);
@@ -502,10 +502,10 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
         if (pimega->acquireParam.numCapture != 0 && 
             pimega->acq_status_return.savedAquisitionNum != 0) 
         {
-            //if (*value != numImageSaved) {
-            //    generateImage();
-            //    numImageSaved = *value;
-            //}
+            if (*value != numImageSaved) {
+                generateImage();
+                numImageSaved = *value;
+            }
 
             if (pimega->acq_status_return.savedAquisitionNum == pimega->acquireParam.numCapture)
             {
@@ -593,7 +593,7 @@ pimegaDetector::pimegaDetector(const char *portName,
                          address_module03,
                          address_module04};
 
-    pimega_image = (uint32_t*)malloc(p_imageSize * sizeof(uint32_t));
+    pimega_image = (int32_t*)malloc(p_imageSize * sizeof(int32_t));
     // initialize random seed:
     srand (time(NULL));
 
@@ -624,7 +624,9 @@ pimegaDetector::pimegaDetector(const char *portName,
     if (pimega) debug(functionName, "Pimega Object created!");
 
     connect(ips, port);
-    prepare_pimega(pimega);
+    rc = prepare_pimega(pimega);
+    if (rc != PIMEGA_SUCCESS)
+        panic("Unable to prepare pimega. Aborting...");
     //pimega->debug_out = fopen("log.txt", "w+");
     //report(pimega->debug_out, 1);
     //fflush(pimega->debug_out);
