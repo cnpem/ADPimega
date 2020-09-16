@@ -270,6 +270,15 @@ typedef enum pimega_gain_mode_t {
 	PIMEGA_GAIN_MODE_ENUM_END,
 } pimega_gain_mode_t;
 
+typedef enum pimega_omr_operation_t {
+	OMR_OP_READ=0,
+	OMR_OP_WRITE,
+	OMR_OP_READ_ALLSENSORS,
+	OMR_OP_WRITE_ALLSENSORS,
+	OMR_OP_READ_ALL_OMRS_ONESENSOR,
+	OMR_OP_ENUM_END,
+} pimega_omr_operation_t;
+
 typedef enum pimega_omr_t {
 	OMR_M=0,
 	OMR_CRW_SRW,
@@ -295,6 +304,20 @@ typedef enum pimega_omr_t {
 	OMR_ENUM_END,
 } pimega_omr_t;
 
+typedef enum pimega_read_dac_t {
+	DIGITAL_READ_SINGLE_DAC = 0,
+	DIGITAL_READ_ALL_SENSORS = 2,
+	DIGITAL_READ_ALL_DACS = 4,
+	ANALOG_READ_SINGLE_DAC = 6,
+	ANALOG_READ_ALL_DACS = 7,
+	ANALOG_READ_ALL_SENSORS = 8,
+} pimega_read_dac_t;
+
+typedef enum pimega_write_dac_t {
+	WRITE_SINGLE_DAC=1,
+	WRITE_ALL_SENSORS=3,
+	WRTIE_ALL_DACS=5,
+} pimega_write_dac_t;
 
 typedef enum pimega_dac_t {
     DAC_ThresholdEnergy0=1,     //1
@@ -479,13 +502,14 @@ typedef enum pimega_send_to_all_t
 	PIMEGA_SEND_ALL_MFBS_ALL_MODULES,
 } pimega_send_to_all_t;
 
-typedef struct chip {
+typedef struct sensor {
     enum moduleLoc module;
     int mfb;
-    int chipid;
-} chip;
+    int chipId;
+	int sensorPos;
+} sensor;
 
-extern struct chip decoder540D[144];
+extern struct sensor decoder540D[144];
 
 typedef struct pimega_t {
 	uint8_t max_num_modules; // Modules (135D)
@@ -501,8 +525,8 @@ typedef struct pimega_t {
 	pimega_omr omr;
 	pimega_params_t pimegaParam;
 	pimega_acquire_params_t acquireParam;
-	int digital_dac_values[DAC_ENUM_END];
-	float analog_dac_values[DAC_ENUM_END];
+	int digital_dac_values[36][DAC_ENUM_END];
+	float analog_dac_values[36][DAC_ENUM_END];
 	int omr_values[OMR_ENUM_END];
 	char file_template[PIMEGA_MAX_FILE_NAME];
 	initArgs init_args;
@@ -510,7 +534,7 @@ typedef struct pimega_t {
 	saveStatusArgs saveargs;
     acqArgs acq_args;
     acqStatusArgs acq_status_return;
-	chip chip_pos;
+	sensor sensor_pos;
 	pthread_mutex_t        backend_socket_mutex; 
 	struct array_data      adata;
 } pimega_t;
@@ -554,7 +578,6 @@ int US_NumExposures(pimega_t *pimega, int num_exposures);
 int US_NumExposures_RBV(pimega_t *pimega);
 int US_NumExposuresCounter_RBV(pimega_t *pimega);
 
-// --------------- K60 functions exclusive -----------------------------------------
 int US_Load_Equalization(pimega_t *pimega, u_int8_t cfg_number, u_int8_t sensor);
 int US_ConfigDiscL(pimega_t *pimega, uint32_t value, pimega_send_to_all_t send_to);
 int pixel_load(pimega_t *pimega, uint8_t sensor, uint32_t value);
@@ -564,11 +587,11 @@ int Set_Trigger_RBV(pimega_t *pimega);
 int select_board(pimega_t *pimega, int board_id);
 int select_board_rbv(pimega_t *pimega);
 int select_chipNumber(pimega_t *pimega, int chip_id);
-int select_chipNumber_rbv(int sensor_id, int board);
 // ---------------------------------------------------------------------------------
 
 // -------------- OMR Prototypes ---------------------------------------------------
-int get_all_omr(pimega_t *pimega);
+int set_omr(pimega_t *pimega, pimega_omr_t omr, int value, pimega_send_to_all_t send_to);
+int get_omr(pimega_t *pimega);
 int US_OmrOMSelec(pimega_t *pimega, pimega_operation_mode_t operation_mode);
 int US_OmrOMSelec_RBV(pimega_t *pimega);
 int US_ContinuousRW(pimega_t *pimega, pimega_crw_srw_t crw_srw_mode);
@@ -594,18 +617,12 @@ int US_Gain(pimega_t *pimega, pimega_gain_mode_t gain_mode);
 int US_Gain_RBV(pimega_t *pimega);
 int US_SenseDacSel(pimega_t *pimega, uint8_t dac);
 int US_SenseDacSel_RBV(pimega_t *pimega);
-
-
 // ----------------------------------------------------------------------------------
 
-int US_Set_OMR(pimega_t *pimega, pimega_omr_t omr, int value, pimega_send_to_all_t send_to);
-int US_Get_OMR(pimega_t *pimega, pimega_omr_t omr);
-
 // ---------------- DAC Prototypes -------------------------------------------
+int set_dac(pimega_t *pimega, pimega_dac_t dac, int value, pimega_send_to_all_t send_to);
+int get_dac(pimega_t *pimega, pimega_read_dac_t read_mode, pimega_dac_t dac);
 int Set_DAC_Defaults(pimega_t *pimega);
-int get_dacs_values(pimega_t *pimega, int chip_id);
-int get_digital_dac_value(pimega_t *pimega, pimega_dac_t dac);
-float get_analog_dac_value(pimega_t *pimega, pimega_dac_t dac);
 
 int US_Set_DAC_Variable(pimega_t *pimega, pimega_dac_t dac, int value, pimega_send_to_all_t send_to);
 int US_Get_DAC_Variable(pimega_t *pimega, pimega_dac_t dac);

@@ -274,16 +274,7 @@ private:
     asynStatus imgChipID(uint8_t chip_id);
     asynStatus medipixBoard(uint8_t board_id);
     asynStatus numExposures(unsigned number);
-    asynStatus pixelMode(int mode);
-    asynStatus continuosRW(int mode);
-    asynStatus polarity(int mode);
-    asynStatus discriminator(int mode);
-    asynStatus enableTP(int mode);
-    asynStatus counterDepth(int mode);
-    asynStatus equalization(int mode);
-    asynStatus gainMode(int mode);
     asynStatus acqTime(float acquire_time_s);
-    asynStatus omrOpMode(int mode);
     asynStatus sensorBias(float voltage);
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
@@ -291,8 +282,6 @@ private:
     asynStatus sendImage(void);
     asynStatus loadEqualization(int cfg);
     asynStatus setExtBgIn(float voltage);
-
-
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
