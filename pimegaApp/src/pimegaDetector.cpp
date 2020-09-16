@@ -507,7 +507,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
                 numImageSaved = *value;
             }
 
-            if (pimega->acq_status_return.savedAquisitionNum == pimega->acquireParam.numCapture)
+            if (static_cast<int32_t>(pimega->acq_status_return.savedAquisitionNum) == pimega->acquireParam.numCapture)
             {
                 send_stopAcquire_toBackend(pimega);
                 setParameter(NDFileCapture, 0);
@@ -587,6 +587,7 @@ pimegaDetector::pimegaDetector(const char *portName,
 
 {
     int status = asynSuccess;
+    int rc = asynSuccess;
     const char *functionName = "pimegaDetector::pimegaDetector";
     const char* ips[] = {address_module01,
                          address_module02,
