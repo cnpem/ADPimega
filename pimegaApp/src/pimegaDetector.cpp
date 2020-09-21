@@ -507,7 +507,8 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
                 numImageSaved = *value;
             }
 
-            if (static_cast<int32_t>(pimega->acq_status_return.savedAquisitionNum) == pimega->acquireParam.numCapture)
+
+            if (pimega->acq_status_return.savedAquisitionNum == (unsigned int)pimega->acquireParam.numCapture)
             {
                 send_stopAcquire_toBackend(pimega);
                 setParameter(NDFileCapture, 0);
@@ -587,7 +588,6 @@ pimegaDetector::pimegaDetector(const char *portName,
 
 {
     int status = asynSuccess;
-    int rc = asynSuccess;
     const char *functionName = "pimegaDetector::pimegaDetector";
     const char* ips[] = {address_module01,
                          address_module02,
@@ -625,8 +625,8 @@ pimegaDetector::pimegaDetector(const char *portName,
     if (pimega) debug(functionName, "Pimega Object created!");
 
     connect(ips, port);
-    rc = prepare_pimega(pimega);
-    if (rc != PIMEGA_SUCCESS)
+    status = prepare_pimega(pimega);
+    if (status != PIMEGA_SUCCESS)
         panic("Unable to prepare pimega. Aborting...");
     //pimega->debug_out = fopen("log.txt", "w+");
     //report(pimega->debug_out, 1);
@@ -650,32 +650,6 @@ pimegaDetector::pimegaDetector(const char *portName,
         debug(functionName, "epicsTheadCreate failure for image task");
     }
 }
-
-/************************************************************************************
- * Validation functions
- ***********************************************************************************/
-static bool validate_bool(int v)
-{
-    if (v == 0 || v == 1) return true;
-    return false;
-}
-
-static bool validate_counter_depth(int v)
-{
-    return (v >= 0 && v < PIMEGA_COUNTERDEPTH_ENUM_END);
-}
-
-static bool validate_gain_mode(int v)
-{
-    return (v >= 0 && v < PIMEGA_GAIN_MODE_ENUM_END);
-}
-
-static bool validate_operation_mode(int v)
-{
-    return (v >= 0 && v < PIMEGA_OPERATION_MODE_ENUM_END);
-}
-
-/************************************************************************************/
 
 void pimegaDetector::panic(const char *msg)
 {
@@ -914,42 +888,55 @@ void pimegaDetector::setDefaults(void)
 
     set_OptimizedDiscL(pimega);
     Set_DAC_Defaults(pimega);
-    //getDacsValues();
+    getDacsValues();
+    getOmrValues();
 }
 
 void pimegaDetector::getDacsValues(void)
 {
-    int chip_id;
-    int mfb;
-    getParameter(PimegaMedipixChip, &chip_id);
-    getParameter(PimegaMedipixBoard, &mfb);
+    int sensor;
+    getParameter(PimegaMedipixChip, &sensor);
+    sensor -= 1;
 
-    printf("\n\nChip ID: %i\n\n", chip_id);
-
-    get_dacs_values(pimega, chip_id);
-    setParameter(PimegaThreshold0, (int)pimega->digital_dac_values[DAC_ThresholdEnergy0]);
-    setParameter(PimegaThreshold1, (int)pimega->digital_dac_values[DAC_ThresholdEnergy1]);
-    setParameter(PimegaPreamp, (int)pimega->digital_dac_values[DAC_Preamp]);
-    setParameter(PimegaIkrum, (int)pimega->digital_dac_values[DAC_IKrum]);
-    setParameter(PimegaShaper, (int)pimega->digital_dac_values[DAC_Shaper]);
-    setParameter(PimegaDisc, (int)pimega->digital_dac_values[DAC_Disc]);
-    setParameter(PimegaDiscLS, (int)pimega->digital_dac_values[DAC_DiscLS]);
+    get_dac(pimega, DIGITAL_READ_ALL_DACS, DAC_ThresholdEnergy0);
+    setParameter(PimegaThreshold0, (int)pimega->digital_dac_values[sensor][DAC_ThresholdEnergy0-1]);
+    setParameter(PimegaThreshold1, (int)pimega->digital_dac_values[sensor][DAC_ThresholdEnergy1-1]);
+    setParameter(PimegaPreamp, (int)pimega->digital_dac_values[sensor][DAC_Preamp-1]);
+    setParameter(PimegaIkrum, (int)pimega->digital_dac_values[sensor][DAC_IKrum-1]);
+    setParameter(PimegaShaper, (int)pimega->digital_dac_values[sensor][DAC_Shaper-1]);
+    setParameter(PimegaDisc, (int)pimega->digital_dac_values[sensor][DAC_Disc-1]);
+    setParameter(PimegaDiscLS, (int)pimega->digital_dac_values[sensor][DAC_DiscLS-1]);
     //setParameter(PimegaShaperTest, pimega->digital_dac_values[DAC_ShaperTest])
-    setParameter(PimegaDiscL, (int)pimega->digital_dac_values[DAC_DiscL]);
-    setParameter(PimegaDelay, (int)pimega->digital_dac_values[DAC_Delay]);
-    setParameter(PimegaTpBufferIn, (int)pimega->digital_dac_values[DAC_TPBufferIn]);
-    setParameter(PimegaTpBufferOut, (int)pimega->digital_dac_values[DAC_TPBufferOut]);
-    setParameter(PimegaRpz, (int)pimega->digital_dac_values[DAC_RPZ]);
-    setParameter(PimegaGnd, (int)pimega->digital_dac_values[DAC_GND]);
-    setParameter(PimegaTpRef, (int)pimega->digital_dac_values[DAC_TPRef]);
-    setParameter(PimegaFbk, (int)pimega->digital_dac_values[DAC_FBK]);
-    setParameter(PimegaCas, (int)pimega->digital_dac_values[DAC_CAS]);
-    setParameter(PimegaTpRefA, (int)pimega->digital_dac_values[DAC_TPRefA]);
-    setParameter(PimegaTpRefB, (int)pimega->digital_dac_values[DAC_TPRefB]);
+    setParameter(PimegaDiscL, (int)pimega->digital_dac_values[sensor][DAC_DiscL-1]);
+    setParameter(PimegaDelay, (int)pimega->digital_dac_values[sensor][DAC_Delay-1]);
+    setParameter(PimegaTpBufferIn, (int)pimega->digital_dac_values[sensor][DAC_TPBufferIn-1]);
+    setParameter(PimegaTpBufferOut, (int)pimega->digital_dac_values[sensor][DAC_TPBufferOut-1]);
+    setParameter(PimegaRpz, (int)pimega->digital_dac_values[sensor][DAC_RPZ-1]);
+    setParameter(PimegaGnd, (int)pimega->digital_dac_values[sensor][DAC_GND-1]);
+    setParameter(PimegaTpRef, (int)pimega->digital_dac_values[sensor][DAC_TPRef-1]);
+    setParameter(PimegaFbk, (int)pimega->digital_dac_values[sensor][DAC_FBK-1]);
+    setParameter(PimegaCas, (int)pimega->digital_dac_values[sensor][DAC_CAS-1]);
+    setParameter(PimegaTpRefA, (int)pimega->digital_dac_values[sensor][DAC_TPRefA-1]);
+    setParameter(PimegaTpRefB, (int)pimega->digital_dac_values[sensor][DAC_TPRefB-1]);
     //setParameter(PimegaShaperTest, pimega->digital_dac_values[DAC_Test]);
-    setParameter(PimegaDiscH,(int)pimega->digital_dac_values[DAC_DiscH]);
+    setParameter(PimegaDiscH,(int)pimega->digital_dac_values[sensor][DAC_DiscH-1]);
 
-    getDacsOutSense();
+    //getDacsOutSense();
+}
+
+void pimegaDetector::getOmrValues(void)
+{
+    get_omr(pimega);
+    setParameter(PimegaOmrOPMode, pimega->omr_values[OMR_M]);
+    setParameter(PimegaContinuosRW, pimega->omr_values[OMR_CRW_SRW]);
+    setParameter(PimegaPolarity, pimega->omr_values[OMR_Polarity]);
+    setParameter(PimegaDiscriminator, pimega->omr_values[OMR_Disc_CSM_SPM]);
+    setParameter(PimegaTestPulse, pimega->omr_values[OMR_EnableTP]);
+    setParameter(PimegaCounterDepth, pimega->omr_values[OMR_CountL]);
+    setParameter(PimegaEqualization, pimega->omr_values[OMR_Equalization]);
+    setParameter(PimegaPixelMode, pimega->omr_values[OMR_CSM_SPM]);
+    setParameter(PimegaGain, pimega->omr_values[OMR_Gain_Mode]);
+    setParameter(PimegaExtBgSel, pimega->omr_values[OMR_Ext_BG_Sel]);
 }
 
 void pimegaDetector::report(FILE *fp, int details)
@@ -1087,7 +1074,7 @@ asynStatus pimegaDetector::setDACValue(pimega_dac_t dac, int value, int paramete
     callParamCallbacks();
 
     getParameter(PimegaAllModules, &all_modules);
-    rc = US_Set_DAC_Variable(pimega, dac, (unsigned)value, (pimega_send_to_all_t)all_modules);
+    rc = set_dac(pimega, dac, (unsigned)value, (pimega_send_to_all_t)all_modules);
     if (rc != PIMEGA_SUCCESS) {
         error("Unable to change DAC value: %s\n", pimega_error_string(rc));
         return asynError;
@@ -1106,7 +1093,7 @@ asynStatus pimegaDetector::setOMRValue(pimega_omr_t omr, int value, int paramete
     int all_modules;
 
     getParameter(PimegaAllModules, &all_modules);
-    rc = US_Set_OMR(pimega, omr, (unsigned)value, (pimega_send_to_all_t)all_modules);
+    rc = set_omr(pimega, omr, (unsigned)value, (pimega_send_to_all_t)all_modules);
     if (rc != PIMEGA_SUCCESS) {
         error("Unable to change OMR value: %s\n", pimega_error_string(rc));
         return asynError;
@@ -1192,7 +1179,6 @@ asynStatus pimegaDetector::medipixMode(uint8_t mode)
 asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
 {
     int rc;
-    //int OmrOp;
     char *_efuseID;
 
     rc = select_chipNumber(pimega, chip_id);
@@ -1201,7 +1187,7 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
         return asynError;
     }
     setParameter(PimegaMedipixChip, chip_id);
-    setParameter(PimegaMedipixBoard, pimega->chip_pos.mfb);
+    setParameter(PimegaMedipixBoard, pimega->sensor_pos.mfb);
 
     /* Get e-fuseID from selected chip_id */ 
     rc = US_efuseID_RBV(pimega);
@@ -1209,9 +1195,9 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     _efuseID = pimega->pimegaParam.efuseID;
     setParameter(PimegaefuseID, _efuseID);
 
-    //getDacsValues();
+    getDacsValues();
+    getOmrValues();
     return asynSuccess;   
-
 }
 
 asynStatus pimegaDetector::numExposures(unsigned number)
@@ -1224,150 +1210,6 @@ asynStatus pimegaDetector::numExposures(unsigned number)
         return asynError;
     }
     setParameter(ADNumExposures, (int)number);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::omrOpMode(int mode)
-{
-    int rc;
-
-    if(!validate_operation_mode(mode)){
-        error("Invalid OMR operation mode value: %d\n", mode); return asynError;
-    }
-
-    rc = US_OmrOMSelec(pimega, (pimega_operation_mode_t)mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaOmrOPMode, mode);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::pixelMode(int mode)
-{
-    int rc;
-
-    if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError;
-    }
-
-    rc = US_PixelMode(pimega, (pimega_pixel_mode_t)mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaPixelMode, mode);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::continuosRW(int mode)
-{
-    int rc;
-
-    if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError;
-    }
-
-    rc = US_ContinuousRW(pimega, (pimega_crw_srw_t)mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaContinuosRW, mode);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::polarity(int mode)
-{
-    int rc;
-
-    if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError;
-    }
-
-    rc = US_Polarity(pimega, (pimega_polarity_t)mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaPolarity, mode);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::discriminator(int mode)
-{
-    int rc;
-
-    if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError;
-    }
-
-    rc = US_Discriminator(pimega, (pimega_discriminator_t)mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaDiscriminator, mode);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::enableTP(int mode)
-{
-    int rc;
-
-    if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError;
-    }
-
-    rc = US_TestPulse(pimega, mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaTestPulse, mode);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::counterDepth(int mode)
-{
-    int rc;
-
-    if(!validate_counter_depth(mode)){
-        error("Invalid counterDepth value: %d\n", mode); return asynError;
-    }
-
-    rc = US_CounterDepth(pimega, (pimega_counterDepth_t)mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaCounterDepth, mode);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::equalization(int mode)
-{
-    int rc;
-
-    if(!validate_bool(mode)){
-        error("Invalid boolean value: %d\n", mode); return asynError;
-    }
-
-    rc = US_Equalization(pimega, mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaEqualization, mode);
-    return asynSuccess;
-}
-
-asynStatus pimegaDetector::gainMode(int mode)
-{
-    int rc;
-
-    if(!validate_gain_mode(mode)){
-        error("Invalid gain mode value: %d\n", mode); return asynError;
-    }
-
-    rc = US_Gain(pimega, (pimega_gain_mode_t)mode);
-    if (rc != PIMEGA_SUCCESS){ return asynError;
-    }
-
-    setParameter(PimegaGain, mode);
     return asynSuccess;
 }
 
@@ -1436,8 +1278,11 @@ asynStatus pimegaDetector::senseDacSel(u_int8_t dac)
 
 asynStatus pimegaDetector::getDacsOutSense(void)
 {
+    int chip_id;
+    getParameter(PimegaMedipixChip, &chip_id);
+
     for (int i=0; i<N_DACS_OUTS; i++) {
-        PimegaDacsOutSense_[i] = (epicsFloat32)(pimega->analog_dac_values[i+1]);
+        PimegaDacsOutSense_[i] = (epicsFloat32)(pimega->analog_dac_values[chip_id-1][i]);
     }
     doCallbacksFloat32Array(PimegaDacsOutSense_, N_DACS_OUTS, PimegaDacsOutSense, 0);
 
