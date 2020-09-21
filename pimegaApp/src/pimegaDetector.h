@@ -254,6 +254,7 @@ private:
     void getParameter(int index, double *value);
 
     void getDacsValues(void);
+    void getOmrValues(void);
     
     void setDefaults(void);
     asynStatus getDacsOutSense(void);

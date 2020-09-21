@@ -888,6 +888,7 @@ void pimegaDetector::setDefaults(void)
     set_OptimizedDiscL(pimega);
     Set_DAC_Defaults(pimega);
     getDacsValues();
+    getOmrValues();
 }
 
 void pimegaDetector::getDacsValues(void)
@@ -920,6 +921,21 @@ void pimegaDetector::getDacsValues(void)
     setParameter(PimegaDiscH,(int)pimega->digital_dac_values[sensor][DAC_DiscH-1]);
 
     //getDacsOutSense();
+}
+
+void pimegaDetector::getOmrValues(void)
+{
+    get_omr(pimega);
+    setParameter(PimegaOmrOPMode, pimega->omr_values[OMR_M]);
+    setParameter(PimegaContinuosRW, pimega->omr_values[OMR_CRW_SRW]);
+    setParameter(PimegaPolarity, pimega->omr_values[OMR_Polarity]);
+    setParameter(PimegaDiscriminator, pimega->omr_values[OMR_Disc_CSM_SPM]);
+    setParameter(PimegaTestPulse, pimega->omr_values[OMR_EnableTP]);
+    setParameter(PimegaCounterDepth, pimega->omr_values[OMR_CountL]);
+    setParameter(PimegaEqualization, pimega->omr_values[OMR_Equalization]);
+    setParameter(PimegaPixelMode, pimega->omr_values[OMR_CSM_SPM]);
+    setParameter(PimegaGain, pimega->omr_values[OMR_Gain_Mode]);
+    setParameter(PimegaExtBgSel, pimega->omr_values[OMR_Ext_BG_Sel]);
 }
 
 void pimegaDetector::report(FILE *fp, int details)
@@ -1162,7 +1178,6 @@ asynStatus pimegaDetector::medipixMode(uint8_t mode)
 asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
 {
     int rc;
-    //int OmrOp;
     char *_efuseID;
 
     rc = select_chipNumber(pimega, chip_id);
@@ -1180,8 +1195,8 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     setParameter(PimegaefuseID, _efuseID);
 
     getDacsValues();
+    getOmrValues();
     return asynSuccess;   
-
 }
 
 asynStatus pimegaDetector::numExposures(unsigned number)
