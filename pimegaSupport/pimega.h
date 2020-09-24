@@ -1,8 +1,12 @@
-#include <inttypes.h>
-#include <pthread.h>
+
 
 #ifndef _PIMEGA_H_INCLUDED_
 #define _PIMEGA_H_INCLUDED_
+
+#include <inttypes.h>
+#include <pthread.h>
+#include <stdio.h>
+
 
 #if __GNUC__ >= 4
 #pragma GCC visibility push(default)
@@ -68,6 +72,9 @@ extern "C" {
 #define RDMA_CADENCE 1
 #define FRAME_SIZE_540D 3072UL * 3072UL
 
+#define RETURN_RC_ON_ERROR(x, y) x; if (rc != 0) { fprintf(stderr, "%s\n", y); return rc; };
+
+/* Backend structures */
 enum requestTypesEnum {
     INIT_ARGS = 0,
     ACQUIRE_ARGS = 1,
@@ -76,7 +83,7 @@ enum requestTypesEnum {
     ABORT_SAVE = 4,
     STOP_ACQUIRE = 5,
     ARRAY_DATA = 6,
-	GEOMETRY = 7
+    GEOMETRY = 7
 };
 
 enum OperationTypesEnum {
@@ -94,8 +101,6 @@ enum returnTypesEnum {
     INVALID_GEOMETRY_FILE
 };
 
-
-
 enum saveModeEnum {
     SAVE_AFTER = 2,
     SAVE_DURING = 1,
@@ -110,11 +115,13 @@ enum aquisitionModeEnum {
 };
 
 
+#define STRUCT_SIZE 400
+
 //Size 2
 typedef struct __attribute__((__packed__)){
     uint8_t  type;
     uint8_t  error;
-	uint8_t reserved[STRUCT_SIZE-2];
+    uint8_t reserved[STRUCT_SIZE-2];
 } simpleArgs;
 
 typedef struct __attribute__((__packed__)){
@@ -128,15 +135,16 @@ typedef struct __attribute__((__packed__)){
     uint8_t                type;
     uint64_t               noOfAquisitions;
     char                   savefile[300];
-    bool                   useLFSR = false;
+    bool                   useLFSR;
     uint8_t                saveMode;
     uint8_t                aquisitionMode;
     bool                   resetRDMABuffer;
-    uint16_t               bcFramesToProcessPerTime = 1;
+    uint16_t               bcFramesToProcessPerTime;
     uint8_t                extraDimensions;
     uint8_t                DimensionsDepth[5];
     uint8_t                reserved[STRUCT_SIZE-321];
 } acqArgs;
+
 
 //Size 134
 typedef struct __attribute__((__packed__)){
@@ -162,7 +170,7 @@ typedef struct __attribute__((__packed__)){
     uint8_t                reserved[STRUCT_SIZE-22];
 } saveStatusArgs;
 
-//Size 257
+//Size 261
 typedef struct __attribute__((__packed__)){
     uint8_t                type;
     uint8_t                be_gid[4][16];
@@ -190,7 +198,6 @@ struct guess_end_context{
     uint64_t         reqAcquisitions;
 };
 
-/* End backend structs */
 
 typedef enum pimega_detector_model_t{
 	mobipix = 0, pimega45D, pimega135D, pimega540D,
@@ -537,6 +544,7 @@ typedef struct pimega_t {
 	sensor sensor_pos;
 	pthread_mutex_t        backend_socket_mutex; 
 	struct array_data      adata;
+	int                    simulate;
 } pimega_t;
 
 typedef struct dac_scan_t {
@@ -578,7 +586,7 @@ int US_NumExposures(pimega_t *pimega, int num_exposures);
 int US_NumExposures_RBV(pimega_t *pimega);
 int US_NumExposuresCounter_RBV(pimega_t *pimega);
 
-int US_Load_Equalization(pimega_t *pimega, u_int8_t cfg_number, u_int8_t sensor);
+int US_Load_Equalization(pimega_t *pimega, uint8_t cfg_number, uint8_t sensor);
 int US_ConfigDiscL(pimega_t *pimega, uint32_t value, pimega_send_to_all_t send_to);
 int pixel_load(pimega_t *pimega, uint8_t sensor, uint32_t value);
 int send_image(pimega_t *pimega, uint8_t send_to_all, uint8_t pattern);
@@ -664,7 +672,7 @@ int US_DiscardData_RBV(pimega_t *pimega);
 int getMFB_Temperature(pimega_t *pimega, int module);
 int getChip_Temperature(pimega_t *pimega, int module);
 int US_TemperatureChipAvg(pimega_t *pimega);
-int US_TemperatureMFB_RBV(pimega_t *pimega, u_int8_t sensorMFB);
+int US_TemperatureMFB_RBV(pimega_t *pimega, uint8_t sensorMFB);
 int US_GetTemperature(pimega_t *pimega);
 int US_GetMFBTemperature(pimega_t *pimega);
 
@@ -687,9 +695,7 @@ int US_DAC_Scan(pimega_t *pimega, pimega_dac_t dac, int initial, int final, int 
 int trigger_out(pimega_t *pimega, bool enable_trigger);
 int trigger_out_get(pimega_t *pimega);
 
-int open_serialPort(pimega_t *pimega, const char * device);
-int write_serialPort(int fd, const char *buffer, size_t size);
-int read_serialPort(pimega_t *pimega, int fd, char *buffer, size_t size);
+
 
 // -------- Backend functions -----------------------------------
 int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
@@ -701,7 +707,7 @@ int send_stopAcquire_toBackend(pimega_t *pimega);
 int update_backend_acqArgs(pimega_t *pimega, bool useLFSR, uint8_t saveMode, 
                     	   bool resetRDMABuffer, uint16_t bcFramesToProcessPerTime,
 						   uint8_t extraDimensions);
-int init_array_data(struct array_data *adata);
+int init_array_data(struct array_data *adata, int simulate);
 void get_array_data(pimega_t *pimega, int32_t * frame);
 void decode_backend_error(uint8_t ret, char *error);
 // ---------------------------------------------------------

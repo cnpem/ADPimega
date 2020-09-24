@@ -37,7 +37,7 @@
 // pimega lib includes
 #include <pimega.h>
 
-//#define USE_SIMULATOR 1
+
 #define PIMEGA_MAX_FILENAME_LEN 300
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from Labview */
@@ -127,7 +127,7 @@ public:
     pimegaDetector(const char *portName, const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int maxSizeX, int maxSizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize);
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate);
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -244,7 +244,7 @@ private:
     int numImageSaved = 0;
 
     void panic(const char *msg);
-    void connect(const char *address[4], unsigned short port);
+    void connect(const char *address[4], unsigned short port, int simulate);
     void createParameters(void);
     void setParameter(int index, const char *value);
     void setParameter(int index, int value);

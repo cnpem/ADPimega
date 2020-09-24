@@ -541,7 +541,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
                                     const char *address_module04,
                                     int port, int maxSizeX, int maxSizeY,
                                     int detectorModel, int maxBuffers,
-                                    size_t maxMemory, int priority, int stackSize)
+                                    size_t maxMemory, int priority, int stackSize, int simulate)
 {
     new pimegaDetector(portName,
                        address_module01,
@@ -550,7 +550,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
                        address_module04,
                        port, maxSizeX, maxSizeY,
                        detectorModel, maxBuffers,
-                       maxMemory, priority, stackSize);
+                       maxMemory, priority, stackSize, simulate);
     return (asynSuccess);
 }
 
@@ -573,7 +573,7 @@ pimegaDetector::pimegaDetector(const char *portName,
                    const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int maxSizeX, int maxSizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize)
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate)
 
        : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                 asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask
@@ -601,7 +601,10 @@ pimegaDetector::pimegaDetector(const char *portName,
     //Alocate memory for PimegaDacsOutSense_
     PimegaDacsOutSense_ = (epicsFloat32 *)calloc(N_DACS_OUTS, sizeof(epicsFloat32));
 
-
+    if (simulate == 1)
+        printf("Simulation mode activated.\n");
+    else
+        printf("Simulation mode inactivate.\n");
     // Initialise the debugger
     initDebugger(1);
     debugLevel("all",1);
@@ -623,8 +626,8 @@ pimegaDetector::pimegaDetector(const char *portName,
     detModel = (pimega_detector_model_t) detectorModel;
     pimega = pimega_new(detModel);
     if (pimega) debug(functionName, "Pimega Object created!");
-
-    connect(ips, port);
+    pimega->simulate = simulate;
+    connect(ips, port, simulate);
     status = prepare_pimega(pimega);
     if (status != PIMEGA_SUCCESS)
         panic("Unable to prepare pimega. Aborting...");
@@ -657,24 +660,23 @@ void pimegaDetector::panic(const char *msg)
     epicsExit(0);
 }
 
-void pimegaDetector::connect(const char *address[4], unsigned short port)
+void pimegaDetector::connect(const char *address[4], unsigned short port, int simulate)
 {
     unsigned i;
     int rc = 0;
     
-#ifdef USE_SIMULATOR
     unsigned short simPorts[4] = {10000, 20000, 30000, 40000};
-#endif    
+   
     //Serial Test
     //rc = open_serialPort(pimega, "/dev/ttyUSB0");
     
     // Connect to backend
     for (i = 0; i < 5; i++) {
-#ifdef USE_SIMULATOR
-        rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
-#else    
-        rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
-#endif
+        if (simulate == 1)
+            rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
+        else    
+            rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
+
         if (rc == PIMEGA_SUCCESS) break;
         epicsThreadSleep(1);
     }
@@ -684,11 +686,11 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
     for(int _module = 0; _module < 4; _module++) {
         if (strcmp(address[_module],"0")) {
             for (i = 0; i < 5; i++) {
-#ifdef USE_SIMULATOR
-                rc |= pimega_connect(pimega, _module, address[_module], simPorts[_module]);
-#else                
-                rc |= pimega_connect(pimega, _module, address[_module], port);    
-#endif            
+                if (simulate == 1)
+                    rc |= pimega_connect(pimega, _module, address[_module], simPorts[_module]);
+                else                
+                    rc |= pimega_connect(pimega, _module, address[_module], port);    
+           
                 if (rc == PIMEGA_SUCCESS) break;
                 epicsThreadSleep(1);
             }
@@ -1432,6 +1434,7 @@ static const iocshArg pimegaDetectorConfigArg9 = { "maxBuffers", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg10 = { "maxMemory", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg11 = { "priority", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg12 = { "stackSize", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg13 = { "simulate", iocshArgInt };
 static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConfigArg0,
                                                             &pimegaDetectorConfigArg1,
                                                             &pimegaDetectorConfigArg2,
@@ -1444,15 +1447,16 @@ static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConf
                                                             &pimegaDetectorConfigArg9,
                                                             &pimegaDetectorConfigArg10,
                                                             &pimegaDetectorConfigArg11,
-                                                            &pimegaDetectorConfigArg12};
+                                                            &pimegaDetectorConfigArg12,
+                                                            &pimegaDetectorConfigArg13};
 static const iocshFuncDef configpimegaDetector =
-{ "pimegaDetectorConfig", 12, pimegaDetectorConfigArgs };
+{ "pimegaDetectorConfig", 14, pimegaDetectorConfigArgs };
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args)
 {
     pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].sval, args[3].sval, args[4].sval,
                         args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival,
-                        args[10].ival, args[11].ival, args[12].ival);
+                        args[10].ival, args[11].ival, args[12].ival, args[13].ival);
 }
 
 static void pimegaDetectorRegister(void)
