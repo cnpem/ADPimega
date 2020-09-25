@@ -634,7 +634,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     pimega = pimega_new(detModel);
     if (pimega) debug(functionName, "Pimega Object created!");
     pimega->simulate = simulate;
-    connect(ips, port, simulate);
+    connect(ips, port);
     status = prepare_pimega(pimega);
     if (status != PIMEGA_SUCCESS)
         panic("Unable to prepare pimega. Aborting...");
@@ -667,44 +667,29 @@ void pimegaDetector::panic(const char *msg)
     epicsExit(0);
 }
 
-void pimegaDetector::connect(const char *address[4], unsigned short port, int simulate)
+void pimegaDetector::connect(const char *address[4], unsigned short port)
 {
-    unsigned i;
     int rc = 0;
+    unsigned short ports[4] = {10000, 20000, 30000, 40000};
     
-    unsigned short simPorts[4] = {10000, 20000, 30000, 40000};
-   
+    if (pimega->simulate == 0) 
+        ports[0] = ports[1] = ports[2] = ports[3] = port;
+       
     //Serial Test
     //rc = open_serialPort(pimega, "/dev/ttyUSB0");
     
     // Connect to backend
-    for (i = 0; i < 5; i++) {
-        if (simulate == 1)
-            rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
-        else    
-            rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
+    if (pimega->simulate == 1)
+        rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
+    else    
+        rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
 
-        if (rc == PIMEGA_SUCCESS) break;
-        epicsThreadSleep(1);
-    }
     if (rc != PIMEGA_SUCCESS) panic("Unable to connect with Backend. Aborting...");
 
-    // Ethernet test
-    for(int _module = 0; _module < 4; _module++) {
-        if (strcmp(address[_module],"0")) {
-            for (i = 0; i < 5; i++) {
-                if (simulate == 1)
-                    rc |= pimega_connect(pimega, _module, address[_module], simPorts[_module]);
-                else                
-                    rc |= pimega_connect(pimega, _module, address[_module], port);    
-           
-                if (rc == PIMEGA_SUCCESS) break;
-                epicsThreadSleep(1);
-            }
-            if (rc != PIMEGA_SUCCESS)
-                panic("Unable to connect. Aborting...");
-        } 
-    }
+    // Connect to detector
+    rc |= pimega_connect(pimega, address, ports);
+    if (rc != PIMEGA_SUCCESS) panic("Unable to connect with detector. Aborting...");
+        
 }
 
 void pimegaDetector::setParameter(int index, const char *value)
@@ -1147,7 +1132,7 @@ asynStatus pimegaDetector::reset(short action)
         return asynError;
     }
 
-    rc = US_Reset(pimega, action);
+    rc = pimega_reset(pimega, action);
     if (rc != PIMEGA_SUCCESS) {
         return asynError; }
 

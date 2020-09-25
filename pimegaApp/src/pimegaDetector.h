@@ -244,7 +244,7 @@ private:
     int numImageSaved = 0;
 
     void panic(const char *msg);
-    void connect(const char *address[4], unsigned short port, int simulate);
+    void connect(const char *address[4], unsigned short port);
     void createParameters(void);
     void setParameter(int index, const char *value);
     void setParameter(int index, int value);

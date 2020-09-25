@@ -577,7 +577,7 @@ int write_dac_all_modules_serial(pimega_t *pimega, pimega_dac_t dac, int value);
 int US_DetectorState_RBV(pimega_t *pimega);
 int US_efuseID_RBV(pimega_t *pimega);
 int US_TimeRemaining_RBV(pimega_t *pimega);
-int US_Reset(pimega_t *pimega, short action);
+int pimega_reset(pimega_t *pimega, short action);
 int US_Acquire(pimega_t *pimega, bool  action);
 int US_Acquire_RBV(pimega_t *pimega);
 int US_NumImages(pimega_t *pimega, unsigned num_images);
@@ -676,7 +676,7 @@ int US_TemperatureMFB_RBV(pimega_t *pimega, uint8_t sensorMFB);
 int US_GetTemperature(pimega_t *pimega);
 int US_GetMFBTemperature(pimega_t *pimega);
 
-int pimega_connect(pimega_t *pimega, int fd, const char *address, unsigned short port);
+int pimega_connect(pimega_t *pimega, const char *address[4], unsigned short *port);
 int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short port);
 void pimega_disconnect(pimega_t *pimega);
 void pimega_disconnect_backend(pimega_t *pimega);
