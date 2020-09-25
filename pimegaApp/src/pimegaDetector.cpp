@@ -62,7 +62,7 @@ void pimegaDetector::acqTask()
     int status = asynSuccess;
     int eventStatus=0;
     int numImages, numExposures;
-    int imageMode, numImagesCounter;
+    int imageMode, numImagesCounter = 0;
     int acquire=0;
     //NDArray *pImage;
     double acquireTime, acquirePeriod, delay, elapsedTime;
@@ -97,7 +97,7 @@ void pimegaDetector::acqTask()
 
             getIntegerParam(ADNumExposures, &numExposures);
             getIntegerParam(ADNumImages, &numImages);
-            getIntegerParam(ADNumImagesCounter, &numImagesCounter);
+            //getIntegerParam(ADNumImagesCounter, &numImagesCounter);
 
             /* Open the shutter */
             setShutter(ADShutterOpen);
@@ -122,7 +122,8 @@ void pimegaDetector::acqTask()
         if (acquire) {
             // Read detector state
             acquireStatus = status_acquire(pimega);
-            numImagesCounter = pimega->acquireParam.numExposuresCounter;
+            //numImagesCounter = pimega->acq_status_return.noOfAquisitions[1];
+            setIntegerParam(ADNumImagesCounter, numImagesCounter);
 
             epicsTimeGetCurrent(&endTime);
             elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
@@ -154,7 +155,7 @@ void pimegaDetector::acqTask()
             setIntegerParam(ADAcquire, 0);
             acquire=0;
 
-            setIntegerParam(ADNumImagesCounter, numImagesCounter);
+            //setIntegerParam(ADNumImagesCounter, numImagesCounter);
             if (bufferOverflow) setStringParam(ADStatusMessage,
                     "Acquisition aborted by buffer overflow");
 
@@ -190,8 +191,10 @@ void pimegaDetector::acqTask()
             }
 
             else if (imageMode == ADImageContinuous) {
-                acquire=0;
-                newImage = 0;
+                status = startAcquire();
+                numImagesCounter++;
+                //acquire=0;
+                //newImage = 0;
             }
         }
         /* Call the callbacks to update any changes */
@@ -365,6 +368,9 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
     if (function == ADAcquireTime)
         status |= acqTime(value);
+
+    else if (function == ADAcquirePeriod)
+        status |= acqPeriod(value);
 
     else if (function == PimegaSensorBias)
         status |= sensorBias(value);
@@ -1224,6 +1230,22 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s)
     }
     setParameter(ADAcquireTime, acquire_time_s);
     return asynSuccess;
+}
+
+asynStatus pimegaDetector::acqPeriod(float period_time_s)
+{
+    int rc;
+
+    rc = set_periodTime(pimega, period_time_s);
+    if (rc != PIMEGA_SUCCESS){
+        error("Invalid period time: %s\n", pimega_error_string(rc));
+        return asynError;
+    }
+
+    else {
+        setParameter(ADAcquirePeriod, period_time_s);
+        return asynSuccess;
+    }
 }
 
 asynStatus pimegaDetector::setExtBgIn(float voltage)

@@ -275,6 +275,7 @@ private:
     asynStatus imgChipID(uint8_t chip_id);
     asynStatus medipixBoard(uint8_t board_id);
     asynStatus numExposures(unsigned number);
+    asynStatus acqPeriod(float period_time_s);
     asynStatus acqTime(float acquire_time_s);
     asynStatus sensorBias(float voltage);
     asynStatus readCounter(int counter);

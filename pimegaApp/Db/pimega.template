@@ -154,6 +154,12 @@ record(ao, "$(P)$(R)AcquireTime")
 {
 	field(DRVH, "30000")
 	field(DRVL, "1e-6")
+	field(PREC, 6)
+}
+
+record(ao, "$(P)$(R)PeriodTime")
+{
+	field(PREC, 6)
 }
 
 #Select Pimega Module
