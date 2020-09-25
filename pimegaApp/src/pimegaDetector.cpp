@@ -150,6 +150,7 @@ void pimegaDetector::acqTask()
 
         if (eventStatus == epicsEventWaitOK) {
             US_Acquire(pimega,0);
+            //stop_acquire(pimega);
             send_stopAcquire_toBackend(pimega);
             setShutter(0);
             setIntegerParam(ADAcquire, 0);
@@ -509,7 +510,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
             pimega->acq_status_return.savedAquisitionNum != 0) 
         {
             if (*value != numImageSaved) {
-                generateImage();
+                //generateImage();
                 numImageSaved = *value;
             }
 
@@ -894,7 +895,6 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaMedipixBoard, 2);
     setParameter(PimegaModule, 1);
 
-    set_OptimizedDiscL(pimega);
     Set_DAC_Defaults(pimega);
     getDacsValues();
     getOmrValues();

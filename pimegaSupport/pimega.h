@@ -714,6 +714,7 @@ void decode_backend_error(uint8_t ret, char *error);
 
 
 int execute_acquire(pimega_t *pimega);
+int stop_acquire(pimega_t *pimega);
 int status_acquire(pimega_t *pimega);
 int set_file_name_template(pimega_t *pimega, const char *name);
 int set_medipix_mode(pimega_t *pimega, pimega_medipix_mode_t medipix_mode);
