@@ -1,3 +1,6 @@
+#!../../bin/linux-ppc64/pimegaApp
+
+
 < envPaths
 
 errlogInit(20000)
