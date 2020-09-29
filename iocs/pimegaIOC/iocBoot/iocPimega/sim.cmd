@@ -78,7 +78,7 @@ iocInit()
 
 dbpf(${PREFIX}cam1:FilePath,"/tmp")
 dbpf(${PREFIX}cam1:FileName,"teste")
-dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.h5")
+dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
 
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")

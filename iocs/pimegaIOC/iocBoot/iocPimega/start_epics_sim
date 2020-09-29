@@ -1,3 +1,4 @@
 export LD_LIBRARY_PATH=/usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega_DEV/lib/linux-ppc64
 
-procServ -n "pimega540D" -i ^D^C 24000 /usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega_DEV/iocs/pimegaIOC/iocBoot/iocPimega/sim.cmd
+#procServ -n "pimega540D" -i ^D^C 24000 /usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega_DEV/iocs/pimegaIOC/iocBoot/iocPimega/sim.cmd
+./sim.cmd
