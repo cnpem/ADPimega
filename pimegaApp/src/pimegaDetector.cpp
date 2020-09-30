@@ -393,9 +393,7 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
 asynStatus pimegaDetector::dacDefaults(const char * file)
 {
     int rc;
-    int all_modules;
 
-    getParameter(PimegaAllModules, &all_modules);
     rc = configure_module_dacs_with_file(pimega, file);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid value: %s\n", pimega_error_string(rc));
