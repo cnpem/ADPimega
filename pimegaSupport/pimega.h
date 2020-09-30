@@ -73,6 +73,7 @@ extern "C" {
 #define FRAME_SIZE_540D 3072UL * 3072UL
 
 #define RETURN_RC_ON_ERROR(x, y) x; if (rc != 0) { fprintf(stderr, "%s\n", y); return rc; };
+#define RETURN_ON_ERROR(x, ...) if (x != 0) { fprintf(stderr, ##__VA_ARGS__); return -1; };
 
 /* Backend structures */
 enum requestTypesEnum {
@@ -724,8 +725,9 @@ void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
 
 typedef int (*method)(pimega_t *pimega, pimega_dac_t, int);
 int run_dacs_all_chips(pimega_t *pimega, pimega_dac_t dac, int value, method _method);
-
-
+int US_Set_DAC(pimega_t *pimega, pimega_dac_t dac, int value, pimega_send_to_all_t send_to, pimega_thread_t owner = PIMEGA_THREAD_MAIN);
+int US_Select_ChipNumber(pimega_t *pimega, int chip_id, pimega_thread_t owner = PIMEGA_THREAD_MAIN);
+int configure_module_dacs_with_file(pimega_t *pimega, const char * dac_file_ini);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

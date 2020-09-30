@@ -353,6 +353,58 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
 }
 
+
+asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, size_t maxChars, size_t *nActual)
+{
+    int function = pasynUser->reason;
+    int status = asynSuccess;
+    const char *paramName;
+
+    getParamName(function, &paramName);
+    printf("String Function Idx: %d\n", function);
+    printf("String Function Name: %s\n", paramName);
+    printf("String Function Value: %s\n", value);
+
+    if (function == pimegaDacDefaults)
+    {
+        *nActual = maxChars;
+        status = dacDefaults(value);
+    }
+    else {
+    /* If this parameter belongs to a base class call its method */
+        if (function < FIRST_PIMEGA_PARAM) status = ADDriver::writeOctet(pasynUser, value, maxChars, nActual);
+    }
+
+    if (status)
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+              "%s:writeOctet error, status=%d function=%d, value=%s\n",
+              driverName, status, function, value);
+    else{
+        /* Do callbacks so higher layers see any changes */
+        callParamCallbacks();
+        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:writeOctet: function=%d, value=%s\n",
+              driverName, function, value);
+    }
+
+    return((asynStatus)status);
+}
+
+asynStatus pimegaDetector::dacDefaults(const char * file)
+{
+    int rc;
+    int all_modules;
+
+    getParameter(PimegaAllModules, &all_modules);
+    rc = configure_module_dacs_with_file(pimega, file);
+    if (rc != PIMEGA_SUCCESS) {
+        error("Invalid value: %s\n", pimega_error_string(rc));
+        return asynError;
+    }
+    setParameter(pimegaDacDefaults, file);
+    return asynSuccess;
+}
+
 asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
     int function = pasynUser->reason;
@@ -751,6 +803,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaMedipixModeString,    asynParamInt32,     &PimegaMedipixMode);
     createParam(pimegaModuleString,         asynParamInt32,     &PimegaModule);
     createParam(pimegaefuseIDString,        asynParamOctet,     &PimegaefuseID);
+    createParam(pimegaDacDefaultsString,    asynParamOctet,     &pimegaDacDefaults);
     createParam(pimegaOmrOPModeString,      asynParamInt32,     &PimegaOmrOPMode);
     createParam(pimegaMedipixBoardString,   asynParamInt32,     &PimegaMedipixBoard);
     createParam(pimegaMedipixChipString,    asynParamInt32,     &PimegaMedipixChip);

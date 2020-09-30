@@ -120,7 +120,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaMPAvgM2String             "MP_AVG_TSENSOR_M2"
 #define pimegaMPAvgM3String             "MP_AVG_TSENSOR_M3"
 #define pimegaMPAvgM4String             "MP_AVG_TSENSOR_M4"
-
+#define pimegaDacDefaultsString         "DAC_DEFAULTS"
 class pimegaDetector: public ADDriver
 {
 public:
@@ -134,7 +134,7 @@ public:
     virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
     virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
     virtual asynStatus readFloat32Array(asynUser *pasynUser, epicsFloat32 *value, size_t nElements, size_t *nIn);
-
+    virtual asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t maxChars, size_t *nActual);
     virtual void report(FILE *fp, int details);
     virtual void acqTask(void);
     virtual void generateImage(void);
@@ -213,6 +213,7 @@ protected:
     int PimegaMPAvgTSensorM2;
     int PimegaMPAvgTSensorM3;
     int PimegaMPAvgTSensorM4;
+    int pimegaDacDefaults;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -284,6 +285,7 @@ private:
     asynStatus sendImage(void);
     asynStatus loadEqualization(int cfg);
     asynStatus setExtBgIn(float voltage);
+    asynStatus dacDefaults(const char * file);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
