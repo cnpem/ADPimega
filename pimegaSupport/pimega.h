@@ -725,8 +725,6 @@ void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
 
 typedef int (*method)(pimega_t *pimega, pimega_dac_t, int);
 int run_dacs_all_chips(pimega_t *pimega, pimega_dac_t dac, int value, method _method);
-int US_Set_DAC(pimega_t *pimega, pimega_dac_t dac, int value, pimega_send_to_all_t send_to, pimega_thread_t owner = PIMEGA_THREAD_MAIN);
-int US_Select_ChipNumber(pimega_t *pimega, int chip_id, pimega_thread_t owner = PIMEGA_THREAD_MAIN);
 int configure_module_dacs_with_file(pimega_t *pimega, const char * dac_file_ini);
 #ifdef __cplusplus
 } /* extern "C" */
