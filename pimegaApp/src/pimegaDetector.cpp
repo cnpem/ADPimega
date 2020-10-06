@@ -149,7 +149,7 @@ void pimegaDetector::acqTask()
         this->lock();
 
         if (eventStatus == epicsEventWaitOK) {
-            US_Acquire(pimega,0);
+            //US_Acquire(pimega,0);
             //stop_acquire(pimega);
             send_stopAcquire_toBackend(pimega);
             setShutter(0);
