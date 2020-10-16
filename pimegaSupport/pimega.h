@@ -205,7 +205,7 @@ typedef enum pimega_detector_model_t{
 } pimega_detector_model_t;
 
 typedef enum pimega_thread_t {
-	PIMEGA_THREAD_MAIN = 10,
+	PIMEGA_THREAD_MAIN = 4,
 	PIMEGA_THREAD_MODULE1 = 0,
 	PIMEGA_THREAD_MODULE2 = 1, 
 	PIMEGA_THREAD_MODULE3 = 2,
@@ -546,6 +546,7 @@ typedef struct pimega_t {
 	pthread_mutex_t        backend_socket_mutex; 
 	struct array_data      adata;
 	int                    simulate;
+	int mb_reg[5];
 } pimega_t;
 
 typedef struct dac_scan_t {
@@ -576,7 +577,7 @@ int write_dac_all_modules_serial(pimega_t *pimega, pimega_dac_t dac, int value);
 
 
 int US_DetectorState_RBV(pimega_t *pimega);
-int US_efuseID_RBV(pimega_t *pimega);
+int efuseid_rbv(pimega_t *pimega);
 int US_TimeRemaining_RBV(pimega_t *pimega);
 int pimega_reset(pimega_t *pimega, short action);
 int US_Acquire(pimega_t *pimega, bool  action);
@@ -713,6 +714,7 @@ void get_array_data(pimega_t *pimega, int32_t * frame);
 void decode_backend_error(uint8_t ret, char *error);
 // ---------------------------------------------------------
 
+int check_and_disable_sensors(pimega_t *pimega);
 
 int execute_acquire(pimega_t *pimega);
 int stop_acquire(pimega_t *pimega);

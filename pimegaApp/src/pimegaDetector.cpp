@@ -693,6 +693,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     //fflush(pimega->debug_out);
 
     createParameters();
+    check_and_disable_sensors(pimega);
     setDefaults();
     define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
 
@@ -1234,7 +1235,7 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     setParameter(PimegaMedipixBoard, pimega->sensor_pos.mfb);
 
     /* Get e-fuseID from selected chip_id */ 
-    rc = US_efuseID_RBV(pimega);
+    rc = efuseid_rbv(pimega);
     if (rc != PIMEGA_SUCCESS) return asynError;
     _efuseID = pimega->pimegaParam.efuseID;
     setParameter(PimegaefuseID, _efuseID);
