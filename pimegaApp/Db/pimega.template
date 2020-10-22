@@ -1221,7 +1221,7 @@ record(ao, "$(P)$(R)ConfigDiscL")
 
 record(bo, "$(P)$(R)CheckSensors") {
 	field(DTYP, "asynInt32")
-	field(DESC, "Check and disable sensors with problems test to detector")
+	field(DESC, "Check and disable defective sensors")
 	field(VAL,  "1")
 	field(ZNAM, "No Check")
 	field(ONAM, "Check")

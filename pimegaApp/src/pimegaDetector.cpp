@@ -26,19 +26,15 @@ void pimegaDetector::generateImage(void)
     const char *functionName = "generateImage";
 
     // simulate a image
-    get_array_data(pimega, pimega_image);
+    get_array_data(pimega);
 
-    //for(int i=0; i <= p_imageSize ;i++) {
-    //    pimega_image[i] = rand()%UINT16_MAX;
-    //    }
-    //*****************************************************
 
     getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
     // Get an image buffer from the pool
     getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
     getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
 
-    this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, p_imageSize * sizeof(int32_t), pimega_image);
+    this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, pimega->frame_size * sizeof(int32_t), pimega->sample_frame);
 
     setIntegerParam(NDArraySizeX, dims[0]);
     setIntegerParam(NDArraySizeY, dims[1]);
@@ -654,7 +650,7 @@ pimegaDetector::pimegaDetector(const char *portName,
                          address_module03,
                          address_module04};
 
-    pimega_image = (int32_t*)malloc(p_imageSize * sizeof(int32_t));
+    numImageSaved = 0;
     // initialize random seed:
     srand (time(NULL));
 
@@ -685,6 +681,7 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     detModel = (pimega_detector_model_t) detectorModel;
     pimega = pimega_new(detModel);
+    pimega_set_debug_stream(pimega, pimega->debug_out);
     if (pimega) debug(functionName, "Pimega Object created!");
     pimega->simulate = simulate;
     connect(ips, port);

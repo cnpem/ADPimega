@@ -235,8 +235,7 @@ private:
     pimega_t *pimega;
     pimega_detector_model_t detModel;
 
-    int p_imageSize = 3072 * 3072;
-    int32_t *pimega_image;
+
     int arrayCallbacks;
     size_t dims[2];
     int itemp;
@@ -244,7 +243,7 @@ private:
     epicsFloat32 *PimegaDacsOutSense_;
     epicsFloat32 *PimegaMFBTemperature_;
 
-    int numImageSaved = 0;
+    int numImageSaved;
 
     void panic(const char *msg);
     void connect(const char *address[4], unsigned short port);

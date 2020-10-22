@@ -478,7 +478,7 @@ typedef enum acquire_status_t{
 typedef struct pimega_acquire_params_t {
 	uint32_t numImages;						//US_NumImages
 	uint32_t numImagesCounter;				//US_NumImagesCounter_RBV
-	uint32_t numExposures = 1;					//US_NumExposures
+	uint32_t numExposures;					//US_NumExposures
 	float acquireTime;						//US_AcquireTime
 	float acquirePeriod;
 	bool acquireState;						//US_Acquire_RBV
@@ -547,6 +547,9 @@ typedef struct pimega_t {
 	struct array_data      adata;
 	int                    simulate;
 	int mb_reg[5];
+	uint32_t frame_size;
+    int32_t *sample_frame;
+	pimega_detector_model_t detModel;
 } pimega_t;
 
 typedef struct dac_scan_t {
@@ -704,13 +707,13 @@ int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
 int send_allinitArgs(pimega_t *pimega, int module);
 int send_acqArgs_toBackend(pimega_t *pimega);
 int get_acqStatus_fromBackend(pimega_t *pimega);
-int get_saveStatus_fromBackend(pimega_t *pimega, uint64_t *savedAcquisitions);
+int get_saveStatus_fromBackend(pimega_t *pimega, uint64_t *savedAcquisitions); 
 int send_stopAcquire_toBackend(pimega_t *pimega);
 int update_backend_acqArgs(pimega_t *pimega, bool useLFSR, uint8_t saveMode, 
                     	   bool resetRDMABuffer, uint16_t bcFramesToProcessPerTime,
 						   uint8_t extraDimensions);
-int init_array_data(struct array_data *adata, int simulate);
-void get_array_data(pimega_t *pimega, int32_t * frame);
+int init_array_data(pimega_t *pimega);
+void get_array_data(pimega_t *pimega);
 void decode_backend_error(uint8_t ret, char *error);
 // ---------------------------------------------------------
 
