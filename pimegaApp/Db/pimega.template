@@ -1219,3 +1219,13 @@ record(ao, "$(P)$(R)ConfigDiscL")
 	field(DRVH, "4095")
 }
 
+record(bo, "$(P)$(R)CheckSensors") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Check and disable sensors with problems test to detector")
+	field(VAL,  "1")
+	field(ZNAM, "No Check")
+	field(ONAM, "Check")
+	#field(HIGH, "0.1")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CHECK_SENSORS")
+}
+

@@ -251,6 +251,9 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaSendImage) {
         if (value) status |= sendImage();
     }
+    else if (function == PimegaCheckSensors) {
+        if (value) status |= checkSensors();
+    }
     else if (function == PimegaLoadEqualization)
         status |= loadEqualization(value);
     else if (function == PimegaOmrOPMode)
@@ -865,6 +868,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaMPAvgM2String,        asynParamFloat64,   &PimegaMPAvgTSensorM2);
     createParam(pimegaMPAvgM3String,        asynParamFloat64,   &PimegaMPAvgTSensorM3);
     createParam(pimegaMPAvgM4String,        asynParamFloat64,   &PimegaMPAvgTSensorM4);
+    createParam(pimegaCheckSensorsString,   asynParamInt32,     &PimegaCheckSensors);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -1176,6 +1180,15 @@ asynStatus pimegaDetector::sendImage(void)
     if (rc != PIMEGA_SUCCESS) return asynError;
     return asynSuccess;
 }
+
+asynStatus pimegaDetector::checkSensors(void)
+{
+    int rc = 0;
+    check_and_disable_sensors(pimega);
+    if (rc != PIMEGA_SUCCESS) return asynError;
+    return asynSuccess;
+}
+
 asynStatus pimegaDetector::reset(short action)
 {
     int rc;

@@ -121,6 +121,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaMPAvgM3String             "MP_AVG_TSENSOR_M3"
 #define pimegaMPAvgM4String             "MP_AVG_TSENSOR_M4"
 #define pimegaDacDefaultsString         "DAC_DEFAULTS"
+#define pimegaCheckSensorsString        "CHECK_SENSORS"
 class pimegaDetector: public ADDriver
 {
 public:
@@ -214,6 +215,7 @@ protected:
     int PimegaMPAvgTSensorM3;
     int PimegaMPAvgTSensorM4;
     int pimegaDacDefaults;
+    int PimegaCheckSensors;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -283,6 +285,7 @@ private:
     asynStatus senseDacSel(u_int8_t dac);
     asynStatus imageMode(u_int8_t mode);
     asynStatus sendImage(void);
+    asynStatus checkSensors(void);
     asynStatus loadEqualization(int cfg);
     asynStatus setExtBgIn(float voltage);
     asynStatus dacDefaults(const char * file);
