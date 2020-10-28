@@ -201,7 +201,7 @@ struct guess_end_context{
 
 
 typedef enum pimega_detector_model_t{
-	mobipix = 0, pimega45D, pimega135D, pimega540D,
+	mobipix = 0, pimega45D = 1, pimega135D = 2 , pimega540D = 3,
 } pimega_detector_model_t;
 
 typedef enum pimega_thread_t {

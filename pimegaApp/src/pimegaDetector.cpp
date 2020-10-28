@@ -628,7 +628,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
 pimegaDetector::pimegaDetector(const char *portName,
                    const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
-                   int port, int maxSizeX, int maxSizeY,
+                   int port, int SizeX, int SizeY,
                    int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate)
 
        : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
@@ -679,8 +679,11 @@ pimegaDetector::pimegaDetector(const char *portName,
         return;
     }
 
-    detModel = (pimega_detector_model_t) detectorModel;
-    pimega = pimega_new(detModel);
+
+    pimega = pimega_new((pimega_detector_model_t)  detectorModel);
+    pimega->detModel = (pimega_detector_model_t) detectorModel;
+    maxSizeX = SizeX;
+    maxSizeY = SizeY;
     pimega_set_debug_stream(pimega, pimega->debug_out);
     if (pimega) debug(functionName, "Pimega Object created!");
     pimega->simulate = simulate;
@@ -694,6 +697,7 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     createParameters();
     check_and_disable_sensors(pimega);
+
     setDefaults();
     define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
 
@@ -874,11 +878,7 @@ void pimegaDetector::createParameters(void)
 
 void pimegaDetector::setDefaults(void)
 {
-
-    //TODO remove this variables after test
-    int maxSizeX = 3072;
-    int maxSizeY = 3072;
-
+    
     setParameter(ADMaxSizeX, maxSizeX);
     setParameter(ADMaxSizeY, maxSizeY);
     setParameter(ADSizeX, maxSizeX);
@@ -928,14 +928,11 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFileWriteMessage, "");
     setParameter(PimegaBackBuffer, 0);
     setParameter(ADImageMode, ADImageSingle);
-
-    setParameter(PimegaMedipixChip, 1);
-    setParameter(PimegaMedipixBoard, 2);
     setParameter(PimegaModule, 1);
-
     Set_DAC_Defaults(pimega);
-    getDacsValues();
-    getOmrValues();
+
+    imgChipID(1);
+    callParamCallbacks();
 }
 
 void pimegaDetector::getDacsValues(void)
@@ -966,7 +963,6 @@ void pimegaDetector::getDacsValues(void)
     setParameter(PimegaTpRefB, (int)pimega->digital_dac_values[sensor][DAC_TPRefB-1]);
     //setParameter(PimegaShaperTest, pimega->digital_dac_values[DAC_Test]);
     setParameter(PimegaDiscH,(int)pimega->digital_dac_values[sensor][DAC_DiscH-1]);
-
     //getDacsOutSense();
 }
 
@@ -1002,13 +998,15 @@ void pimegaDetector::report(FILE *fp, int details)
 int pimegaDetector::startAcquire(void)
 {
     int rc = 0;
-    rc |= select_module(pimega, 2);
-    rc |= US_Acquire(pimega, 1);
-    rc |= select_module(pimega, 3);
-    rc |= US_Acquire(pimega, 1);
-    rc |= select_module(pimega, 4);
-    rc |= US_Acquire(pimega, 1);
+    if (pimega->detModel == pimega540D){
 
+        rc |= select_module(pimega, 2);
+        rc |= US_Acquire(pimega, 1);
+        rc |= select_module(pimega, 3);
+        rc |= US_Acquire(pimega, 1);
+        rc |= select_module(pimega, 4);
+        rc |= US_Acquire(pimega, 1);
+    }
     //define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
     pimega->pimegaParam.software_trigger = false;
     rc |= execute_acquire(pimega);

@@ -233,8 +233,8 @@ private:
     epicsEventId stopEventId_;
 
     pimega_t *pimega;
-    pimega_detector_model_t detModel;
-
+    int maxSizeX;
+    int maxSizeY;
 
     int arrayCallbacks;
     size_t dims[2];
