@@ -550,6 +550,8 @@ typedef struct pimega_t {
 	uint32_t frame_size;
     int32_t *sample_frame;
 	pimega_detector_model_t detModel;
+	bool sensor_disabled[4][36];
+
 } pimega_t;
 
 typedef struct dac_scan_t {
