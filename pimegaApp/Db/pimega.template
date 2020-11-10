@@ -204,10 +204,9 @@ record(mbbo, "$(P)$(R)MedipixMode") {
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_MODE")
 	field(ZRST, "Default")        			field(ZRVL, "0")
-	field(ONST, "Precision Counting Mode")	field(ONVL, "1")
-	field(TWST, "Dual Energy")         		field(TWVL, "2")
-	field(THST, "Continuous Read Write")	field(THVL, "3")
-	field(FRST, "Full Dynamic Range")   	field(FRVL, "4")
+	field(ONST, "Continuous Read Write")	field(ONVL, "1")
+	field(TWST, "Full Dynamic Range")   	field(TWVL, "2")
+	field(THST, "Dual Energy")         		field(THVL, "3")
 	field(VAL, 	"0")
 }
 
@@ -216,10 +215,9 @@ record(mbbi, "$(P)$(R)MedipixMode_RBV") {
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MEDIPIX_MODE")
 	field(ZRST, "Default")        			field(ZRVL, "0")
-	field(ONST, "Precision Counting Mode")	field(ONVL, "1")
-	field(TWST, "Dual Energy")         		field(TWVL, "2")
-	field(THST, "Continuous Read Write")	field(THVL, "3")
-	field(FRST, "Full Dynamic Range")   	field(FRVL, "4")
+	field(ONST, "Continuous Read Write")	field(ONVL, "1")
+	field(TWST, "Full Dynamic Range")   	field(TWVL, "2")
+	field(THST, "Dual Energy")         		field(THVL, "3")
 	field(SCAN, "I/O Intr")
 }
 

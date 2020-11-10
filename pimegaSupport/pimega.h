@@ -711,9 +711,9 @@ int send_acqArgs_toBackend(pimega_t *pimega);
 int get_acqStatus_fromBackend(pimega_t *pimega);
 int get_saveStatus_fromBackend(pimega_t *pimega, uint64_t *savedAcquisitions); 
 int send_stopAcquire_toBackend(pimega_t *pimega);
-int update_backend_acqArgs(pimega_t *pimega, bool useLFSR, uint8_t saveMode, 
-                    	   bool resetRDMABuffer, uint16_t bcFramesToProcessPerTime,
-						   uint8_t extraDimensions);
+int update_backend_acqArgs(pimega_t *pimega, uint8_t aquisitionMode, bool useLFSR,
+					uint8_t saveMode, bool resetRDMABuffer, uint16_t bcFramesToProcessPerTime,
+					uint8_t extraDimensions);
 int init_array_data(pimega_t *pimega);
 void get_array_data(pimega_t *pimega);
 void decode_backend_error(uint8_t ret, char *error);
