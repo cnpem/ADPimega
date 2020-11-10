@@ -122,6 +122,10 @@ static const char *driverName = "pimegaDetector";
 #define pimegaMPAvgM4String             "MP_AVG_TSENSOR_M4"
 #define pimegaDacDefaultsString         "DAC_DEFAULTS"
 #define pimegaCheckSensorsString        "CHECK_SENSORS"
+#define pimegaDisabledSensorsM1String   "DISABLED_SENSORS_M1"
+#define pimegaDisabledSensorsM2String   "DISABLED_SENSORS_M2"
+#define pimegaDisabledSensorsM3String   "DISABLED_SENSORS_M3"
+#define pimegaDisabledSensorsM4String   "DISABLED_SENSORS_M4"
 class pimegaDetector: public ADDriver
 {
 public:
@@ -216,6 +220,10 @@ protected:
     int PimegaMPAvgTSensorM4;
     int pimegaDacDefaults;
     int PimegaCheckSensors;
+    int PimegaDisabledSensorsM1;
+    int PimegaDisabledSensorsM2;
+    int PimegaDisabledSensorsM3;
+    int PimegaDisabledSensorsM4;
     int PimegaSensorBias;
     #define LAST_PIMEGA_PARAM PimegaSensorBias
 
@@ -240,6 +248,7 @@ private:
     size_t dims[2];
     int itemp;
 
+    epicsInt32 *PimegaDisabledSensors_;
     epicsFloat32 *PimegaDacsOutSense_;
     epicsFloat32 *PimegaMFBTemperature_;
 

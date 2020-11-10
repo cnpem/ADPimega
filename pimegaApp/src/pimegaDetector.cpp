@@ -218,10 +218,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
 
-    /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
-     * status at the end, but that's OK */
-    status |= setIntegerParam(function, value);
-
     if (function == ADAcquire) {
         if (value && (adstatus == ADStatusIdle || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
             /* Send an event to wake up the acq task.  */
@@ -342,6 +338,9 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
               "%s:%s: error, status=%d function=%d, value=%d\n",
               driverName, functionName, status, function, value);}
     else {
+        /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
+        * status at the end, but that's OK */
+        setIntegerParam(function, value);
          /* Update any changed parameters */
         callParamCallbacks();
         asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
@@ -657,6 +656,9 @@ pimegaDetector::pimegaDetector(const char *portName,
     //Alocate memory for PimegaDacsOutSense_
     PimegaDacsOutSense_ = (epicsFloat32 *)calloc(N_DACS_OUTS, sizeof(epicsFloat32));
 
+    //Alocate memory for PimegaDisabledSensors_
+    PimegaDisabledSensors_ = (epicsInt32 *)calloc(36, sizeof(epicsInt32));
+
     if (simulate == 1)
         printf("Simulation mode activated.\n");
     else
@@ -870,6 +872,10 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaMPAvgM3String,        asynParamFloat64,   &PimegaMPAvgTSensorM3);
     createParam(pimegaMPAvgM4String,        asynParamFloat64,   &PimegaMPAvgTSensorM4);
     createParam(pimegaCheckSensorsString,   asynParamInt32,     &PimegaCheckSensors);
+    createParam(pimegaDisabledSensorsM1String,asynParamInt32Array, &PimegaDisabledSensorsM1);
+    createParam(pimegaDisabledSensorsM2String,asynParamInt32Array, &PimegaDisabledSensorsM2);
+    createParam(pimegaDisabledSensorsM3String,asynParamInt32Array, &PimegaDisabledSensorsM3);
+    createParam(pimegaDisabledSensorsM4String,asynParamInt32Array, &PimegaDisabledSensorsM4);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -1028,10 +1034,17 @@ int pimegaDetector::startCaptureBackend(void)
     getParameter(NDAutoSave,&autoSave);
     getParameter(PimegaResetRDMABuffer, &resetRDMA);
     getParameter(PimegaBackLSFR, &lsfr);
-    rc |= update_backend_acqArgs(pimega, lsfr, autoSave, resetRDMA, 1, 5);
+    rc = update_backend_acqArgs(pimega, lsfr, autoSave, resetRDMA, 1, 5);
 
     getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
-    rc |= send_acqArgs_toBackend(pimega);
+    rc = send_acqArgs_toBackend(pimega);
+    if (rc != PIMEGA_SUCCESS) {
+        char error[100];
+        decode_backend_error(pimega->ack.error, error);
+        setParameter(ADStringFromServer, error);
+        callParamCallbacks();
+    }
+
     return rc;
 }
 
@@ -1178,8 +1191,19 @@ asynStatus pimegaDetector::sendImage(void)
 
 asynStatus pimegaDetector::checkSensors(void)
 {
-    int rc = 0;
-    check_and_disable_sensors(pimega);
+    int rc = 0, idxParam;
+
+    idxParam = PimegaDisabledSensorsM1;
+    rc = check_and_disable_sensors(pimega);
+    for (int module = 1; module <= pimega->max_num_modules; module++) {
+        for (int sensor=0; sensor<pimega->num_all_chips; sensor++) {
+            PimegaDisabledSensors_[sensor] = (epicsInt32)(pimega->sensor_disabled[module-1][sensor]);
+        }
+        doCallbacksInt32Array(PimegaDisabledSensors_, pimega->num_all_chips, idxParam, 0);
+        idxParam++;
+        callParamCallbacks();
+    }
+    
     if (rc != PIMEGA_SUCCESS) return asynError;
     return asynSuccess;
 }
