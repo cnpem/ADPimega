@@ -119,7 +119,7 @@ void pimegaDetector::acqTask()
             // Read detector state
             acquireStatus = status_acquire(pimega);
             //numImagesCounter = pimega->acq_status_return.noOfAquisitions[1];
-            setIntegerParam(ADNumImagesCounter, numImagesCounter);
+            //setIntegerParam(ADNumImagesCounter, numImagesCounter);
 
             epicsTimeGetCurrent(&endTime);
             elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
@@ -207,7 +207,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     static const char *functionName = "writeInt32";
     const char *paramName;
 
-    int adstatus;
+    int adstatus, backendStatus;
     //int acquiring;
 
     getParamName(function, &paramName);
@@ -217,17 +217,21 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
+    getParameter(NDFileCapture,&backendStatus);
+
 
     if (function == ADAcquire) {
-        if (value && (adstatus == ADStatusIdle || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
+        if (value && backendStatus && 
+            (adstatus == ADStatusIdle || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
             /* Send an event to wake up the acq task.  */
             epicsEventSignal(this->startEventId_);
         }
-        if (!value && (adstatus == ADStatusAcquire)) {
+        else if (!value && (adstatus == ADStatusAcquire)) {
           /* This was a command to stop acquisition */
             epicsEventSignal(this->stopEventId_);
             epicsThreadSleep(.1);
         }
+        else return asynError;
     }
 
     else if (function == NDFileCapture) {
@@ -237,7 +241,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (!value) { 
             if (send_stopAcquire_toBackend(pimega) == DONE) 
                 status |= PIMEGA_SUCCESS;
-            else return asynError;
+            else return asynSuccess;
         }
     }
     else if (function == PimegaSendImage) {
@@ -543,7 +547,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
 
     else if ((function == ADNumImagesCounter) && (scanStatus == ADStatusAcquire)) {
         //US_NumExposuresCounter_RBV(pimega);
-        *value = pimega->acquireParam.numExposuresCounter;
+        *value = pimega->acq_status_return.savedAquisitionNum;
     }
 
     else if (function == PimegaModule) {
@@ -567,6 +571,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
             {
                 send_stopAcquire_toBackend(pimega);
                 setParameter(NDFileCapture, 0);
+                callParamCallbacks();
             }
         }
     }

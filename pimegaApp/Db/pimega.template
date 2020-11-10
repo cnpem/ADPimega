@@ -53,7 +53,7 @@ record(ai, "$(P)$(R)TimeRemaining_RBV")
 
 record(longin, "$(P)$(R)NumImagesCounter_RBV")
 {
-	field(SCAN, ".5 second")	
+	field(SCAN, ".1 second")	
 }
 
 record(longin, "$(P)$(R)NumCaptured_RBV")
