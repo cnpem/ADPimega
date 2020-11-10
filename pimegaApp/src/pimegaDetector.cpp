@@ -146,7 +146,7 @@ void pimegaDetector::acqTask()
 
         if (eventStatus == epicsEventWaitOK) {
             //US_Acquire(pimega,0);
-            stop_acquire(pimega);
+            //stop_acquire(pimega);
             send_stopAcquire_toBackend(pimega);
             setShutter(0);
             setIntegerParam(ADAcquire, 0);
@@ -846,7 +846,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDacOutSenseString,    asynParamFloat64,   &PimegaDacOutSense);
     createParam(pimegaBackendBufferString,  asynParamInt32,     &PimegaBackBuffer);
     createParam(pimegaResetRDMABufferString,asynParamInt32,     &PimegaResetRDMABuffer);
-    createParam(pimegaBackendLSFRString,    asynParamInt32,     &PimegaBackLSFR);
+    createParam(pimegaBackendLFSRString,    asynParamInt32,     &PimegaBackLFSR);
     createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
     createParam(pimegaAllModulesString,     asynParamInt32,     &PimegaAllModules);
     createParam(pimegaDacsOutSenseString,   asynParamFloat32Array, &PimegaDacsOutSense);
@@ -1015,7 +1015,6 @@ int pimegaDetector::startAcquire(void)
         rc |= select_module(pimega, 4);
         rc |= US_Acquire(pimega, 1);
     }
-    //define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
     pimega->pimegaParam.software_trigger = false;
     rc |= execute_acquire(pimega);
     return rc;
@@ -1024,7 +1023,7 @@ int pimegaDetector::startAcquire(void)
 int pimegaDetector::startCaptureBackend(void)
 {
     int rc = 0;
-    int acqMode, autoSave, resetRDMA, lsfr;
+    int acqMode, autoSave, resetRDMA, lfsr;
     char fullFileName[PIMEGA_MAX_FILENAME_LEN];
     
     /* Create the full filename */
@@ -1034,8 +1033,8 @@ int pimegaDetector::startCaptureBackend(void)
     getParameter(PimegaMedipixMode, &acqMode);
     getParameter(NDAutoSave,&autoSave);
     getParameter(PimegaResetRDMABuffer, &resetRDMA);
-    getParameter(PimegaBackLSFR, &lsfr);
-    rc = update_backend_acqArgs(pimega, acqMode, lsfr, autoSave, resetRDMA, 1, 5);
+    getParameter(PimegaBackLFSR, &lfsr);
+    rc = update_backend_acqArgs(pimega, acqMode, lfsr, autoSave, resetRDMA, 1, 5);
 
     getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
     rc = send_acqArgs_toBackend(pimega);

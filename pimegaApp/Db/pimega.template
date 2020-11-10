@@ -1124,20 +1124,20 @@ record(bi, "$(P)$(R)Reset_RDMA_Buffer_RBV") {
     field(SCAN, "I/O Intr")
 }
 
-record(bo, "$(P)$(R)Backend_LSFR") {
+record(bo, "$(P)$(R)Backend_LFSR") {
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_LSFR")
-    field(DESC, "Backend Backend LSFR")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_LFSR")
+    field(DESC, "Backend Backend LFSR")
     field(ZNAM, "False")
     field(ONAM, "True")
-    field(VAL,  "1")
+    field(VAL,  "0")
 	field(PINI, "YES")
 }
 
-record(bi, "$(P)$(R)Backend_LSFR_RBV") {
+record(bi, "$(P)$(R)Backend_LFSR_RBV") {
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_LSFR")
-    field(DESC, "Backend LSFR RBV")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_LFSR")
+    field(DESC, "Backend LFSR RBV")
     field(ZNAM, "False")
     field(ONAM, "True")
     field(SCAN, "I/O Intr")

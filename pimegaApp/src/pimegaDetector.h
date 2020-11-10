@@ -98,7 +98,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaSensorBiasString          "SENSOR_BIAS"
 #define pimegaModuleString              "PIMEGA_MODULE"
 #define pimegaAllModulesString          "ALL_MODULES"
-#define pimegaBackendLSFRString         "BACK_LSFR"
+#define pimegaBackendLFSRString         "BACK_LFSR"
 #define pimegaSendImageString           "SEND_IMAGE"
 #define pimegaSelSendImageString        "SEL_SEND_IMAGE"
 #define pimegaSendDacDoneString         "SEND_DAC_DONE"
@@ -194,7 +194,7 @@ protected:
     int PimegaDacsOutSense;
     int PimegaBackBuffer;
     int PimegaResetRDMABuffer;
-    int PimegaBackLSFR;
+    int PimegaBackLFSR;
     int PimegaModule;
     int PimegaAllModules;
     int PimegaSendImage;
