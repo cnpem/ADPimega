@@ -423,10 +423,10 @@ typedef enum pimega_test_pulse_pattern_t {
 
 typedef enum pimega_medipix_mode_t {
 	PIMEGA_MEDIPIX_MODE_DEFAULT = 0,			// Sequential (1x12-bit)
-	PIMEGA_MEDIPIX_MODE_CSM,					// not available 
-	PIMEGA_MEDIPIX_MODE_DUAL_ENERGY,			// not available
-	PIMEGA_MEDIPIX_MODE_CRW,					// Continuous (2x12-bit)
-	PIMEGA_MEDIPIX_MODE_24BITS,					// Sequential (1x24-bit)
+	//PIMEGA_MEDIPIX_MODE_CSM,					// not available 
+	PIMEGA_MEDIPIX_MODE_CRW = 1,					// Continuous (2x12-bit)
+	PIMEGA_MEDIPIX_MODE_24BITS = 2,					// Sequential (1x24-bit)
+	PIMEGA_MEDIPIX_MODE_DUAL_ENERGY = 3,			// not available
 	PIMEGA_MEDIPIX_MODE_ENUM_END,
 } pimega_medipix_mode_t;
 
