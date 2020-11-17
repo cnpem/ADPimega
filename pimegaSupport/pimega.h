@@ -370,6 +370,30 @@ typedef enum pimega_trigger_mode_t {
 	PIMEGA_TRIGGER_MODE_ENUM_END,
 }pimega_trigger_mode_t;
 
+//0: Cascate disabled, an internal trigger for each module (Default)
+//1: Cascade enabled, internal trigger from master module, trigger output set by shutter time
+//2: Cascade enabled, internal trigger from master module, trigger output set by acquisition time
+//3: Cascade enabled, external trigger with positive edge at master module, trigger output set by shutter time
+//4: Cascade enabled, external trigger with positive edge at master module, trigger output set by acquisition time
+
+
+
+typedef enum pimega_trigger_out_t {
+	PIMEGA_TRIGGER_OUT_DISABLE = 0,
+	PIMEGA_TRIGGER_OUT_BOTH = 1,
+	PIMEGA_TRIGGER_OUT_SW = 2,
+	PIMEGA_TRIGGER_OUT_EXTERNAL = 3,
+	PIMEGA_TRIGGER_OUT_SHUTTER_MBA = 4,
+	PIMEGA_TRIGGER_OUT_SHUTTER_MBB = 5,
+	PIMEGA_TRIGGER_OUT_SHUTTER_MBC = 6,
+	PIMEGA_TRIGGER_OUT_SHUTTER_MBALL = 7,
+	PIMEGA_TRIGGER_OUT_ACQ_MBA = 8,
+	PIMEGA_TRIGGER_OUT_ACQ_MBB = 9,
+	PIMEGA_TRIGGER_OUT_ACQ_MBC = 10,
+	PIMEGA_TRIGGER_OUT_ACQ_MBALL = 11,
+	PIMEGA_TRIGGER_OUT_ENUM_END = 12,
+}pimega_trigger_out_t;
+
 
 typedef enum pimega_read_counter_t {
 	PIMEGA_COUNTER_LOW = 0,

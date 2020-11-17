@@ -693,7 +693,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     pimega->detModel = (pimega_detector_model_t) detectorModel;
     maxSizeX = SizeX;
     maxSizeY = SizeY;
-    pimega_set_debug_stream(pimega, pimega->debug_out);
+    //pimega_set_debug_stream(pimega, pimega->debug_out);
     if (pimega) debug(functionName, "Pimega Object created!");
     pimega->simulate = simulate;
     connect(ips, port);
