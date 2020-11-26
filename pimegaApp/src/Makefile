@@ -18,6 +18,8 @@ LIB_SYS_LIBS_Linux += pimega
 # ------------------------
 DBD += pimega.dbd
 
+USR_CXXFLAGS += -O0 -g
+USR_CFLAGS += -O0 -g
 
 include $(ADCORE)/ADApp/commonLibraryMakefile
 
