@@ -174,14 +174,18 @@ void pimegaDetector::acqTask()
                 newImage = 0;
                 setIntegerParam(ADAcquire, 0);
                 setIntegerParam(ADStatus, ADStatusIdle);
-                setStringParam(ADStatusMessage, "Saving acquired frames...");
+                if (pimega->acq_status_return.savedAquisitionNum != 
+                    (unsigned int)pimega->acquireParam.numCapture ) {
+                    setStringParam(ADStatusMessage, "Saving acquired frames..."); }
             }
 
             else if (imageMode == ADImageMultiple) {
                 acquire=0;
                 setIntegerParam(ADAcquire, 0);
                 setIntegerParam(ADStatus, ADStatusIdle);
-                setStringParam(ADStatusMessage, "Saving acquired frames...");
+                if (pimega->acq_status_return.savedAquisitionNum != 
+                    (unsigned int)pimega->acquireParam.numCapture ) {
+                    setStringParam(ADStatusMessage, "Saving acquired frames..."); }
                 US_NumExposuresCounter_RBV(pimega);
                 setIntegerParam(ADNumImagesCounter, pimega->acquireParam.numExposuresCounter);
                 newImage = 0;
@@ -554,25 +558,25 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     }
 
     else if ((function == NDFileNumCaptured) && (backendStatus)) {
-        get_acqStatus_fromBackend(pimega);
-        *value = pimega->acq_status_return.savedAquisitionNum;
+        int num_capture = (unsigned int)pimega->acquireParam.numCapture;
+        status = get_acqStatus_fromBackend(pimega);
+        int backend_saved = pimega->acq_status_return.savedAquisitionNum;
 
-        if (pimega->acquireParam.numCapture != 0 && 
-            pimega->acq_status_return.savedAquisitionNum != 0) 
+        if (num_capture != 0 && backend_saved != 0) 
         {
+            *value = backend_saved;
             if (*value != numImageSaved) {
                 //generateImage();
                 numImageSaved = *value;
             }
 
-
-            if (pimega->acq_status_return.savedAquisitionNum == (unsigned int)pimega->acquireParam.numCapture)
-            {
+            if (backend_saved == num_capture) {
                 send_stopAcquire_toBackend(pimega);
                 setParameter(ADStatusMessage, "Finished acquisition");
                 setParameter(ADStringToServer, "");
                 setParameter(ADStringFromServer, "HDF5 file saved");
                 setParameter(NDFileCapture, 0);
+                setParameter(NDFileNumCaptured, backend_saved);
                 callParamCallbacks();
             }
         }
@@ -1223,13 +1227,23 @@ asynStatus pimegaDetector::checkSensors(void)
 
 asynStatus pimegaDetector::reset(short action)
 {
-    int rc;
+    int rc = 0;
     if (action < 0 || action > 1) {
         error("Invalid boolean value: %d\n", action);
         return asynError;
     }
 
-    rc = pimega_reset(pimega, action);
+    if (action == 0) {
+        rc = pimega_reset(pimega);
+    }
+
+    else {
+        char _file[256] = "";
+        getStringParam(pimegaDacDefaults, sizeof(_file), _file);
+        printf("reading file %s\n", _file);
+        rc |= pimega_reset_and_init(pimega, _file);
+    }
+
     if (rc != PIMEGA_SUCCESS) {
         return asynError; }
 

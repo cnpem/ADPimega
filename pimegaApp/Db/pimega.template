@@ -800,8 +800,8 @@ record(bo, "$(P)$(R)Reset")
 {
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET")
-	field(ZNAM, "0")
-	field(ONAM, "1")
+	field(ZNAM, "Reset and set DACs")
+	field(ONAM, "Reset and Init")
 }
 
 record(ai, "$(P)$(R)DAC_Bias_RBV")
