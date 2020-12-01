@@ -131,7 +131,7 @@ typedef struct __attribute__((__packed__)){
     uint8_t reserved[STRUCT_SIZE-301];
 } geometryArgs;
 
-//Size 321
+//Size 329
 typedef struct __attribute__((__packed__)){
     uint8_t                type;
     uint64_t               noOfAquisitions;
@@ -141,9 +141,10 @@ typedef struct __attribute__((__packed__)){
     uint8_t                aquisitionMode;
     bool                   resetRDMABuffer;
     uint16_t               bcFramesToProcessPerTime;
+    double                 detectorDistance;
     uint8_t                extraDimensions;
     uint8_t                DimensionsDepth[5];
-    uint8_t                reserved[STRUCT_SIZE-321];
+    uint8_t                reserved[STRUCT_SIZE-329];
 } acqArgs;
 
 
@@ -472,6 +473,7 @@ typedef struct pimega_params_t {
 	bool external_band_gap;
 	float extBgIn;								//US_ImgChip_ExtBgIN
 	float dacOutput;							//US_ImgChipDACOUTSense_RBV
+	pimega_trigger_out_t trigger_out;
 } pimega_params_t;
 
 typedef struct pimega_omr {
@@ -724,7 +726,7 @@ int set_numberExposures(pimega_t *pimega, int num_exposures);
 int US_DAC_Scan(pimega_t *pimega, pimega_dac_t dac, int initial, int final, int step,
 				pimega_send_to_all_t send_to);
 
-int trigger_out(pimega_t *pimega, bool enable_trigger);
+int trigger_out(pimega_t *pimega, pimega_trigger_out_t trigger_out_mode);
 int trigger_out_get(pimega_t *pimega);
 
 

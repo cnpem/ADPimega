@@ -82,7 +82,6 @@ void pimegaDetector::acqTask()
             this->lock();
 
             setStringParam(ADStatusMessage, "Acquiring data");
-            //setIntegerParam(ADNumImagesCounter, 0); 
 
             /* We are acquiring. */
 
@@ -93,7 +92,6 @@ void pimegaDetector::acqTask()
 
             getIntegerParam(ADNumExposures, &numExposures);
             getIntegerParam(ADNumImages, &numImages);
-            //getIntegerParam(ADNumImagesCounter, &numImagesCounter);
 
             /* Open the shutter */
             setShutter(ADShutterOpen);
@@ -119,7 +117,6 @@ void pimegaDetector::acqTask()
             // Read detector state
             acquireStatus = status_acquire(pimega);
             //numImagesCounter = pimega->acq_status_return.noOfAquisitions[1];
-            //setIntegerParam(ADNumImagesCounter, numImagesCounter);
 
             epicsTimeGetCurrent(&endTime);
             elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
@@ -152,7 +149,6 @@ void pimegaDetector::acqTask()
             setIntegerParam(ADAcquire, 0);
             acquire=0;
 
-            //setIntegerParam(ADNumImagesCounter, numImagesCounter);
             if (bufferOverflow) setStringParam(ADStatusMessage,
                     "Acquisition aborted by buffer overflow");
 
@@ -187,11 +183,11 @@ void pimegaDetector::acqTask()
                     (unsigned int)pimega->acquireParam.numCapture ) {
                     setStringParam(ADStatusMessage, "Saving acquired frames..."); }
                 US_NumExposuresCounter_RBV(pimega);
-                setIntegerParam(ADNumImagesCounter, pimega->acquireParam.numExposuresCounter);
                 newImage = 0;
             }
 
             else if (imageMode == ADImageContinuous) {
+                pimega->acquireParam.numExposures = 1;
                 status = startAcquire();
                 numImagesCounter++;
                 //acquire=0;
@@ -548,38 +544,31 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
         //*value = static_cast<int>(pimega->acq_status_return.bufferUsed);
     }
 
-    else if ((function == ADNumImagesCounter) && (scanStatus == ADStatusAcquire)) {
-        //US_NumExposuresCounter_RBV(pimega);
-        *value = pimega->acq_status_return.savedAquisitionNum;
+    else if (function == ADNumImagesCounter) {
+        *value = pimega->acq_status_return.noOfAquisitions[0];
     }
 
     else if (function == PimegaModule) {
         *value = pimega->pimega_module;
     }
 
-    else if ((function == NDFileNumCaptured) && (backendStatus)) {
-        int num_capture = (unsigned int)pimega->acquireParam.numCapture;
-        status = get_acqStatus_fromBackend(pimega);
-        int backend_saved = pimega->acq_status_return.savedAquisitionNum;
+    else if (function == NDFileNumCaptured) {
+        if (backendStatus) {
+            int num_capture = (unsigned int)pimega->acquireParam.numCapture;
+            status = get_acqStatus_fromBackend(pimega);
+            int backend_saved = pimega->acq_status_return.savedAquisitionNum;
 
-        if (num_capture != 0 && backend_saved != 0) 
-        {
-            *value = backend_saved;
-            if (*value != numImageSaved) {
-                //generateImage();
-                numImageSaved = *value;
-            }
-
-            if (backend_saved == num_capture) {
+            if ((num_capture != 0) && (backend_saved == num_capture)) {
                 send_stopAcquire_toBackend(pimega);
                 setParameter(ADStatusMessage, "Finished acquisition");
                 setParameter(ADStringToServer, "");
                 setParameter(ADStringFromServer, "HDF5 file saved");
                 setParameter(NDFileCapture, 0);
-                setParameter(NDFileNumCaptured, backend_saved);
                 callParamCallbacks();
             }
         }
+
+        *value = pimega->acq_status_return.savedAquisitionNum;
     }
 
     //Other functions we call the base class method
