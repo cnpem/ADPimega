@@ -1,4 +1,4 @@
-#!../../bin/linux-ppc64/pimegaApp
+#!../../bin/linux-x86_64/pimegaApp
 
 
 < envPaths
@@ -9,7 +9,7 @@ dbLoadDatabase("$(TOP)/dbd/pimegaApp.dbd")
 pimegaApp_registerRecordDeviceDriver(pdbbase) 
 
 # Prefix for all records
-epicsEnvSet("PREFIX", "MINSKY135D:")
+epicsEnvSet("PREFIX", "MGN:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
 # The detector model (0:mobipix; 1:pimega45D; 2:pimega135D; 3:pimega540D)
@@ -32,7 +32,7 @@ epicsEnvSet("PIMEGA_MODULE02_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE03_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE04_IP", "127.0.0.1")
 #epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.2")
-epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.14")
+epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.6")
 #epicsEnvSet("PIMEGA_MODULE03_IP", "10.255.255.10")
 #epicsEnvSet("PIMEGA_MODULE04_IP", "10.255.255.14")
 #epicsEnvSet("PIMEGA_IP", "10.0.27.46")
