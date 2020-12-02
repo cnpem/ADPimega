@@ -942,7 +942,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFileTemplate, "");
     setParameter(NDFullFileName, "");
     setParameter(NDFileWriteMessage, "");
-    setParameter(PimegaBackBuffer, 0);
+    setParameter(PimegaBackBuffer, 0.0);
     setParameter(ADImageMode, ADImageSingle);
     setParameter(PimegaModule, 1);
     Set_DAC_Defaults(pimega);
