@@ -534,7 +534,8 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     int function = pasynUser->reason;
     int status=0;
     //static const char *functionName = "readInt32";
-    int scanStatus;
+    int scanStatus, i;
+    uint64_t temp = ULLONG_MAX;
     int backendStatus;
 
     getParameter(ADStatus, &scanStatus);
@@ -545,7 +546,10 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     }
 
     else if (function == ADNumImagesCounter) {
-        *value = pimega->acq_status_return.noOfAquisitions[0];
+            for (i = 0;  i < pimega->max_num_modules; i++)
+                if (temp > pimega->acq_status_return.noOfAquisitions[i])
+                    temp = pimega->acq_status_return.noOfAquisitions[i];
+            *value = temp;
     }
 
     else if (function == PimegaModule) {
