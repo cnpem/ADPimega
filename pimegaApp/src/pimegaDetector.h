@@ -15,6 +15,8 @@
 #include <time.h>
 #include <stdint.h>
 #include <map>
+#include <limits.h>
+
 
 // EPICS includes
 #include <epicsThread.h>
@@ -36,6 +38,8 @@
 
 // pimega lib includes
 #include <pimega.h>
+
+
 
 
 #define PIMEGA_MAX_FILENAME_LEN 300
