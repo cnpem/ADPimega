@@ -490,7 +490,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     int function = pasynUser->reason;
     int status=0;
     //static const char *functionName = "readFloat64";
-    double temp;
+    double temp = 0;
     int scanStatus, i;
 
     getParameter(ADStatus,&scanStatus);
@@ -509,7 +509,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
     else if (function == PimegaBackBuffer) {
         for (i = 0;  i < pimega->max_num_modules; i++)
-            if (temp > pimega->acq_status_return.bufferUsed[i])
+            if (temp < pimega->acq_status_return.bufferUsed[i])
                 temp = pimega->acq_status_return.bufferUsed[i];
         *value = temp;        
     }
