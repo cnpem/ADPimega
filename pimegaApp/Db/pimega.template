@@ -1098,10 +1098,11 @@ record(ao, "$(P)$(R)DAC_DiscH")
 
 record(ai, "$(P)$(R)Backend_BufferUsed_RBV")
 {
-	field(DTYP, "asynInt32")
+	field(DTYP, "asynFloat64")
 	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_BUFFER")
 	field(SCAN, ".1 second")
 	field(DESC, "Backend buffer used")
+	field(PREC, "1")
 	field(EGU, "%")
 }
 

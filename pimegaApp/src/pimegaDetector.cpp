@@ -490,7 +490,8 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     int function = pasynUser->reason;
     int status=0;
     //static const char *functionName = "readFloat64";
-    int scanStatus;
+    double temp;
+    int scanStatus, i;
 
     getParameter(ADStatus,&scanStatus);
 
@@ -504,6 +505,13 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
         status = US_SensorBias_RBV(pimega);
         *value = pimega->pimegaParam.bias_voltage;
         setParameter(PimegaSensorBias, *value);
+    }
+
+    else if (function == PimegaBackBuffer) {
+        for (i = 0;  i < pimega->max_num_modules; i++)
+            if (temp > pimega->acq_status_return.bufferUsed[i])
+                temp = pimega->acq_status_return.bufferUsed[i];
+        *value = temp;        
     }
 
     else if (function == PimegaDacOutSense){
@@ -541,11 +549,9 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     getParameter(ADStatus, &scanStatus);
     getParameter(NDFileCapture, &backendStatus);
 
-    if ((function == PimegaBackBuffer) && (scanStatus == ADStatusAcquire)) {
-        //*value = static_cast<int>(pimega->acq_status_return.bufferUsed);
-    }
 
-    else if (function == ADNumImagesCounter) {
+
+    if (function == ADNumImagesCounter) {
             for (i = 0;  i < pimega->max_num_modules; i++)
                 if (temp > pimega->acq_status_return.noOfAquisitions[i])
                     temp = pimega->acq_status_return.noOfAquisitions[i];
@@ -848,7 +854,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaReadCounterString,    asynParamInt32,     &PimegaReadCounter);
     createParam(pimegaSenseDacSelString,    asynParamInt32,     &PimegaSenseDacSel);
     createParam(pimegaDacOutSenseString,    asynParamFloat64,   &PimegaDacOutSense);
-    createParam(pimegaBackendBufferString,  asynParamInt32,     &PimegaBackBuffer);
+    createParam(pimegaBackendBufferString,  asynParamFloat64,     &PimegaBackBuffer);
     createParam(pimegaResetRDMABufferString,asynParamInt32,     &PimegaResetRDMABuffer);
     createParam(pimegaBackendLFSRString,    asynParamInt32,     &PimegaBackLFSR);
     createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
