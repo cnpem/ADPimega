@@ -1242,6 +1242,12 @@ asynStatus pimegaDetector::reset(short action)
         printf("reading file %s\n", _file);
         rc |= pimega_reset_and_init(pimega, _file);
     }
+    /* Set some default parameters */
+    acqPeriod(0.0);
+    acqTime(1.0);
+    numExposures(1);
+    setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
+    medipixMode(PIMEGA_MEDIPIX_MODE_DEFAULT);
 
     if (rc != PIMEGA_SUCCESS) {
         return asynError; }
