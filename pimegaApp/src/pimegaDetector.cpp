@@ -34,7 +34,9 @@ void pimegaDetector::generateImage(void)
     getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
     getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
 
-    this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, pimega->frame_size * sizeof(int32_t), pimega->sample_frame);
+    if (this->pArrays[0]) this->pArrays[0]->release();
+    this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
+    memcpy(this->pArrays[0]->pData, pimega->sample_frame, this->pArrays[0]->dataSize);
 
     setIntegerParam(NDArraySizeX, dims[0]);
     setIntegerParam(NDArraySizeY, dims[1]);
@@ -44,7 +46,6 @@ void pimegaDetector::generateImage(void)
         asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
                 "%s:%s: calling imageData callback\n", driverName, functionName);
         doCallbacksGenericPointer(this->pArrays[0], NDArrayData, 0);
-        this->pArrays[0]->release();
     }
 }
 
@@ -164,7 +165,7 @@ void pimegaDetector::acqTask()
         }
       
         if (acquireStatus == DONE_ACQ && acquire) {
-            //generateImage();
+            generateImage();
             if (imageMode == ADImageSingle) {
                 acquire=0;
                 newImage = 0;
