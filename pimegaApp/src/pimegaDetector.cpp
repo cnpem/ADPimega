@@ -607,7 +607,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
                                     const char *address_module04,
                                     int port, int maxSizeX, int maxSizeY,
                                     int detectorModel, int maxBuffers,
-                                    size_t maxMemory, int priority, int stackSize, int simulate)
+                                    size_t maxMemory, int priority, int stackSize, int simulate, int sensorType)
 {
     new pimegaDetector(portName,
                        address_module01,
@@ -616,7 +616,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
                        address_module04,
                        port, maxSizeX, maxSizeY,
                        detectorModel, maxBuffers,
-                       maxMemory, priority, stackSize, simulate);
+                       maxMemory, priority, stackSize, simulate, sensorType);
     return (asynSuccess);
 }
 
@@ -639,7 +639,7 @@ pimegaDetector::pimegaDetector(const char *portName,
                    const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int SizeX, int SizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate)
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate, int sensorType)
 
        : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                 asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask
@@ -693,7 +693,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     }
 
 
-    pimega = pimega_new((pimega_detector_model_t)  detectorModel);
+    pimega = pimega_new((pimega_detector_model_t)  detectorModel, (pimega_sensor_type_t) sensorType);
     pimega->detModel = (pimega_detector_model_t) detectorModel;
     maxSizeX = SizeX;
     maxSizeY = SizeY;
@@ -1559,6 +1559,7 @@ static const iocshArg pimegaDetectorConfigArg10 = { "maxMemory", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg11 = { "priority", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg12 = { "stackSize", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg13 = { "simulate", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg14 = { "detectorType", iocshArgInt };
 static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConfigArg0,
                                                             &pimegaDetectorConfigArg1,
                                                             &pimegaDetectorConfigArg2,
@@ -1572,15 +1573,16 @@ static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConf
                                                             &pimegaDetectorConfigArg10,
                                                             &pimegaDetectorConfigArg11,
                                                             &pimegaDetectorConfigArg12,
-                                                            &pimegaDetectorConfigArg13};
+                                                            &pimegaDetectorConfigArg13,
+                                                            &pimegaDetectorConfigArg14};
 static const iocshFuncDef configpimegaDetector =
-{ "pimegaDetectorConfig", 14, pimegaDetectorConfigArgs };
+{ "pimegaDetectorConfig", 15, pimegaDetectorConfigArgs };
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args)
 {
     pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].sval, args[3].sval, args[4].sval,
                         args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival,
-                        args[10].ival, args[11].ival, args[12].ival, args[13].ival);
+                        args[10].ival, args[11].ival, args[12].ival, args[13].ival, args[14].ival);
 }
 
 static void pimegaDetectorRegister(void)

@@ -136,7 +136,7 @@ public:
     pimegaDetector(const char *portName, const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int maxSizeX, int maxSizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate);
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate, int sensorType);
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);

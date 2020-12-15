@@ -25,6 +25,8 @@ epicsEnvSet("NELEMENTS", "2359296")
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
 epicsEnvSet("CBUFFS", "500")
+# Chip materi
+epicsEnvSet("CBUFFS", "500")
 # The IP address of the Pimega system
 #epicsEnvSet("PIMEGA_MODULE01_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE02_IP", "127.0.0.1")
@@ -69,7 +71,7 @@ NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=$(NELEMENTS)")
 
 # Load all other plugins using commonPlugins.cmd
-< $(ADCORE)/iocBoot/commonPlugins.cmd
+< commonPlugins.cmd
 set_requestfile_path("$(ADPIMEGA)/pimegaApp/Db")
 
 

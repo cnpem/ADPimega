@@ -47,7 +47,6 @@ extern "C" {
 #define PIMEGA_BIASVOLTAGE 60.0
 #define PIMEGA_BIAS_STEP 1.0
 #define PIMEGA_BIAS_DELAY 0.1
-#define PIMEGA_MAX_BIASVOLTAGE 100.0
 #define PIMEGA_MIN_BIASVOLTAGE 0
 #define PIMEGA_MFB_SENSOR_TEMPERATURE 16
 
@@ -200,6 +199,10 @@ struct guess_end_context{
     uint64_t         reqAcquisitions;
 };
 
+
+typedef enum pimega_sensor_type_t{
+	silicon300um = 0, silicon675um = 1, cdte1mm = 2 ,
+} pimega_sensor_type_t;
 
 typedef enum pimega_detector_model_t{
 	mobipix = 0, pimega45D = 1, pimega135D = 2 , pimega540D = 3,
@@ -577,6 +580,8 @@ typedef struct pimega_t {
     int32_t *sample_frame;
 	pimega_detector_model_t detModel;
 	bool sensor_disabled[4][36];
+	pimega_sensor_type_t sensor_type;
+	uint32_t max_bias;
 
 } pimega_t;
 
@@ -601,7 +606,7 @@ typedef struct pimega_temperature_context
 	pimega_thread_t owner;
 } pimega_temperature_context;
 
-pimega_t *pimega_new(pimega_detector_model_t detModel);
+pimega_t *pimega_new(pimega_detector_model_t detModel, pimega_sensor_type_t sensorType);
 
 int write_dac_all_modules(pimega_t *pimega, pimega_dac_t dac, int value);
 int write_dac_all_modules_serial(pimega_t *pimega, pimega_dac_t dac, int value);
