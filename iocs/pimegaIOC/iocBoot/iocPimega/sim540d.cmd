@@ -70,7 +70,7 @@ NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=$(NELEMENTS)")
 
 # Load all other plugins using commonPlugins.cmd
-< $(ADCORE)/iocBoot/commonPlugins.cmd
+< commonPlugins.cmd
 set_requestfile_path("$(ADPIMEGA)/pimegaApp/Db")
 
 
@@ -79,6 +79,7 @@ iocInit()
 dbpf(${PREFIX}cam1:FilePath,"/tmp")
 dbpf(${PREFIX}cam1:FileName,"teste")
 dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
+dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
 
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
