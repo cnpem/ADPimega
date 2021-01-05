@@ -165,7 +165,7 @@ void pimegaDetector::acqTask()
         }
       
         if (acquireStatus == DONE_ACQ && acquire) {
-            generateImage();
+            //generateImage();
             if (imageMode == ADImageSingle) {
                 acquire=0;
                 newImage = 0;
@@ -567,6 +567,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
         if (backendStatus) {
             int num_capture = (unsigned int)pimega->acquireParam.numCapture;
             status = get_acqStatus_fromBackend(pimega);
+            generateImage();
             int backend_saved = pimega->acq_status_return.savedAquisitionNum;
 
             if ((num_capture != 0) && (backend_saved == num_capture)) {
