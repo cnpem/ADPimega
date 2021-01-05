@@ -1,4 +1,4 @@
-#!../../bin/linux-ppc64/pimegaApp
+#!../../bin/linux-x86_64/pimegaApp
 
 < envPaths
 
