@@ -425,8 +425,11 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     else if (function == ADAcquirePeriod)
         status |= acqPeriod(value);
 
-    else if (function == PimegaSensorBias)
-        status |= sensorBias(value);
+    else if (function == PimegaSensorBiasLow)
+        status |= sensorBias(PIMEGA_MB_FLEX_LOW, value);
+
+    else if (function == PimegaSensorBiasHigh)
+        status |= sensorBias(PIMEGA_MB_FLEX_HIGH, value);
 
     else if (function == PimegaExtBgIn)
         status |= setExtBgIn(value);
@@ -501,14 +504,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     //    setParameter(ADTemperatureActual, pimega->cached_result.actual_temperature);
     //}
 
-    if (function == PimegaSensorBias){
-        select_module(pimega, 1);
-        status = US_SensorBias_RBV(pimega);
-        *value = pimega->pimegaParam.bias_voltage;
-        setParameter(PimegaSensorBias, *value);
-    }
-
-    else if (function == PimegaBackBuffer) {
+    if (function == PimegaBackBuffer) {
         for (i = 0;  i < pimega->max_num_modules; i++)
             if (temp < pimega->acq_status_return.bufferUsed[i])
                 temp = pimega->acq_status_return.bufferUsed[i];
@@ -608,7 +604,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
                                     const char *address_module04,
                                     int port, int maxSizeX, int maxSizeY,
                                     int detectorModel, int maxBuffers,
-                                    size_t maxMemory, int priority, int stackSize, int simulate, int sensorType)
+                                    size_t maxMemory, int priority, int stackSize, int simulate)
 {
     new pimegaDetector(portName,
                        address_module01,
@@ -617,7 +613,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
                        address_module04,
                        port, maxSizeX, maxSizeY,
                        detectorModel, maxBuffers,
-                       maxMemory, priority, stackSize, simulate, sensorType);
+                       maxMemory, priority, stackSize, simulate);
     return (asynSuccess);
 }
 
@@ -640,7 +636,7 @@ pimegaDetector::pimegaDetector(const char *portName,
                    const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int SizeX, int SizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate, int sensorType)
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate)
 
        : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                 asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask
@@ -694,7 +690,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     }
 
 
-    pimega = pimega_new((pimega_detector_model_t)  detectorModel, (pimega_sensor_type_t) sensorType);
+    pimega = pimega_new((pimega_detector_model_t)  detectorModel);
     pimega->detModel = (pimega_detector_model_t) detectorModel;
     maxSizeX = SizeX;
     maxSizeY = SizeY;
@@ -859,7 +855,8 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaBackendBufferString,  asynParamFloat64,     &PimegaBackBuffer);
     createParam(pimegaResetRDMABufferString,asynParamInt32,     &PimegaResetRDMABuffer);
     createParam(pimegaBackendLFSRString,    asynParamInt32,     &PimegaBackLFSR);
-    createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
+    createParam(pimegaSensorBiasLowString,  asynParamFloat64,   &PimegaSensorBiasLow);
+    createParam(pimegaSensorBiasHighString, asynParamFloat64,   &PimegaSensorBiasHigh);
     createParam(pimegaAllModulesString,     asynParamInt32,     &PimegaAllModules);
     createParam(pimegaDacsOutSenseString,   asynParamFloat32Array, &PimegaDacsOutSense);
     createParam(pimegaSendImageString,      asynParamInt32,     &PimegaSendImage);
@@ -888,6 +885,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDisabledSensorsM2String,asynParamInt32Array, &PimegaDisabledSensorsM2);
     createParam(pimegaDisabledSensorsM3String,asynParamInt32Array, &PimegaDisabledSensorsM3);
     createParam(pimegaDisabledSensorsM4String,asynParamInt32Array, &PimegaDisabledSensorsM4);
+    createParam(pimegaMBSendModeString,     asynParamInt32,     &PimegaMBSendMode);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -1109,8 +1107,11 @@ asynStatus pimegaDetector::selectModule(uint8_t module)
         return asynError;
     }
     rc |= select_board(pimega, mfb);
-    rc |= US_SensorBias_RBV(pimega);
-    setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage);
+    rc |= getSensorBias(pimega);
+    setParameter(PimegaSensorBiasLow, 
+                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_LOW]);
+    setParameter(PimegaSensorBiasHigh, 
+                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_HIGH]);
     setParameter(PimegaModule, module);
     return asynSuccess;    
 }
@@ -1259,7 +1260,7 @@ asynStatus pimegaDetector::reset(short action)
 
 asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
 {
-    int rc;
+    int rc = 0;
 
     rc = select_board(pimega, board_id);
     if (rc != PIMEGA_SUCCESS) {
@@ -1267,8 +1268,12 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
         return asynError;
     }
 
-    rc = US_SensorBias_RBV(pimega);
-    setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage);
+    rc |= getSensorBias(pimega);
+    setParameter(PimegaSensorBiasLow, 
+                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_LOW]);
+    setParameter(PimegaSensorBiasHigh, 
+                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_HIGH]);
+
     //getMfbTemperature();
     setParameter(PimegaMedipixBoard, board_id);
     return asynSuccess;
@@ -1366,18 +1371,22 @@ asynStatus pimegaDetector::setExtBgIn(float voltage)
     return asynSuccess;
 }
 
-asynStatus pimegaDetector::sensorBias(float voltage)
+asynStatus pimegaDetector::sensorBias(uint8_t source_sel,  float voltage)
 {
     int rc;
-    int all_modules;
+    int send_mode;
 
-    getParameter(PimegaAllModules, &all_modules);
-    rc = setSensorBias(pimega, voltage, (pimega_send_to_all_t)all_modules);
+    getParameter(PimegaMBSendMode, &send_mode);
+    rc = setSensorBias(pimega, source_sel, voltage, (pimega_send_mb_flex_t)send_mode);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid value: %s\n", pimega_error_string(rc));
         return asynError;
     }
-    setParameter(PimegaSensorBias, voltage);
+    setParameter(PimegaSensorBiasLow,
+                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_LOW]);
+    setParameter(PimegaSensorBiasHigh,
+                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_HIGH]);
+    
     return asynSuccess;
 }
 
@@ -1560,7 +1569,6 @@ static const iocshArg pimegaDetectorConfigArg10 = { "maxMemory", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg11 = { "priority", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg12 = { "stackSize", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg13 = { "simulate", iocshArgInt };
-static const iocshArg pimegaDetectorConfigArg14 = { "detectorType", iocshArgInt };
 static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConfigArg0,
                                                             &pimegaDetectorConfigArg1,
                                                             &pimegaDetectorConfigArg2,
@@ -1574,16 +1582,15 @@ static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConf
                                                             &pimegaDetectorConfigArg10,
                                                             &pimegaDetectorConfigArg11,
                                                             &pimegaDetectorConfigArg12,
-                                                            &pimegaDetectorConfigArg13,
-                                                            &pimegaDetectorConfigArg14};
+                                                            &pimegaDetectorConfigArg13};
 static const iocshFuncDef configpimegaDetector =
-{ "pimegaDetectorConfig", 15, pimegaDetectorConfigArgs };
+{ "pimegaDetectorConfig", 14, pimegaDetectorConfigArgs };
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args)
 {
     pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].sval, args[3].sval, args[4].sval,
                         args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival,
-                        args[10].ival, args[11].ival, args[12].ival, args[13].ival, args[14].ival);
+                        args[10].ival, args[11].ival, args[12].ival, args[13].ival);
 }
 
 static void pimegaDetectorRegister(void)

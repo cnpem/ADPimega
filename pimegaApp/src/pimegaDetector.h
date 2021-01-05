@@ -99,7 +99,8 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDacsOutSenseString        "DACS_OUT_SENSE"
 #define pimegaBackendBufferString       "BACK_BUFFER"
 #define pimegaResetRDMABufferString     "RESET_RDMA_BUFFER"
-#define pimegaSensorBiasString          "SENSOR_BIAS"
+#define pimegaSensorBiasLowString       "SENSOR_BIAS_LOW"
+#define pimegaSensorBiasHighString      "SENSOR_BIAS_HIGH"
 #define pimegaModuleString              "PIMEGA_MODULE"
 #define pimegaAllModulesString          "ALL_MODULES"
 #define pimegaBackendLFSRString         "BACK_LFSR"
@@ -130,13 +131,14 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDisabledSensorsM2String   "DISABLED_SENSORS_M2"
 #define pimegaDisabledSensorsM3String   "DISABLED_SENSORS_M3"
 #define pimegaDisabledSensorsM4String   "DISABLED_SENSORS_M4"
+#define pimegaMBSendModeString          "MB_SEND_MODE"
 class pimegaDetector: public ADDriver
 {
 public:
     pimegaDetector(const char *portName, const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int maxSizeX, int maxSizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate, int sensorType);
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate);
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -228,8 +230,10 @@ protected:
     int PimegaDisabledSensorsM2;
     int PimegaDisabledSensorsM3;
     int PimegaDisabledSensorsM4;
-    int PimegaSensorBias;
-    #define LAST_PIMEGA_PARAM PimegaSensorBias
+    int PimegaMBSendMode;
+    int PimegaSensorBiasLow;
+    int PimegaSensorBiasHigh;
+    #define LAST_PIMEGA_PARAM PimegaSensorBiasHigh
 
 private:
 
@@ -292,7 +296,7 @@ private:
     asynStatus numExposures(unsigned number);
     asynStatus acqPeriod(float period_time_s);
     asynStatus acqTime(float acquire_time_s);
-    asynStatus sensorBias(float voltage);
+    asynStatus sensorBias(uint8_t source_sel, float voltage);
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
     asynStatus imageMode(u_int8_t mode);

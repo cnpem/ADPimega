@@ -82,12 +82,6 @@ record(mbbo,"$(P)$(R)AllModules") {
     field(TWST, "One chip in all modules")
 	field(THVL, "3")
 	field(THST, "All Chips and All Modules")
-	field(FRVL, "4")
-	field(FRST, "Individual MFB")
-	field(FVVL, "5")
-	field(FVST, "All MFBs in one Module")
-	field(SXVL, "6")
-    field(SXST, "All MBFs and All Modules")
 	field(VAL,  "0")
 	field(PINI, "YES")
 }
@@ -104,12 +98,31 @@ record(mbbi,"$(P)$(R)AllModules_RBV") {
     field(TWST, "One chip in all modules")
 	field(THVL, "3")
 	field(THST, "All Chips and All Modules")
-	field(FRVL, "4")
-	field(FRST, "Individual MFB")
-	field(FVVL, "5")
-	field(FVST, "All MFBs in one Module")
-	field(SXVL, "6")
-    field(SXST, "All MBFs and All Modules")
+	field(SCAN, "I/O Intr")
+}
+
+record(mbbo,"$(P)$(R)MB_SendMode") {
+    field(DESC, "Select MB parameters send mode")
+    field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEND_MODE")
+    field(ZRST, "Individual MB One Flex") 	field(ZRVL, "0")
+    field(ONST, "Individual MB Both Flex")	field(ONVL, "1")
+	field(TWST, "All MBs One Flex")			field(TWVL, "2")
+	field(THST, "All MBs Both Flex")		field(THVL, "3")
+    field(FRST, "All MBs All Modules") 		field(FRVL, "4")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(mbbi,"$(P)$(R)MB_SendMode_RBV") {
+    field(DESC, "Select MB parameters send mode RBV")
+    field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEND_MODE")
+    field(ZRST, "Individual MB One Flex") 	field(ZRVL, "0")
+    field(ONST, "Individual MB Both Flex")	field(ONVL, "1")
+	field(TWST, "All MBs One Flex")			field(TWVL, "2")
+	field(THST, "All MBs Both Flex")		field(THVL, "3")
+    field(FRST, "All MBs All Modules") 		field(FRVL, "4")
 	field(SCAN, "I/O Intr")
 }
 
@@ -263,16 +276,29 @@ record(waveform, "$(P)$(R)dac_defaults_files_RBV")
 }
 
 #SensorBias
-record(ao, "$(P)$(R)SensorBias") {
-	field(DESC, "Sensor Bias Voltage")
+record(ao, "$(P)$(R)SensorBias_FlexLow") {
+	field(DESC, "Sensor Bias Voltage Flex Low")
 	field(DTYP, "asynFloat64")
-	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS_LOW")
 }
 
-record(ai, "$(P)$(R)SensorBias_RBV") {
-	field(DESC, "Sensor Bias Voltage Readback")
+record(ai, "$(P)$(R)SensorBias_FlexLow_RBV") {
+	field(DESC, "Sensor Bias Voltage Flex Low Readback")
 	field(DTYP, "asynFloat64")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS_LOW")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)SensorBias_FlexHigh") {
+	field(DESC, "Sensor Bias Voltage Flex High")
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS_HIGH")
+}
+
+record(ai, "$(P)$(R)SensorBias_FlexHigh_RBV") {
+	field(DESC, "Sensor Bias Voltage Flex High Readback")
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS_HIGH")
 	field(SCAN, "I/O Intr")
 }
 

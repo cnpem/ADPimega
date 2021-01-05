@@ -463,7 +463,7 @@ typedef struct pimega_params_t {
 	pimega_dac_t dac;							//US_Set/Get DAC
 	pimega_trigger_mode_t trigger_mode;			//US_TriggerMode
 	bool discard_data;							//US_DiscardData
-	float bias_voltage;							//US_SensorBias_RBV
+	float bias_voltage[2];						//US_SensorBias_RBV (Flex Low (0) and flex high (1))
 	pimega_read_counter_t read_counter;
 	pimega_image_mode_t image_mode;
 	float mfb_temperature[4][48];
@@ -534,10 +534,23 @@ typedef enum pimega_send_to_all_t
 	PIMEGA_SEND_ALL_CHIPS_ONE_MODULE,
 	PIMEGA_SEND_ONE_CHIP_ALL_MODULES,
 	PIMEGA_SEND_ALL_CHIPS_ALL_MODULES,
-	PIMEGA_SEND_ONE_MFB_ONE_MODULE,
-	PIMEGA_SEND_ALL_MFBS_ONE_MODEULE,
-	PIMEGA_SEND_ALL_MFBS_ALL_MODULES,
 } pimega_send_to_all_t;
+
+typedef enum pimega_send_mb_flex_t
+{
+	PIMEGA_ONE_MB_ONE_FLEX = 0,
+	PIMEGA_ONE_MB_BOTH_FLEX,
+	PIMEGA_ALL_MBS_ONE_FLEX,
+	PIMEGA_ALL_MBS_BOTH_FLEX,
+	PIMEGA_ALL_MBS_FLEX_BOTH_ALL_MODULES,
+} pimega_send_mb_flex_t;
+
+typedef enum pimega_mb_flex_t
+{
+	PIMEGA_MB_FLEX_LOW = 0,
+	PIMEGA_MB_FLEX_HIGH,
+	PIMEGA_MB_FLEX_ENUM_END,
+} pimega_mb_flex_t;
 
 typedef struct sensor {
     enum moduleLoc module;
@@ -582,6 +595,7 @@ typedef struct pimega_t {
 	bool sensor_disabled[4][36];
 	pimega_sensor_type_t sensor_type;
 	uint32_t max_bias;
+	uint8_t num_mb_sources;
 
 } pimega_t;
 
@@ -606,7 +620,7 @@ typedef struct pimega_temperature_context
 	pimega_thread_t owner;
 } pimega_temperature_context;
 
-pimega_t *pimega_new(pimega_detector_model_t detModel, pimega_sensor_type_t sensorType);
+pimega_t *pimega_new(pimega_detector_model_t detModel);
 
 int write_dac_all_modules(pimega_t *pimega, pimega_dac_t dac, int value);
 int write_dac_all_modules_serial(pimega_t *pimega, pimega_dac_t dac, int value);
@@ -686,9 +700,10 @@ int US_BandGapOutput_RBV(pimega_t *pimega);
 int US_BandGapTemperature_RBV(pimega_t *pimega);
 int US_CascodeBias_RBV(pimega_t *pimega);
 
-int setSensorBias(pimega_t *pimega, float voltage, pimega_send_to_all_t send_to);
-int US_SensorBias(pimega_t *pimega, float bias_voltage);
-int US_SensorBias_RBV(pimega_t *pimega);
+int setSensorBias(pimega_t *pimega, uint8_t source_sel, float voltage, pimega_send_mb_flex_t send_to);
+int getSensorBias(pimega_t *pimega);
+int US_SensorBias(pimega_t *pimega, uint8_t source_sel, float bias_voltage);
+int US_SensorBias_RBV(pimega_t *pimega, uint8_t source_sel);
 
 int US_AcquireTime(pimega_t *pimega, float acquire_time_s);
 int US_AcquireTime_RBV(pimega_t *pimega);
