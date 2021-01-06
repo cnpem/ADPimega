@@ -115,12 +115,12 @@ static const char *driverName = "pimegaDetector";
 #define pimegaMbM2TempString            "MB_TEMPERATURE_M2"
 #define pimegaMbM3TempString            "MB_TEMPERATURE_M3"
 #define pimegaMbM4TempString            "MB_TEMPERATURE_M4"
-#define pimegaMFBAvgM1String            "MFB_AVG_TSENSOR_M1"
-#define pimegaMFBAvgM2String            "MFB_AVG_TSENSOR_M2"
-#define pimegaMFBAvgM3String            "MFB_AVG_TSENSOR_M3"
-#define pimegaMFBAvgM4String            "MFB_AVG_TSENSOR_M4"
-#define pimegaMfbSelTSensorString       "MFB_SEL_TSENSOR"
-#define pimegaMfbTSensorString          "MFB_TSENSOR"
+#define pimegaMBAvgM1String             "MB_AVG_TSENSOR_M1"
+#define pimegaMBAvgM2String             "MB_AVG_TSENSOR_M2"
+#define pimegaMBAvgM3String             "MB_AVG_TSENSOR_M3"
+#define pimegaMBAvgM4String             "MB_AVG_TSENSOR_M4"
+#define pimegaMbSelTSensorString        "MB_SEL_TSENSOR"
+#define pimegaMbTSensorString           "MB_TSENSOR"
 #define pimegaMPAvgM1String             "MP_AVG_TSENSOR_M1"
 #define pimegaMPAvgM2String             "MP_AVG_TSENSOR_M2"
 #define pimegaMPAvgM3String             "MP_AVG_TSENSOR_M3"
@@ -214,12 +214,12 @@ protected:
     int PimegaMBTemperatureM2;
     int PimegaMBTemperatureM3;
     int PimegaMBTemperatureM4;
-    int PimegaMFBAvgTSensorM1;
-    int PimegaMFBAvgTSensorM2;
-    int PimegaMFBAvgTSensorM3;
-    int PimegaMFBAvgTSensorM4;
-    int PimegaMFBSelTSensor;
-    int PimegaMFBTSensor;
+    int PimegaMBAvgTSensorM1;
+    int PimegaMBAvgTSensorM2;
+    int PimegaMBAvgTSensorM3;
+    int PimegaMBAvgTSensorM4;
+    int PimegaMBSelTSensor;
+    int PimegaMBTSensor;
     int PimegaMPAvgTSensorM1;
     int PimegaMPAvgTSensorM2;
     int PimegaMPAvgTSensorM3;

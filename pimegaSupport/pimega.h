@@ -56,7 +56,7 @@ extern "C" {
 
 #define BACKENDOFF 0
 #define BACKENDON 1
-#define BACKEND BACKENDOFF
+#define BACKEND BACKENDON
 
 //TODO: Put this struct in another file 
 /* Backend Structs*/

@@ -459,13 +459,13 @@ record(waveform, "$(P)$(R)M1:MB_Temperature_RBV") {
 	field(FTVL, "FLOAT")
 	field(DTYP, "asynFloat32ArrayIn")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TEMPERATURE_M1")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "10 second")
 	field(PREC, "2")
 }
 
-record(ai,"$(P)$(R)M1:MFB_AvgTemperature_RBV") {
+record(ai,"$(P)$(R)M1:MB_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M1")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_AVG_TSENSOR_M1")
     field(DESC, "MFB Avg Temperature Mod 1 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
@@ -481,9 +481,9 @@ record(waveform, "$(P)$(R)M2:MB_Temperature_RBV") {
 	field(PREC, "2")
 }
 
-record(ai,"$(P)$(R)M2:MFB_AvgTemperature_RBV") {
+record(ai,"$(P)$(R)M2:MB_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M2")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_AVG_TSENSOR_M2")
     field(DESC, "MFB Avg Temperature Mod 2 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
@@ -499,7 +499,7 @@ record(waveform, "$(P)$(R)M3:MB_Temperature_RBV") {
 	field(PREC, "2")
 }
 
-record(ai,"$(P)$(R)M3:MFB_AvgTemperature_RBV") {
+record(ai,"$(P)$(R)M3:MB_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_AVG_TSENSOR_M3")
     field(DESC, "MFB Avg Temperature Mod 3 ReadBack")
@@ -512,14 +512,14 @@ record(waveform, "$(P)$(R)M4:MB_Temperature_RBV") {
 	field(NELM, "48")
 	field(FTVL, "FLOAT")
 	field(DTYP, "asynFloat32ArrayIn")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M4")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TEMPERATURE_M4")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 
-record(ai,"$(P)$(R)M4:MFB_AvgTemperature_RBV") {
+record(ai,"$(P)$(R)M4:MB_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M4")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_AVG_TSENSOR_M4")
     field(DESC, "MFB Avg Temperature Mod 4 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
@@ -550,9 +550,9 @@ record(longin, "$(P)$(R)MB_SelectSensor_RBV") {
     field(SCAN, "I/O Intr")
 }
 
-record(ai,"$(P)$(R)MFB_SensorTemperature_RBV") {
+record(ai,"$(P)$(R)MB_SensorTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TSENSOR")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TSENSOR")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
