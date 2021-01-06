@@ -111,10 +111,10 @@ static const char *driverName = "pimegaDetector";
 #define pimegaLoadEqString              "LOAD_EQUALIZATION"
 #define pimegaExtBgInString             "EXT_BGIN"
 #define pimegaExtBgSelString            "EXT_BGSEL"
-#define pimegaMfbM1TempString           "MFB_TEMPERATURE_M1"
-#define pimegaMfbM2TempString           "MFB_TEMPERATURE_M2"
-#define pimegaMfbM3TempString           "MFB_TEMPERATURE_M3"
-#define pimegaMfbM4TempString           "MFB_TEMPERATURE_M4"
+#define pimegaMbM1TempString            "MB_TEMPERATURE_M1"
+#define pimegaMbM2TempString            "MB_TEMPERATURE_M2"
+#define pimegaMbM3TempString            "MB_TEMPERATURE_M3"
+#define pimegaMbM4TempString            "MB_TEMPERATURE_M4"
 #define pimegaMFBAvgM1String            "MFB_AVG_TSENSOR_M1"
 #define pimegaMFBAvgM2String            "MFB_AVG_TSENSOR_M2"
 #define pimegaMFBAvgM3String            "MFB_AVG_TSENSOR_M3"
@@ -210,10 +210,10 @@ protected:
     int PimegaLoadEqualization;
     int PimegaExtBgIn;
     int PimegaExtBgSel;
-    int PimegaMFBTemperatureM1;
-    int PimegaMFBTemperatureM2;
-    int PimegaMFBTemperatureM3;
-    int PimegaMFBTemperatureM4;
+    int PimegaMBTemperatureM1;
+    int PimegaMBTemperatureM2;
+    int PimegaMBTemperatureM3;
+    int PimegaMBTemperatureM4;
     int PimegaMFBAvgTSensorM1;
     int PimegaMFBAvgTSensorM2;
     int PimegaMFBAvgTSensorM3;
@@ -258,7 +258,7 @@ private:
 
     epicsInt32 *PimegaDisabledSensors_;
     epicsFloat32 *PimegaDacsOutSense_;
-    epicsFloat32 *PimegaMFBTemperature_;
+    epicsFloat32 *PimegaMBTemperature_;
 
     int numImageSaved;
 
@@ -277,7 +277,7 @@ private:
     
     void setDefaults(void);
     asynStatus getDacsOutSense(void);
-    asynStatus getMfbTemperature(void);
+    asynStatus getMbTemperature(void);
     asynStatus getMedipixTemperature(void);
 
     int startAcquire(void);

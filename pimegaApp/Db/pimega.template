@@ -453,12 +453,12 @@ record(waveform, "$(P)$(R)DacsOutSense_RBV") {
     field(SCAN, "I/O Intr")
 }
 
-record(waveform, "$(P)$(R)M1:MFB_Temperature_RBV") {
-	field(DESC, "All Temperatures on MFB sensors M1")
+record(waveform, "$(P)$(R)M1:MB_Temperature_RBV") {
+	field(DESC, "All Temperatures on MB sensors M1")
 	field(NELM, "48")
 	field(FTVL, "FLOAT")
 	field(DTYP, "asynFloat32ArrayIn")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M1")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TEMPERATURE_M1")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
@@ -471,12 +471,12 @@ record(ai,"$(P)$(R)M1:MFB_AvgTemperature_RBV") {
 	field(PREC, "2")
 }
 
-record(waveform, "$(P)$(R)M2:MFB_Temperature_RBV") {
+record(waveform, "$(P)$(R)M2:MB_Temperature_RBV") {
 	field(DESC, "All Temperatures on MFB sensors M2")
 	field(NELM, "48")
 	field(FTVL, "FLOAT")
 	field(DTYP, "asynFloat32ArrayIn")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M2")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TEMPERATURE_M2")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
@@ -489,25 +489,25 @@ record(ai,"$(P)$(R)M2:MFB_AvgTemperature_RBV") {
 	field(PREC, "2")
 }
 
-record(waveform, "$(P)$(R)M3:MFB_Temperature_RBV") {
+record(waveform, "$(P)$(R)M3:MB_Temperature_RBV") {
 	field(DESC, "All Temperatures on MFB sensors M3")
 	field(NELM, "48")
 	field(FTVL, "FLOAT")
 	field(DTYP, "asynFloat32ArrayIn")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_TEMPERATURE_M3")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TEMPERATURE_M3")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 
 record(ai,"$(P)$(R)M3:MFB_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_AVG_TSENSOR_M3")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_AVG_TSENSOR_M3")
     field(DESC, "MFB Avg Temperature Mod 3 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 
-record(waveform, "$(P)$(R)M4:MFB_Temperature_RBV") {
+record(waveform, "$(P)$(R)M4:MB_Temperature_RBV") {
 	field(DESC, "All Temperatures on MFB sensors M4")
 	field(NELM, "48")
 	field(FTVL, "FLOAT")
@@ -525,28 +525,28 @@ record(ai,"$(P)$(R)M4:MFB_AvgTemperature_RBV") {
 	field(PREC, "2")
 }
 
-record(longout, "$(P)$(R)MFB_SensorNumber") {
+record(longout, "$(P)$(R)MB_SensorNumber") {
     field(DTYP,"Soft Channel")
 	field(VAL, "16")
 }
 
-record(longout, "$(P)$(R)MFB_Number") {
+record(longout, "$(P)$(R)MB_Number") {
     field(DTYP,"Soft Channel")
 	field(VAL, "3")
 }
 
-record(longout, "$(P)$(R)MFB_SelectSensor") {
+record(longout, "$(P)$(R)MB_SelectSensor") {
 	field(PINI, "YES")
-	field(DESC, "Select temperatura sensor from MFB")
+	field(DESC, "Select temperatura sensor from MB")
 	field(DTYP, "asynInt32")
-	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_SEL_TSENSOR")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEL_TSENSOR")
 	field(VAL,  "1")
 }
 
-record(longin, "$(P)$(R)MFB_SelectSensor_RBV") {
-	field(DESC, "Select temperature MFB sensor Readback")
+record(longin, "$(P)$(R)MB_SelectSensor_RBV") {
+	field(DESC, "Select temperature MB sensor Readback")
 	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MFB_SEL_TSENSOR")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEL_TSENSOR")
     field(SCAN, "I/O Intr")
 }
 

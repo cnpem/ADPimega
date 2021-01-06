@@ -469,10 +469,10 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
         inPtr = PimegaDacsOutSense_;
         numPoints = N_DACS_OUTS;
     }
-    else if (function == PimegaMFBTemperatureM1){
-        getMfbTemperature();
-        inPtr = PimegaMFBTemperature_;
-        numPoints = pimega->num_mfb_tsensors;
+    else if (function == PimegaMBTemperatureM1){
+        getMbTemperature();
+        inPtr = PimegaMBTemperature_;
+        numPoints = pimega->num_mb_tsensors;
     }
     else {
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
@@ -519,7 +519,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     else if (function == PimegaMFBTSensor){
         int sensor;
         getParameter(PimegaMFBSelTSensor,&sensor);
-        *value = pimega->pimegaParam.mfb_temperature[0][sensor-1];
+        *value = pimega->pimegaParam.mb_temperature[0][sensor-1];
     }
 
     else if (function == PimegaMPAvgTSensorM1){
@@ -711,8 +711,8 @@ pimegaDetector::pimegaDetector(const char *portName,
     setDefaults();
     define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
 
-    //Alocate memory for PimegaMFBTemperature_
-    PimegaMFBTemperature_ = (epicsFloat32 *)calloc(pimega->num_mfb_tsensors,
+    //Alocate memory for PimegaMBTemperature_
+    PimegaMBTemperature_ = (epicsFloat32 *)calloc(pimega->num_mb_tsensors,
                                                    sizeof(epicsFloat32));
 
     /* Create the thread that runs acquisition */
@@ -866,10 +866,10 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaLoadEqString,         asynParamInt32,     &PimegaLoadEqualization);
     createParam(pimegaExtBgInString,        asynParamFloat64,   &PimegaExtBgIn);
     createParam(pimegaExtBgSelString,       asynParamInt32,     &PimegaExtBgSel);
-    createParam(pimegaMfbM1TempString,      asynParamFloat32Array, &PimegaMFBTemperatureM1);
-    createParam(pimegaMfbM2TempString,      asynParamFloat32Array, &PimegaMFBTemperatureM2);
-    createParam(pimegaMfbM3TempString,      asynParamFloat32Array, &PimegaMFBTemperatureM3);
-    createParam(pimegaMfbM4TempString,      asynParamFloat32Array, &PimegaMFBTemperatureM4);
+    createParam(pimegaMbM1TempString,       asynParamFloat32Array, &PimegaMBTemperatureM1);
+    createParam(pimegaMbM2TempString,       asynParamFloat32Array, &PimegaMBTemperatureM2);
+    createParam(pimegaMbM3TempString,       asynParamFloat32Array, &PimegaMBTemperatureM3);
+    createParam(pimegaMbM4TempString,       asynParamFloat32Array, &PimegaMBTemperatureM4);
     createParam(pimegaMFBAvgM1String,       asynParamFloat64,   &PimegaMFBAvgTSensorM1);
     createParam(pimegaMFBAvgM2String,       asynParamFloat64,   &PimegaMFBAvgTSensorM2);
     createParam(pimegaMFBAvgM3String,       asynParamFloat64,   &PimegaMFBAvgTSensorM3);
@@ -1303,7 +1303,7 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
         return asynError;
     }
     setParameter(PimegaMedipixChip, chip_id);
-    setParameter(PimegaMedipixBoard, pimega->sensor_pos.mfb);
+    setParameter(PimegaMedipixBoard, pimega->sensor_pos.mb);
 
     /* Get e-fuseID from selected chip_id */ 
     rc = efuseid_rbv(pimega);
@@ -1425,29 +1425,27 @@ asynStatus pimegaDetector::getDacsOutSense(void)
     return asynSuccess;
 }
 
-asynStatus pimegaDetector::getMfbTemperature(void)
+asynStatus pimegaDetector::getMbTemperature(void)
 {
     int idxWaveform, idxAvg;
     float sum=0.00, average;
 
-    printf("Function: %d\n", PimegaMFBTemperatureM1);
-    idxWaveform = PimegaMFBTemperatureM1;
+    printf("Function: %d\n", PimegaMBTemperatureM1);
+    idxWaveform = PimegaMBTemperatureM1;
     idxAvg = PimegaMFBAvgTSensorM1;
 
-    US_GetMFBTemperature(pimega);
+    getMB_Temperatures(pimega);
     for (int module = 1; module <= pimega->max_num_modules; module++) {
-        for (int i=0; i<pimega->num_mfb_tsensors; i++) {
-            PimegaMFBTemperature_[i] = 
-                (epicsFloat32)(pimega->pimegaParam.mfb_temperature[module-1][i]);
-            sum += PimegaMFBTemperature_[i];
+        for (int i=0; i<pimega->num_mb_tsensors; i++) {
+            PimegaMBTemperature_[i] = 
+                (epicsFloat32)(pimega->pimegaParam.mb_temperature[module-1][i]);
+            sum += PimegaMBTemperature_[i];
         }
-
-        average = sum / pimega->num_mfb_tsensors;
+        average = sum / pimega->num_mb_tsensors;
         sum = 0;
-
         setParameter(idxAvg, average);
-        doCallbacksFloat32Array(PimegaMFBTemperature_,
-                                pimega->num_mfb_tsensors,
+        doCallbacksFloat32Array(PimegaMBTemperature_,
+                                pimega->num_mb_tsensors,
                                 idxWaveform,
                                 0);
         idxWaveform++;

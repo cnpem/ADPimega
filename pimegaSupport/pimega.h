@@ -48,7 +48,7 @@ extern "C" {
 #define PIMEGA_BIAS_STEP 1.0
 #define PIMEGA_BIAS_DELAY 0.1
 #define PIMEGA_MIN_BIASVOLTAGE 0
-#define PIMEGA_MFB_SENSOR_TEMPERATURE 16
+#define PIMEGA_MB_SENSOR_TEMPERATURE 16
 
 #define SERIAL 0
 #define ETHERNET 1
@@ -56,7 +56,7 @@ extern "C" {
 
 #define BACKENDOFF 0
 #define BACKENDON 1
-#define BACKEND BACKENDON
+#define BACKEND BACKENDOFF
 
 //TODO: Put this struct in another file 
 /* Backend Structs*/
@@ -466,8 +466,8 @@ typedef struct pimega_params_t {
 	float bias_voltage[2];						//US_SensorBias_RBV (Flex Low (0) and flex high (1))
 	pimega_read_counter_t read_counter;
 	pimega_image_mode_t image_mode;
-	float mfb_temperature[4][48];
-	float mfb_sensor_temp;
+	float mb_temperature[4][48];
+	float mb_sensor_temp;
 	float chip_temperature;
 	float allchip_temperature[4][36];
 	float avg_chip_temperature[4];
@@ -554,7 +554,7 @@ typedef enum pimega_mb_flex_t
 
 typedef struct sensor {
     enum moduleLoc module;
-    int mfb;
+    int mb;
     int chipId;
 	int sensorPos;
 } sensor;
@@ -566,7 +566,7 @@ typedef struct pimega_t {
 	uint8_t max_num_boards;  // MFB Boards
 	uint8_t max_num_chips;	 // Chips by mfb
 	uint8_t num_all_chips;	 // All chips by module 
-	uint8_t num_mfb_tsensors;
+	uint8_t num_mb_tsensors;
 	int pimega_interface;
 	uint8_t pimega_module;
 	int fd[4];
@@ -723,12 +723,12 @@ int US_ImageMode(pimega_t *pimega, uint8_t image_mode);
 int US_ImageMode_RBV(pimega_t *pimega);
 int US_DiscardData(pimega_t *pimega, bool discard_data);
 int US_DiscardData_RBV(pimega_t *pimega);
-int getMFB_Temperature(pimega_t *pimega, int module);
+int getMB_Temperatures(pimega_t *pimega);
+int get_SensorMB_Temperature(pimega_t *pimega, uint8_t sensorMB);
 int getChip_Temperature(pimega_t *pimega, int module);
 int US_TemperatureChipAvg(pimega_t *pimega);
-int US_TemperatureMFB_RBV(pimega_t *pimega, uint8_t sensorMFB);
 int US_GetTemperature(pimega_t *pimega);
-int US_GetMFBTemperature(pimega_t *pimega);
+int US_GetMBTemperature(pimega_t *pimega);
 
 int pimega_connect(pimega_t *pimega, const char *address[4], unsigned short *port);
 int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short port);
