@@ -459,7 +459,7 @@ record(waveform, "$(P)$(R)M1:MB_Temperature_RBV") {
 	field(FTVL, "FLOAT")
 	field(DTYP, "asynFloat32ArrayIn")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TEMPERATURE_M1")
-    field(SCAN, "10 second")
+    field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 
@@ -541,6 +541,8 @@ record(longout, "$(P)$(R)MB_SelectSensor") {
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEL_TSENSOR")
 	field(VAL,  "1")
+	field(DRVH, "16")
+	field(DRVL, "1")
 }
 
 record(longin, "$(P)$(R)MB_SelectSensor_RBV") {
@@ -562,7 +564,7 @@ record(ai,"$(P)$(R)M1:Medipix_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M1")
     field(DESC, "Medipix Avg Temperature Mod 1 ReadBack")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "5 second")
 	field(PREC, "2")
 }
 
@@ -1073,8 +1075,8 @@ record(ao, "$(P)$(R)DAC_CAS")
 	field(DTYP, "asynInt32")
 	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAS")
 	field(DESC, "DAC cascode bias")
-	field(DRVL, 0)
-	field(DRVH, 255)
+	field(DRVL, "0")
+	field(DRVH, "255")
 }
 
 record(ai, "$(P)$(R)DAC_TPRefA_RBV")

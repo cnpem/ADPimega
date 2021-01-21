@@ -56,7 +56,7 @@ extern "C" {
 
 #define BACKENDOFF 0
 #define BACKENDON 1
-#define BACKEND BACKENDON
+#define BACKEND BACKENDOFF
 
 //TODO: Put this struct in another file 
 /* Backend Structs*/
@@ -725,10 +725,9 @@ int US_DiscardData(pimega_t *pimega, bool discard_data);
 int US_DiscardData_RBV(pimega_t *pimega);
 int getMB_Temperatures(pimega_t *pimega);
 int get_SensorMB_Temperature(pimega_t *pimega, uint8_t sensorMB);
-int getChip_Temperature(pimega_t *pimega, int module);
-int US_TemperatureChipAvg(pimega_t *pimega);
-int US_GetTemperature(pimega_t *pimega);
-int US_GetMBTemperature(pimega_t *pimega);
+int getMedipixSensor_Temperature(pimega_t *pimega, int module);
+int get_TemperatureSensorAvg(pimega_t *pimega);
+int US_TemperatureChip(pimega_t *pimega);
 
 int pimega_connect(pimega_t *pimega, const char *address[4], unsigned short *port);
 int pimega_connect_backend(pimega_t *pimega, const char *address, unsigned short port);

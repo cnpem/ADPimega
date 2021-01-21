@@ -521,7 +521,6 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
     else if (function == PimegaMPAvgTSensorM1){
         status = getMedipixTemperature();
-        *value = pimega->pimegaParam.avg_chip_temperature[0];
     }
 
     //Other functions we call the base class method
@@ -742,7 +741,8 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
     
     // Connect to backend
     if (pimega->simulate == 1)
-        rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
+        //rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
+        puts("simulated Backend");
     else    
         rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
 
@@ -1456,12 +1456,10 @@ asynStatus pimegaDetector::getMbTemperature(void)
 
 asynStatus pimegaDetector::getMedipixTemperature(void)
 {
-    US_GetTemperature(pimega);
-    for (int x = 1; x <=4; x++)
-		printf("Avg Temperature Module[%d]: %f\n", x, pimega->pimegaParam.avg_chip_temperature[x-1]);
-    setParameter(PimegaMPAvgTSensorM2, pimega->pimegaParam.avg_chip_temperature[1]);
-    setParameter(PimegaMPAvgTSensorM3, pimega->pimegaParam.avg_chip_temperature[2]);
-    setParameter(PimegaMPAvgTSensorM4, pimega->pimegaParam.avg_chip_temperature[3]);
+    int idxAvg = PimegaMPAvgTSensorM1;
+    get_TemperatureSensorAvg(pimega);
+    for (int module = 1; module <= pimega->max_num_modules; module++)
+        setParameter(idxAvg, pimega->pimegaParam.avg_chip_temperature[module-1]);
     callParamCallbacks();
     return asynSuccess;
 }
