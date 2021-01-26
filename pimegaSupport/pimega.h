@@ -54,10 +54,6 @@ extern "C" {
 #define ETHERNET 1
 #define COMMUNICATION ETHERNET
 
-#define BACKENDOFF 0
-#define BACKENDON 1
-#define BACKEND BACKENDOFF
-
 //TODO: Put this struct in another file 
 /* Backend Structs*/
 
@@ -84,6 +80,12 @@ enum requestTypesEnum {
     STOP_ACQUIRE = 5,
     ARRAY_DATA = 6,
     GEOMETRY = 7
+};
+
+enum bulkProcessingEnum {
+    BULKPROCESSING_AUTO = 0,
+    BULKPROCESSING_ON = 1,
+    BULKPROCESSING_OFF = 2
 };
 
 enum OperationTypesEnum {
@@ -130,7 +132,7 @@ typedef struct __attribute__((__packed__)){
     uint8_t reserved[STRUCT_SIZE-301];
 } geometryArgs;
 
-//Size 329
+//Size 328
 typedef struct __attribute__((__packed__)){
     uint8_t                type;
     uint64_t               noOfAquisitions;
@@ -139,11 +141,11 @@ typedef struct __attribute__((__packed__)){
     uint8_t                saveMode;
     uint8_t                aquisitionMode;
     bool                   resetRDMABuffer;
-    uint16_t               bcFramesToProcessPerTime;
     double                 detectorDistance;
     uint8_t                extraDimensions;
+    bool                   bulkProcessing;
     uint8_t                DimensionsDepth[5];
-    uint8_t                reserved[STRUCT_SIZE-329];
+    uint8_t                reserved[STRUCT_SIZE-328];
 } acqArgs;
 
 
@@ -191,6 +193,11 @@ struct array_data
     int32_t * sample_frame;
 };
 
+typedef enum backend_status_t
+{
+	BACKEND_OFF = 0,
+	BACKEND_ON = 1
+} backend_status_t;
 
 struct guess_end_context{
     struct timespec  sample_time;
@@ -552,6 +559,8 @@ typedef enum pimega_mb_flex_t
 	PIMEGA_MB_FLEX_ENUM_END,
 } pimega_mb_flex_t;
 
+
+
 typedef struct sensor {
     enum moduleLoc module;
     int mb;
@@ -596,7 +605,7 @@ typedef struct pimega_t {
 	pimega_sensor_type_t sensor_type;
 	uint32_t max_bias;
 	uint8_t num_mb_sources;
-
+	int     backendOn;
 } pimega_t;
 
 typedef struct dac_scan_t {
@@ -758,11 +767,12 @@ int get_acqStatus_fromBackend(pimega_t *pimega);
 int get_saveStatus_fromBackend(pimega_t *pimega, uint64_t *savedAcquisitions); 
 int send_stopAcquire_toBackend(pimega_t *pimega);
 int update_backend_acqArgs(pimega_t *pimega, uint8_t aquisitionMode, bool useLFSR,
-					uint8_t saveMode, bool resetRDMABuffer, uint16_t bcFramesToProcessPerTime,
+					uint8_t saveMode, bool resetRDMABuffer, bool bulkProcessing,
 					uint8_t extraDimensions);
 int init_array_data(pimega_t *pimega);
 void get_array_data(pimega_t *pimega);
 void decode_backend_error(uint8_t ret, char *error);
+bool evaluateBulkProcessing(enum bulkProcessingEnum bulkProcessing, float acquirePeriod, float acquireTime, bool externalTrigger, uint64_t capture);
 // ---------------------------------------------------------
 
 int check_and_disable_sensors(pimega_t *pimega);

@@ -600,7 +600,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
                                     const char *address_module04,
                                     int port, int maxSizeX, int maxSizeY,
                                     int detectorModel, int maxBuffers,
-                                    size_t maxMemory, int priority, int stackSize, int simulate)
+                                    size_t maxMemory, int priority, int stackSize, int simulate, int backendOn)
 {
     new pimegaDetector(portName,
                        address_module01,
@@ -609,7 +609,7 @@ extern "C" int pimegaDetectorConfig(const char *portName,
                        address_module04,
                        port, maxSizeX, maxSizeY,
                        detectorModel, maxBuffers,
-                       maxMemory, priority, stackSize, simulate);
+                       maxMemory, priority, stackSize, simulate, backendOn);
     return (asynSuccess);
 }
 
@@ -632,7 +632,7 @@ pimegaDetector::pimegaDetector(const char *portName,
                    const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int SizeX, int SizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate)
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate, int backendOn)
 
        : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                 asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask
@@ -667,6 +667,9 @@ pimegaDetector::pimegaDetector(const char *portName,
         printf("Simulation mode activated.\n");
     else
         printf("Simulation mode inactivate.\n");
+
+
+    
     // Initialise the debugger
     initDebugger(1);
     debugLevel("all",1);
@@ -688,6 +691,7 @@ pimegaDetector::pimegaDetector(const char *portName,
 
     pimega = pimega_new((pimega_detector_model_t)  detectorModel);
     pimega->detModel = (pimega_detector_model_t) detectorModel;
+    pimega->backendOn = backendOn;
     maxSizeX = SizeX;
     maxSizeY = SizeY;
     //pimega_set_debug_stream(pimega, pimega->debug_out);
@@ -741,8 +745,10 @@ void pimegaDetector::connect(const char *address[4], unsigned short port)
     
     // Connect to backend
     if (pimega->simulate == 1)
-        //rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
+    {
+        rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
         puts("simulated Backend");
+    }
     else    
         rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
 
@@ -882,6 +888,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDisabledSensorsM2String,asynParamInt32Array, &PimegaDisabledSensorsM2);
     createParam(pimegaDisabledSensorsM3String,asynParamInt32Array, &PimegaDisabledSensorsM3);
     createParam(pimegaDisabledSensorsM4String,asynParamInt32Array, &PimegaDisabledSensorsM4);
+    createParam(pimegaEnableBulkProcessingString, asynParamInt32, &PimegaEnableBulkProcessing);
     createParam(pimegaMBSendModeString,     asynParamInt32,     &PimegaMBSendMode);
 
     /* Do callbacks so higher layers see any changes */
@@ -1021,9 +1028,12 @@ int pimegaDetector::startAcquire(void)
 int pimegaDetector::startCaptureBackend(void)
 {
     int rc = 0;
-    int acqMode, autoSave, resetRDMA, lfsr;
+    int acqMode, autoSave, lfsr, bulkProcessingEnum;
     char fullFileName[PIMEGA_MAX_FILENAME_LEN];
-
+    bool bulkProcessingBool;
+    double acquirePeriod, acquireTime;
+    int triggerMode;
+    bool externalTrigger;
     setParameter(ADStringToServer, "Sent Acquire Request");
     callParamCallbacks();
     
@@ -1033,11 +1043,33 @@ int pimegaDetector::startCaptureBackend(void)
 
     getParameter(PimegaMedipixMode, &acqMode);
     getParameter(NDAutoSave,&autoSave);
-    getParameter(PimegaResetRDMABuffer, &resetRDMA);
     getParameter(PimegaBackLFSR, &lfsr);
-    rc = update_backend_acqArgs(pimega, acqMode, lfsr, autoSave, resetRDMA, 1, 5);
+    getParameter(PimegaEnableBulkProcessing, &bulkProcessingEnum);
+    getParameter(ADAcquirePeriod, &acquirePeriod);
+    getParameter(ADAcquireTime, &acquireTime);
+    getParameter(ADTriggerMode, &triggerMode);
+
+    /* Evaluate trigger if external or internal */
+    if (triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)
+        externalTrigger = false;
+    else
+        externalTrigger = true;
 
     getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+
+    /* Evaluate if bulk processing is necessary*/
+    bulkProcessingBool = evaluateBulkProcessing((enum bulkProcessingEnum)bulkProcessingEnum, acquirePeriod, 
+                                                 acquireTime, externalTrigger, pimega->acquireParam.numCapture);
+
+    /* Always reset RDMA logic in the FPGA at new capture */
+	for (int _module = 0; _module < pimega->max_num_modules; _module++) {
+		rc |= send_allinitArgs(pimega, _module);
+	}
+
+    /* Always reset backend RDMA buffers */
+    rc = update_backend_acqArgs(pimega, acqMode, lfsr, autoSave, true, (bool)bulkProcessingBool, 5);
+
+
     rc = send_acqArgs_toBackend(pimega);
     if (rc != PIMEGA_SUCCESS) {
         char error[100];
@@ -1562,6 +1594,7 @@ static const iocshArg pimegaDetectorConfigArg10 = { "maxMemory", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg11 = { "priority", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg12 = { "stackSize", iocshArgInt };
 static const iocshArg pimegaDetectorConfigArg13 = { "simulate", iocshArgInt };
+static const iocshArg pimegaDetectorConfigArg14 = { "backendOn", iocshArgInt };
 static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConfigArg0,
                                                             &pimegaDetectorConfigArg1,
                                                             &pimegaDetectorConfigArg2,
@@ -1575,15 +1608,16 @@ static const iocshArg * const pimegaDetectorConfigArgs[] =  {&pimegaDetectorConf
                                                             &pimegaDetectorConfigArg10,
                                                             &pimegaDetectorConfigArg11,
                                                             &pimegaDetectorConfigArg12,
-                                                            &pimegaDetectorConfigArg13};
+                                                            &pimegaDetectorConfigArg13,
+                                                            &pimegaDetectorConfigArg14};
 static const iocshFuncDef configpimegaDetector =
-{ "pimegaDetectorConfig", 14, pimegaDetectorConfigArgs };
+{ "pimegaDetectorConfig", 15, pimegaDetectorConfigArgs };
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args)
 {
     pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].sval, args[3].sval, args[4].sval,
                         args[5].ival, args[6].ival, args[7].ival, args[8].ival, args[9].ival,
-                        args[10].ival, args[11].ival, args[12].ival, args[13].ival);
+                        args[10].ival, args[11].ival, args[12].ival, args[13].ival, args[14].ival);
 }
 
 static void pimegaDetectorRegister(void)

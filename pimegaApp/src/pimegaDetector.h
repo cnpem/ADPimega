@@ -132,13 +132,14 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDisabledSensorsM3String   "DISABLED_SENSORS_M3"
 #define pimegaDisabledSensorsM4String   "DISABLED_SENSORS_M4"
 #define pimegaMBSendModeString          "MB_SEND_MODE"
+#define pimegaEnableBulkProcessingString "ENABLE_BULK_PROCESSING"
 class pimegaDetector: public ADDriver
 {
 public:
     pimegaDetector(const char *portName, const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int maxSizeX, int maxSizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate);
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate, int backendOn);
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -232,6 +233,7 @@ protected:
     int PimegaDisabledSensorsM4;
     int PimegaMBSendMode;
     int PimegaSensorBiasLow;
+    int PimegaEnableBulkProcessing;
     int PimegaSensorBiasHigh;
     #define LAST_PIMEGA_PARAM PimegaSensorBiasHigh
 

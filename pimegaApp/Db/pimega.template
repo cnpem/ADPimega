@@ -33,8 +33,14 @@ record(calcout,"$(P)$(R)UpdateScan")
 	field(INPA, "$(P)$(R)Acquire CPP NMS")
 	field(CALC, "(A)==1?2:4")
 	field(OUT,  "$(P)$(R)TemperatureActual.SCAN PP")
-
 }
+
+record(dfanout,"$(P)$(R)CaptureAcquire")
+{
+	field(OUTA, "$(P)$(R)Capture PP")
+	field(OUTB, "$(P)$(R)Acquire PP")
+}
+
 record(ao, "$(P)$(R)Gain")
 {
 	#field(DISA, "1")
@@ -61,70 +67,6 @@ record(longin, "$(P)$(R)NumCaptured_RBV")
 	field(SCAN, ".1 second")	
 }
 
-record(bi,"$(P)$(R)SendDAC_Done_RBV") {
-    field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_DAC_DONE")
-    field(DESC, "Send DAC is done readback")
-    field(ZNAM, "Sending")
-    field(ONAM, "Done")
-    field(SCAN, "I/O Intr")
-}
-
-record(mbbo,"$(P)$(R)AllModules") {
-    field(DESC, "Send to all modules")
-    field(DTYP, "asynInt32")
-   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
-	field(ZRVL, "0")
-    field(ZRST, "Individual Chip")
-	field(ONVL, "1")
-    field(ONST, "All Chips in one Module")
-	field(TWVL, "2")
-    field(TWST, "One chip in all modules")
-	field(THVL, "3")
-	field(THST, "All Chips and All Modules")
-	field(VAL,  "0")
-	field(PINI, "YES")
-}
-
-record(mbbi,"$(P)$(R)AllModules_RBV") {
-    field(DESC, "Send to all modules RBV")
-    field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
-	field(ZRVL, "0")
-    field(ZRST, "Individual")
-	field(ONVL, "1")
-    field(ONST, "All Chips in one Module")
-	field(TWVL, "2")
-    field(TWST, "One chip in all modules")
-	field(THVL, "3")
-	field(THST, "All Chips and All Modules")
-	field(SCAN, "I/O Intr")
-}
-
-record(mbbo,"$(P)$(R)MB_SendMode") {
-    field(DESC, "Select MB parameters send mode")
-    field(DTYP, "asynInt32")
-   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEND_MODE")
-    field(ZRST, "Individual MB One Flex") 	field(ZRVL, "0")
-    field(ONST, "Individual MB Both Flex")	field(ONVL, "1")
-	field(TWST, "All MBs One Flex")			field(TWVL, "2")
-	field(THST, "All MBs Both Flex")		field(THVL, "3")
-    field(FRST, "All MBs All Modules") 		field(FRVL, "4")
-	field(VAL,  "0")
-	field(PINI, "YES")
-}
-
-record(mbbi,"$(P)$(R)MB_SendMode_RBV") {
-    field(DESC, "Select MB parameters send mode RBV")
-    field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEND_MODE")
-    field(ZRST, "Individual MB One Flex") 	field(ZRVL, "0")
-    field(ONST, "Individual MB Both Flex")	field(ONVL, "1")
-	field(TWST, "All MBs One Flex")			field(TWVL, "2")
-	field(THST, "All MBs Both Flex")		field(THVL, "3")
-    field(FRST, "All MBs All Modules") 		field(FRVL, "4")
-	field(SCAN, "I/O Intr")
-}
 
 # We redefine the states for the TriggerMode records defined in ADBase.template
 record(mbbo,"$(P)$(R)TriggerMode") {
@@ -137,6 +79,7 @@ record(mbbo,"$(P)$(R)TriggerMode") {
     field(TWST,"External negative edge")
     field(IVOA, "Don't drive outputs")
 }
+
 
 record(mbbi,"$(P)$(R)TriggerMode_RBV") {
     field(DESC,"Trigger mode")
@@ -1294,4 +1237,84 @@ record(waveform, "$(P)$(R)DisabledSensorsM4_RBV")
     field(FTVL, "LONG")
     field(NELM, "36")
     field(SCAN, "I/O Intr")
+}
+
+
+record(bi,"$(P)$(R)SendDAC_Done_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_DAC_DONE")
+    field(DESC, "Send DAC is done readback")
+    field(ZNAM, "Sending")
+    field(ONAM, "Done")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbo,"$(P)$(R)AllModules") {
+    field(DESC, "Send to all modules")
+    field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
+	field(ZRVL, "0")
+    field(ZRST, "Individual Chip")
+	field(ONVL, "1")
+    field(ONST, "All Chips in one Module")
+	field(TWVL, "2")
+    field(TWST, "One chip in all modules")
+	field(THVL, "3")
+	field(THST, "All Chips and All Modules")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(mbbi,"$(P)$(R)AllModules_RBV") {
+    field(DESC, "Send to all modules RBV")
+    field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ALL_MODULES")
+	field(ZRVL, "0")
+    field(ZRST, "Individual")
+	field(ONVL, "1")
+    field(ONST, "All Chips in one Module")
+	field(TWVL, "2")
+    field(TWST, "One chip in all modules")
+	field(THVL, "3")
+	field(THST, "All Chips and All Modules")
+	field(SCAN, "I/O Intr")
+}
+
+record(mbbo,"$(P)$(R)MB_SendMode") {
+    field(DESC, "Select MB parameters send mode")
+    field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEND_MODE")
+    field(ZRST, "Individual MB One Flex") 	field(ZRVL, "0")
+    field(ONST, "Individual MB Both Flex")	field(ONVL, "1")
+	field(TWST, "All MBs One Flex")			field(TWVL, "2")
+	field(THST, "All MBs Both Flex")		field(THVL, "3")
+    field(FRST, "All MBs All Modules") 		field(FRVL, "4")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(mbbi,"$(P)$(R)MB_SendMode_RBV") {
+    field(DESC, "Select MB parameters send mode RBV")
+    field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEND_MODE")
+    field(ZRST, "Individual MB One Flex") 	field(ZRVL, "0")
+    field(ONST, "Individual MB Both Flex")	field(ONVL, "1")
+	field(TWST, "All MBs One Flex")			field(TWVL, "2")
+	field(THST, "All MBs Both Flex")		field(THVL, "3")
+    field(FRST, "All MBs All Modules") 		field(FRVL, "4")
+	field(SCAN, "I/O Intr")
+}
+
+record(mbbo,"$(P)$(R)BulkProcessing") {
+	field(DESC,"Bulk Processing")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_BULK_PROCESSING")	
+    field(ZRVL,"0")
+    field(ZRST,"Automatic")
+    field(ONVL,"1")
+    field(ONST,"Enable Bulk Processing")
+    field(TWVL,"2")
+    field(TWST,"Disable Bulk Processing")
+	field(VAL,  "0")
+	field(PINI, "YES")	
 }
