@@ -41,6 +41,12 @@ record(dfanout,"$(P)$(R)CaptureAcquire")
 	field(OUTB, "$(P)$(R)Acquire PP")
 }
 
+record(dfanout,"$(P)$(R)AcquireCapture")
+{
+	field(OUTA, "$(P)$(R)Acquire PP")
+	field(OUTB, "$(P)$(R)Capture PP")
+}
+
 record(ao, "$(P)$(R)Gain")
 {
 	#field(DISA, "1")
@@ -1306,7 +1312,7 @@ record(mbbi,"$(P)$(R)MB_SendMode_RBV") {
 }
 
 record(mbbo,"$(P)$(R)BulkProcessing") {
-	field(DESC,"Bulk Processing")
+	field(DESC,"Bulk Processing Configuration")
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_BULK_PROCESSING")	
     field(ZRVL,"0")
@@ -1317,4 +1323,12 @@ record(mbbo,"$(P)$(R)BulkProcessing") {
     field(TWST,"Disable Bulk Processing")
 	field(VAL,  "0")
 	field(PINI, "YES")	
+}
+
+record(bo, "$(P)$(R)AbortSave") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Abort saving")
+	field(HIGH, "0.1")
+	field(VAL,  "0")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ABORT_SAVE")
 }

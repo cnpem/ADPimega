@@ -773,6 +773,7 @@ int init_array_data(pimega_t *pimega);
 void get_array_data(pimega_t *pimega);
 void decode_backend_error(uint8_t ret, char *error);
 bool evaluateBulkProcessing(enum bulkProcessingEnum bulkProcessing, float acquirePeriod, float acquireTime, bool externalTrigger, uint64_t capture);
+int abort_save(pimega_t *pimega);
 // ---------------------------------------------------------
 
 int check_and_disable_sensors(pimega_t *pimega);

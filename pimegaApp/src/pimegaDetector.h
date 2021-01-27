@@ -133,6 +133,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDisabledSensorsM4String   "DISABLED_SENSORS_M4"
 #define pimegaMBSendModeString          "MB_SEND_MODE"
 #define pimegaEnableBulkProcessingString "ENABLE_BULK_PROCESSING"
+#define pimegaAbortSaveString            "ABORT_SAVE"
 class pimegaDetector: public ADDriver
 {
 public:
@@ -234,6 +235,7 @@ protected:
     int PimegaMBSendMode;
     int PimegaSensorBiasLow;
     int PimegaEnableBulkProcessing;
+    int PimegaAbortSave;
     int PimegaSensorBiasHigh;
     #define LAST_PIMEGA_PARAM PimegaSensorBiasHigh
 

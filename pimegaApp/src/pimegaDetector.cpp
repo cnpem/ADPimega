@@ -244,6 +244,15 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             setParameter(ADStringFromServer, "Backend Stopped");
         }
     }
+    else if (function == PimegaAbortSave){
+        if (backendStatus)
+            setParameter(ADStringFromServer, "Cannot Abort - Must stop acquisition first");
+        else if (value) 
+        { 
+            status |=  abort_save(pimega);
+            setParameter(ADStringFromServer, "Save Aborted");
+        }
+    }
     else if (function == PimegaSendImage) {
         if (value) status |= sendImage();
     }
@@ -889,6 +898,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDisabledSensorsM3String,asynParamInt32Array, &PimegaDisabledSensorsM3);
     createParam(pimegaDisabledSensorsM4String,asynParamInt32Array, &PimegaDisabledSensorsM4);
     createParam(pimegaEnableBulkProcessingString, asynParamInt32, &PimegaEnableBulkProcessing);
+    createParam(pimegaAbortSaveString,      asynParamInt32,     &PimegaAbortSave);
     createParam(pimegaMBSendModeString,     asynParamInt32,     &PimegaMBSendMode);
 
     /* Do callbacks so higher layers see any changes */
