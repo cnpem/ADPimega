@@ -513,7 +513,7 @@ record(ai,"$(P)$(R)M1:Medipix_AvgTemperature_RBV") {
     field(DTYP, "asynFloat64")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_TSENSOR_M1")
     field(DESC, "Medipix Avg Temperature Mod 1 ReadBack")
-    field(SCAN, "5 second")
+    field(SCAN, "I/O Intr")
 	field(PREC, "2")
 }
 

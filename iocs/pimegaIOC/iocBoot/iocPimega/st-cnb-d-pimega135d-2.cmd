@@ -25,8 +25,6 @@ epicsEnvSet("NELEMENTS", "2359296")
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
 epicsEnvSet("CBUFFS", "500")
-# Sensor type (0:SILICON 300um (MAXBIAS 100); 1:SILICON 675um (MAXBIAS 200); 2:CDTE (MAXBIAS 1000))
-epicsEnvSet("SENSOR_TYPE", "0")
 # The IP address of the Pimega system
 #epicsEnvSet("PIMEGA_MODULE01_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE02_IP", "127.0.0.1")
@@ -60,7 +58,7 @@ epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "99999999")
 #                                    allowed to allocate. Set this to 0 to allow an unlimited amount of memory.
 #              priority,           # The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
 #              stackSize,          # The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
-pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIMEGA_MODULE03_IP),$(PIMEGA_MODULE04_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0, 0, $(SENSOR_TYPE))
+pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIMEGA_MODULE03_IP),$(PIMEGA_MODULE04_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0, 0)
 
 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
