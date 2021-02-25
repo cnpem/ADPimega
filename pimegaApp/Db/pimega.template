@@ -119,6 +119,14 @@ record(ao, "$(P)$(R)AcquireTime")
 	field(PREC, 6)
 }
 
+
+record(longout, "$(P)$(R)NumExposures")
+{
+	field(DRVH, "2147483647")
+	field(DRVL, "1")
+}
+
+
 record(ao, "$(P)$(R)PeriodTime")
 {
 	field(PREC, 6)

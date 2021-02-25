@@ -73,7 +73,6 @@ void pimegaDetector::acqTask()
     this->lock();
     /* Loop forever */
     while (1) {
-
         if (!acquire)  {
             // Release the lock while we wait for an event that says acquire has started, then lock again
             asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
@@ -208,7 +207,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     static const char *functionName = "writeInt32";
     const char *paramName;
 
-    int adstatus, backendStatus;
+    int adstatus, backendStatus, acquireRunning;
     //int acquiring;
 
     getParamName(function, &paramName);
@@ -219,7 +218,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
     getParameter(NDFileCapture,&backendStatus);
-
+    getParameter(ADAcquire,&acquireRunning);
 
     if (function == ADAcquire) {
         if (value && backendStatus && 
@@ -237,7 +236,12 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     else if (function == NDFileCapture) {
         if (value) {
-            status |= startCaptureBackend();
+            if (acquireRunning == 0)
+            {
+                setParameter(ADStatusMessage, "Configuring detector");
+                status |= startCaptureBackend();
+            } else
+                return asynError;
         }
         if (!value) { 
             status |= send_stopAcquire_toBackend(pimega);
