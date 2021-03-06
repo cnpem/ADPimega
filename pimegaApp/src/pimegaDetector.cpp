@@ -231,14 +231,16 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             epicsEventSignal(this->stopEventId_);
             epicsThreadSleep(.1);
         }
-        else return asynError;
+        else {
+            return asynError;
+        }
     }
 
     else if (function == NDFileCapture) {
         if (value) {
             if (acquireRunning == 0)
             {
-                setParameter(ADStatusMessage, "Configuring detector");
+                setParameter(ADStatusMessage, "Backend ready");
                 status |= startCaptureBackend();
             } else
                 return asynError;
@@ -387,6 +389,11 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
     {
         *nActual = maxChars;
         status = dacDefaults(value);
+    }
+    else if (function == PimegaIndexID)
+    {
+        *nActual = maxChars;
+        setParameter(function, value);
     }
     else {
     /* If this parameter belongs to a base class call its method */
@@ -903,6 +910,9 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaDisabledSensorsM4String,asynParamInt32Array, &PimegaDisabledSensorsM4);
     createParam(pimegaEnableBulkProcessingString, asynParamInt32, &PimegaEnableBulkProcessing);
     createParam(pimegaAbortSaveString,      asynParamInt32,     &PimegaAbortSave);
+    createParam(pimegaIndexEnableString,    asynParamInt32,     &PimegaIndexEnable);
+    createParam(pimegaIndexSendModeString,  asynParamInt32,     &PimegaIndexSendMode);
+    createParam(pimegaIndexIDString,        asynParamOctet,     &PimegaIndexID);
     createParam(pimegaMBSendModeString,     asynParamInt32,     &PimegaMBSendMode);
 
     /* Do callbacks so higher layers see any changes */
@@ -932,14 +942,14 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFilePathExists, 0);
     setParameter(NDFileNumber, 0);
     setParameter(NDAutoIncrement, 1);
-    setParameter(NDAutoSave, 1);
+    setParameter(NDAutoSave, 0);
     setParameter(NDFileFormat, 0);
     setParameter(NDWriteFile, 0);
     setParameter(NDReadFile, 0);
     setParameter(NDFileWriteMode, NDFileModeSingle);
     setParameter(NDFileWriteStatus, 0);
     setParameter(NDFileCapture, 0);
-    setParameter(NDFileNumCapture, 0);
+    //setParameter(NDFileNumCapture, 1);
     setParameter(NDFileNumCaptured, 0);
     setParameter(NDFileDeleteDriverFile, 0);
     setParameter(ADTemperature, 30.0);
@@ -1048,6 +1058,9 @@ int pimegaDetector::startCaptureBackend(void)
     double acquirePeriod, acquireTime;
     int triggerMode;
     bool externalTrigger;
+    char IndexID[30] = "";
+    int indexEnable;
+    int indexSendMode;//enum IndexSendMode
     setParameter(ADStringToServer, "Sent Acquire Request");
     callParamCallbacks();
     
@@ -1063,12 +1076,16 @@ int pimegaDetector::startCaptureBackend(void)
     getParameter(ADAcquireTime, &acquireTime);
     getParameter(ADTriggerMode, &triggerMode);
 
+
+    getStringParam(PimegaIndexID, sizeof(IndexID), IndexID);
+    getParameter(PimegaIndexEnable, &indexEnable);
+    getParameter(PimegaIndexSendMode, &indexSendMode);
     /* Evaluate trigger if external or internal */
     if (triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)
         externalTrigger = false;
     else
         externalTrigger = true;
-
+    printf("------------------------------------------------%s\n", IndexID);
     getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
 
     /* Evaluate if bulk processing is necessary*/
@@ -1081,7 +1098,8 @@ int pimegaDetector::startCaptureBackend(void)
 	}
 
     /* Always reset backend RDMA buffers */
-    rc = update_backend_acqArgs(pimega, acqMode, lfsr, autoSave, true, (bool)bulkProcessingBool, 5);
+    rc = update_backend_acqArgs(pimega, acqMode, lfsr, autoSave, true, (bool)bulkProcessingBool,
+                               (enum IndexSendMode)indexSendMode, IndexID, (bool) indexEnable);
 
 
     rc = send_acqArgs_toBackend(pimega);

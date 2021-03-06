@@ -47,6 +47,8 @@ record(dfanout,"$(P)$(R)AcquireCapture")
 	field(OUTB, "$(P)$(R)Capture PP")
 }
 
+
+
 record(ao, "$(P)$(R)Gain")
 {
 	#field(DISA, "1")
@@ -71,6 +73,12 @@ record(longin, "$(P)$(R)NumImagesCounter_RBV")
 record(longin, "$(P)$(R)NumCaptured_RBV")
 {
 	field(SCAN, ".1 second")	
+}
+
+record(longout, "$(P)$(R)NumCapture")
+{
+	field(DRVH, "2147483647")
+	field(DRVL, "1")	
 }
 
 
@@ -1340,3 +1348,34 @@ record(bo, "$(P)$(R)AbortSave") {
 	field(VAL,  "0")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ABORT_SAVE")
 }
+
+record(waveform, "$(P)$(R)IndexDestinationID")
+{
+    field(DTYP, "asynOctetWrite")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))INDEX_ID")
+    field(FTVL, "CHAR")
+    field(NELM, "30")
+}
+
+record(bo, "$(P)$(R)IndexEnable") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Enable Index Visualization")
+	field(VAL,  "1")
+	field(ZNAM, "No")
+	field(ONAM, "Yes")	
+	field(PINI, "YES")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))INDEX_ENABLE")
+}
+
+record(mbbo,"$(P)$(R)IndexSendMode") {
+	field(DESC,"Index Send Mode")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))INDEX_SEND_MODE")	
+    field(ZRVL,"0")
+    field(ZRST,"Send Frames")
+    field(ONVL,"1")
+    field(ONST,"Send Volume")
+	field(VAL,  "0")
+	field(PINI, "YES")	
+}
+

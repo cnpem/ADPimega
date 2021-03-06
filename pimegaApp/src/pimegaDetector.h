@@ -134,6 +134,10 @@ static const char *driverName = "pimegaDetector";
 #define pimegaMBSendModeString          "MB_SEND_MODE"
 #define pimegaEnableBulkProcessingString "ENABLE_BULK_PROCESSING"
 #define pimegaAbortSaveString            "ABORT_SAVE"
+#define pimegaIndexIDString              "INDEX_ID"
+#define pimegaIndexEnableString          "INDEX_ENABLE"
+#define pimegaIndexSendModeString        "INDEX_SEND_MODE"
+
 class pimegaDetector: public ADDriver
 {
 public:
@@ -236,6 +240,9 @@ protected:
     int PimegaSensorBiasLow;
     int PimegaEnableBulkProcessing;
     int PimegaAbortSave;
+    int PimegaIndexID;
+    int PimegaIndexEnable;
+    int PimegaIndexSendMode;
     int PimegaSensorBiasHigh;
     #define LAST_PIMEGA_PARAM PimegaSensorBiasHigh
 
