@@ -60,7 +60,8 @@ void pimegaDetector::acqTask()
     int eventStatus=0;
     int numImages, numExposures;
     int imageMode, numImagesCounter = 0;
-    int acquire=0;
+    int acquire=0, i;
+    int autoSave;
     //NDArray *pImage;
     double acquireTime, acquirePeriod, delay, elapsedTime;
     int acquireStatus = 0;
@@ -165,14 +166,58 @@ void pimegaDetector::acqTask()
       
         if (acquireStatus == DONE_ACQ && acquire) {
             //generateImage();
+            getParameter(NDAutoSave, &autoSave);
             if (imageMode == ADImageSingle) {
                 acquire=0;
                 newImage = 0;
                 setIntegerParam(ADAcquire, 0);
                 setIntegerParam(ADStatus, ADStatusIdle);
                 if (pimega->acq_status_return.savedAquisitionNum != 
-                    (unsigned int)pimega->acquireParam.numCapture ) {
-                    setStringParam(ADStatusMessage, "Saving acquired frames..."); }
+                    (unsigned int)pimega->acquireParam.numCapture && autoSave == 1) {
+                    for (i = 0;  i < pimega->max_num_modules; i++)
+                    {
+                        if (pimega->acq_status_return.noOfFrames[i] == 0)                        
+                            setStringParam(ADStatusMessage, "Detector not responding");
+                        else if (pimega->acq_status_return.moduleError[i] != false)
+                        {
+                            setParameter(ADStatusMessage, "Detector error");
+                            setParameter(ADStringFromServer, "Frames lost.");
+                        }
+                        else if (pimega->acq_status_return.indexError != false)
+                        {
+                            setParameter(ADStatusMessage, "Index error");
+                            setParameter(ADStringFromServer, "Frames could not be sent.");
+                        } 
+                        else
+                            setStringParam(ADStatusMessage, "Saving acquired frames..."); 
+                    }
+                }
+                else {
+                    for (i = 0;  i < pimega->max_num_modules; i++)
+                    {
+                        if (pimega->acq_status_return.noOfFrames[i] == 0)
+                        {
+                            setStringParam(ADStatusMessage, "Detector not responding");
+                            break;
+                        }
+                        else if (pimega->acq_status_return.moduleError[i] != false)
+                        {
+                            setParameter(ADStatusMessage, "Detector error");
+                            setParameter(ADStringFromServer, "Frames lost.");
+                        }
+                        else if (pimega->acq_status_return.indexError != false)
+                        {
+                            setParameter(ADStatusMessage, "Index error");
+                            setParameter(ADStringFromServer, "Frames could not be sent.");
+                        }   
+                        else if (pimega->acq_status_return.indexSentAquisitionNum != (unsigned int)pimega->acquireParam.numCapture)  
+                        {
+                            setStringParam(ADStatusMessage, "Sending images to Index");
+                        }                    
+                        else
+                            setStringParam(ADStatusMessage, "Acquisition finished");
+                    }
+                }
             }
 
             else if (imageMode == ADImageMultiple) {
@@ -180,8 +225,52 @@ void pimegaDetector::acqTask()
                 setIntegerParam(ADAcquire, 0);
                 setIntegerParam(ADStatus, ADStatusIdle);
                 if (pimega->acq_status_return.savedAquisitionNum != 
-                    (unsigned int)pimega->acquireParam.numCapture ) {
-                    setStringParam(ADStatusMessage, "Saving acquired frames..."); }
+                    (unsigned int)pimega->acquireParam.numCapture && autoSave == 1 ) {
+                    for (i = 0;  i < pimega->max_num_modules; i++)
+                    {
+                        if (pimega->acq_status_return.noOfFrames[i] == 0) 
+                            setStringParam(ADStatusMessage, "Detector not responding");
+                        else if (pimega->acq_status_return.moduleError[i] != false)
+                        {
+                            setParameter(ADStatusMessage, "Detector error");
+                            setParameter(ADStringFromServer, "Frames lost.");
+                        }
+                        else if (pimega->acq_status_return.indexError != false)
+                        {
+                            setParameter(ADStatusMessage, "Index error");
+                            setParameter(ADStringFromServer, "Frames could not be sent.");
+                        }                             
+                        else
+                            setStringParam(ADStatusMessage, "Saving acquired frames..."); 
+                    }
+                }
+                else
+                {
+                    for (i = 0;  i < pimega->max_num_modules; i++)
+                    {
+                        if (pimega->acq_status_return.noOfFrames[i] == 0)
+                        {
+                            setStringParam(ADStatusMessage, "Detector not responding");
+                            break;
+                        }
+                        else if (pimega->acq_status_return.moduleError[i] != false)
+                        {
+                            setParameter(ADStatusMessage, "Detector error");
+                            setParameter(ADStringFromServer, "Frames lost.");
+                        }
+                        else if (pimega->acq_status_return.indexError != false)
+                        {
+                            setParameter(ADStatusMessage, "Index error");
+                            setParameter(ADStringFromServer, "Frames could not be sent.");
+                        }   
+                        else if (pimega->acq_status_return.indexSentAquisitionNum != (unsigned int)pimega->acquireParam.numCapture)  
+                        {
+                            setStringParam(ADStatusMessage, "Sending images to Index");
+                        }                                                
+                        else                    
+                            setStringParam(ADStatusMessage, "Acquisition finished");
+                    }  
+                } 
                 US_NumExposuresCounter_RBV(pimega);
                 newImage = 0;
             }
@@ -584,17 +673,23 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
 
             if ((num_capture != 0) && (backend_saved == num_capture)) {
                 send_stopAcquire_toBackend(pimega);
+
                 setParameter(ADStatusMessage, "Finished acquisition");
                 setParameter(ADStringToServer, "");
                 setParameter(ADStringFromServer, "HDF5 file saved");
                 setParameter(NDFileCapture, 0);
-                callParamCallbacks();
             }
+        
+            callParamCallbacks();
         }
 
         *value = pimega->acq_status_return.savedAquisitionNum;
     }
-
+    else if (function == PimegaIndexCounter) {
+        if (backendStatus) {
+            *value = pimega->acq_status_return.indexSentAquisitionNum; 
+        }      
+    }
     //Other functions we call the base class method
     else {
         status = asynPortDriver::readInt32(pasynUser, value);
@@ -913,6 +1008,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaIndexEnableString,    asynParamInt32,     &PimegaIndexEnable);
     createParam(pimegaIndexSendModeString,  asynParamInt32,     &PimegaIndexSendMode);
     createParam(pimegaIndexIDString,        asynParamOctet,     &PimegaIndexID);
+    createParam(pimegaIndexCounterString,   asynParamInt32,     &PimegaIndexCounter);
     createParam(pimegaMBSendModeString,     asynParamInt32,     &PimegaMBSendMode);
 
     /* Do callbacks so higher layers see any changes */
@@ -1093,9 +1189,7 @@ int pimegaDetector::startCaptureBackend(void)
                                                  acquireTime, externalTrigger, pimega->acquireParam.numCapture);
 
     /* Always reset RDMA logic in the FPGA at new capture */
-	for (int _module = 0; _module < pimega->max_num_modules; _module++) {
-		rc |= send_allinitArgs(pimega, _module);
-	}
+    send_allinitArgs_allModules(pimega);
 
     /* Always reset backend RDMA buffers */
     rc = update_backend_acqArgs(pimega, acqMode, lfsr, autoSave, true, (bool)bulkProcessingBool,

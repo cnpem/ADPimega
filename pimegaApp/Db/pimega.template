@@ -1379,3 +1379,10 @@ record(mbbo,"$(P)$(R)IndexSendMode") {
 	field(PINI, "YES")	
 }
 
+
+record(longin, "$(P)$(R)IndexSentFramesCounter_RBV") {
+	field(DESC, "Frames sent to index")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))INDEX_COUNTER")
+    field(SCAN, ".1 second")
+}

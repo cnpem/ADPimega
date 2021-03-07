@@ -137,6 +137,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaIndexIDString              "INDEX_ID"
 #define pimegaIndexEnableString          "INDEX_ENABLE"
 #define pimegaIndexSendModeString        "INDEX_SEND_MODE"
+#define pimegaIndexCounterString         "INDEX_COUNTER"
 
 class pimegaDetector: public ADDriver
 {
@@ -243,6 +244,7 @@ protected:
     int PimegaIndexID;
     int PimegaIndexEnable;
     int PimegaIndexSendMode;
+    int PimegaIndexCounter;
     int PimegaSensorBiasHigh;
     #define LAST_PIMEGA_PARAM PimegaSensorBiasHigh
 

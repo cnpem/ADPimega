@@ -100,7 +100,9 @@ enum returnTypesEnum {
     INVALID_SAVE_PATH,
     INVALID_AQUISITION_MODE,
     INVALID_NUM_OF_ACQUISITIONS,
-    INVALID_GEOMETRY_FILE
+    INVALID_GEOMETRY,
+    INVALID_INDEX_ID,
+    STILL_SAVING
 };
 
 enum saveModeEnum {
@@ -116,6 +118,10 @@ enum aquisitionModeEnum {
     DUALENERGY = 2
 };
 
+enum IndexSendMode {
+    SEND_FRAME = 0,
+    SEND_VOLUME = 1
+};
 
 #define STRUCT_SIZE 400
 
@@ -132,7 +138,7 @@ typedef struct __attribute__((__packed__)){
     uint8_t reserved[STRUCT_SIZE-301];
 } geometryArgs;
 
-//Size 328
+//Size 353
 typedef struct __attribute__((__packed__)){
     uint8_t                type;
     uint64_t               noOfAquisitions;
@@ -142,35 +148,40 @@ typedef struct __attribute__((__packed__)){
     uint8_t                aquisitionMode;
     bool                   resetRDMABuffer;
     double                 detectorDistance;
-    uint8_t                extraDimensions;
     bool                   bulkProcessing;
-    uint8_t                DimensionsDepth[5];
-    uint8_t                reserved[STRUCT_SIZE-328];
+    uint8_t                indexSendMode;
+    char                   indexDestinationID[30];
+    bool                   indexEnable;
+    uint8_t                reserved[STRUCT_SIZE-354];
 } acqArgs;
 
 
-//Size 134
+//Size 143
 typedef struct __attribute__((__packed__)){
     uint8_t                type;
     uint64_t               noOfFrames[4]; /* This contains the number of frames acquired */
     uint64_t               noOfAquisitions[4]; /* This contains the number of aquisitions */
     float                  bufferUsed[4]; /* This contains a percentage of the buffer usage */
-    bool                   error[4]; /* Reception errors are indicated here */
+    bool                   moduleError[4]; /* Reception errors are indicated here */
+    bool                   indexError;
     uint64_t               lostFrameCnt[4];
     uint8_t                done;
     uint64_t               savedFrameNum;
     uint64_t               savedAquisitionNum;
-    uint8_t                reserved[STRUCT_SIZE-134];
+    uint64_t               indexSentAquisitionNum;
+    uint8_t                reserved[STRUCT_SIZE-143];
 } acqStatusArgs;
 
-//Size 22
+//Size 31
 typedef struct __attribute__((__packed__)){
     uint8_t                type;
     uint8_t                done;
-    uint8_t                error[4];
+    uint8_t                moduleError[4];
+    bool                   indexError;
     uint64_t               savedFrameNum;
     uint64_t               savedAquisitionNum;
-    uint8_t                reserved[STRUCT_SIZE-22];
+    uint64_t               indexSentAquisitionNum;    
+    uint8_t                reserved[STRUCT_SIZE-31];
 } saveStatusArgs;
 
 //Size 261
@@ -762,13 +773,15 @@ int trigger_out_get(pimega_t *pimega);
 // -------- Backend functions -----------------------------------
 int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
 int send_allinitArgs(pimega_t *pimega, int module);
+int send_allinitArgs_allModules(pimega_t *pimega);
 int send_acqArgs_toBackend(pimega_t *pimega);
 int get_acqStatus_fromBackend(pimega_t *pimega);
 int get_saveStatus_fromBackend(pimega_t *pimega, uint64_t *savedAcquisitions); 
 int send_stopAcquire_toBackend(pimega_t *pimega);
 int update_backend_acqArgs(pimega_t *pimega, uint8_t aquisitionMode, bool useLFSR,
 					uint8_t saveMode, bool resetRDMABuffer, bool bulkProcessing,
-					uint8_t extraDimensions);
+					enum IndexSendMode indexSendMode, const char *indexDestinationID,
+					bool indexEnable);
 int init_array_data(pimega_t *pimega);
 void get_array_data(pimega_t *pimega);
 void decode_backend_error(uint8_t ret, char *error);
