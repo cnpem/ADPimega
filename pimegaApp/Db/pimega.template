@@ -1337,7 +1337,7 @@ record(mbbo,"$(P)$(R)BulkProcessing") {
     field(ONST,"Enable Bulk Processing")
     field(TWVL,"2")
     field(TWST,"Disable Bulk Processing")
-	field(VAL,  "0")
+	field(VAL,  "2")
 	field(PINI, "YES")	
 }
 
