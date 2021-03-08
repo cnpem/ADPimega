@@ -16,7 +16,7 @@
 #include <stdint.h>
 #include <map>
 #include <limits.h>
-
+#include <unistd.h>
 
 // EPICS includes
 #include <epicsThread.h>

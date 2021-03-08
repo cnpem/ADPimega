@@ -1360,7 +1360,7 @@ record(waveform, "$(P)$(R)IndexDestinationID")
 record(bo, "$(P)$(R)IndexEnable") {
 	field(DTYP, "asynInt32")
 	field(DESC, "Enable Index Visualization")
-	field(VAL,  "1")
+	field(VAL,  "0")
 	field(ZNAM, "No")
 	field(ONAM, "Yes")	
 	field(PINI, "YES")
