@@ -78,7 +78,7 @@ record(longin, "$(P)$(R)NumCaptured_RBV")
 record(longout, "$(P)$(R)NumCapture")
 {
 	field(DRVH, "2147483647")
-	field(DRVL, "1")	
+	field(DRVL, "0")	
 }
 
 

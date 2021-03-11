@@ -58,7 +58,7 @@ void pimegaDetector::acqTask()
 {
     int status = asynSuccess;
     int eventStatus=0;
-    int numImages, numExposures;
+    int numImages, numExposuresVar;
     int imageMode, numImagesCounter = 0;
     int acquire=0, i;
     int autoSave;
@@ -82,8 +82,9 @@ void pimegaDetector::acqTask()
             this->unlock();
             status = epicsEventWait(startEventId_);
             this->lock();
+            asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+                "%s:%s: Acquire started\n", driverName, functionName);
 
-            setStringParam(ADStatusMessage, "Acquiring data");
 
             /* We are acquiring. */
 
@@ -92,7 +93,7 @@ void pimegaDetector::acqTask()
             getDoubleParam(ADAcquireTime, &acquireTime);
             getDoubleParam(ADAcquirePeriod, &acquirePeriod);
 
-            getIntegerParam(ADNumExposures, &numExposures);
+            getIntegerParam(ADNumExposures, &numExposuresVar);
             getIntegerParam(ADNumImages, &numImages);
 
             /* Open the shutter */
@@ -103,8 +104,16 @@ void pimegaDetector::acqTask()
             callParamCallbacks();
             bufferOverflow =0;
 
+            /* if continous mode is chosen! */
+            if (imageMode == ADImageContinuous) {
+                setParameter (ADNumExposures, 1);   
+                numExposuresVar = 1;             
+                numExposures(1);
+            }
+            
             status = startAcquire();
             if (status != asynSuccess) {
+                err_print("startAcquire() failed. Stop event sent.\n");
                 epicsEventSignal(this->stopEventId_);
                 epicsThreadSleep(.1);
             }
@@ -115,7 +124,7 @@ void pimegaDetector::acqTask()
             }
         }
 
-        /* Acquisition is already taking place */
+        /* Acquisition just started because startAcquire() was successful */
         if (acquire) {
             // Read detector state
             acquireStatus = status_acquire(pimega);
@@ -124,15 +133,20 @@ void pimegaDetector::acqTask()
             epicsTimeGetCurrent(&endTime);
             elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
             if (acquirePeriod > acquireTime) {
-                delay = (acquirePeriod * numExposures) - elapsedTime;
+                delay = (acquirePeriod * numExposuresVar) - elapsedTime;
             }
             else {
-                delay = (acquireTime * numExposures)  - elapsedTime;
+                delay = (acquireTime * numExposuresVar)  - elapsedTime;
             }
 
             if (delay < 0) delay = 0;
-            setDoubleParam(ADTimeRemaining, delay);
 
+            if (imageMode == ADImageContinuous)
+                setDoubleParam(ADTimeRemaining, elapsedTime);
+            else
+                setDoubleParam(ADTimeRemaining, delay);
+
+            /* TODO: Not necessary anymore*/
             if (newImage != numImagesCounter)
                 {
                     //generateImage();
@@ -146,6 +160,7 @@ void pimegaDetector::acqTask()
 
         /* Stop event detected */
         if (eventStatus == epicsEventWaitOK) {
+            v_print("epicsEventWaitWithTimeout returned epicsEventWaitOK (Stop signal detected).\n");
             //US_Acquire(pimega,0);
             stop_acquire(pimega);
             send_stopAcquire_toBackend(pimega);
@@ -153,6 +168,7 @@ void pimegaDetector::acqTask()
             setIntegerParam(ADAcquire, 0);
             acquire=0;
 
+            /* TODO: This condition needs checking if needed. Always returns false. */
             if (bufferOverflow) setStringParam(ADStatusMessage,
                     "Acquisition aborted by buffer overflow");
 
@@ -167,7 +183,9 @@ void pimegaDetector::acqTask()
             callParamCallbacks();
         }
         //printf("Index error = %d\n", pimega->acq_status_return.indexError);      
-        /* Will enter here only one time when the acqusition time is over */
+        /* Will enter here only one time when the acqusition time is over. The current configuration assumes that
+          when time is up, the thread goes to sleep, but perhaps we should consider changing this to only after 
+          when the frames are ready, acquire should become 0*/
         if (acquireStatus == DONE_ACQ && acquire) {
 
             /* Added this delay to guarantee that the scan of NDFileNumCaptured was performed at least once after acquireStatus turned DONE_ACQ */
@@ -238,7 +256,7 @@ void pimegaDetector::acqTask()
                 }     
                 else if (pimega->acq_status_return.savedAquisitionNum != 
                     (unsigned int)pimega->acquireParam.numCapture && autoSave == 1) {
-                        setStringParam(ADStatusMessage, "Saving acquired frames..."); 
+                        setStringParam(ADStatusMessage, "Saving acquired frames"); 
                 }
                 else {
                         setStringParam(ADStatusMessage, "Acquisition finished");
@@ -262,7 +280,6 @@ void pimegaDetector::acqTask()
             }
 
             else if (imageMode == ADImageContinuous) {
-                pimega->acquireParam.numExposures = 1;
                 status = startAcquire();
                 numImagesCounter++;
                 //acquire=0;
@@ -300,14 +317,18 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (value && backendStatus && 
             (adstatus == ADStatusIdle || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
             /* Send an event to wake up the acq task.  */
+            v_print("Start event detected. Sending start event signal.\n");
             epicsEventSignal(this->startEventId_);
+            
         }
         else if (!value && (adstatus == ADStatusAcquire)) {
           /* This was a command to stop acquisition */
+            v_print("Stop event detected. Sending stop event signal.\n");
             epicsEventSignal(this->stopEventId_);
             epicsThreadSleep(.1);
         }
         else {
+            err_print("Neither value nor !value condition was chosen. returning asynError\n");
             return asynError;
         }
     }
@@ -319,7 +340,10 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
                 setParameter(ADStatusMessage, "Backend ready");
                 status |= startCaptureBackend();
             } else
+            {
+                err_print("Detector acquisition running. Will not start a new backend capture. Sending asynError.\n");
                 return asynError;
+            }
         }
         if (!value) { 
             status |= send_stopAcquire_toBackend(pimega);

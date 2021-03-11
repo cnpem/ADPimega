@@ -6,7 +6,7 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdio.h>
-
+#include <sys/time.h>
 
 #if __GNUC__ >= 4
 #pragma GCC visibility push(default)
@@ -69,6 +69,88 @@ extern "C" {
 
 #define RETURN_RC_ON_ERROR(x, y) x; if (rc != 0) { fprintf(stderr, "%s\n", y); return rc; };
 #define RETURN_ON_ERROR(x, ...) if (x != 0) { fprintf(stderr, ##__VA_ARGS__); return -1; };
+
+
+
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
+
+
+#define VVV   1
+#define VV    1
+#define V     1
+
+
+
+
+
+#define warn_print(fmt, ...) \
+            do {		struct timeval curTime; \
+						gettimeofday(&curTime, NULL); \
+						char text[2000] = BOLDMAGENTA "[%02d:%02d:%02d.%06d] " RESET; \
+						struct tm *readable = localtime(&curTime.tv_sec); \
+						strcat(text, fmt); \
+                        fprintf(stdout, text, readable->tm_hour, readable->tm_min, readable->tm_sec, curTime.tv_usec,##__VA_ARGS__); \
+            } while (0)
+
+#define vvv_print(fmt, ...) \
+            do {    if (VVV) { \
+						struct timeval curTime; \
+						gettimeofday(&curTime, NULL); \
+						char text[2000] = GREEN "[%02d:%02d:%02d.%06d] " RESET; \
+						struct tm *readable = localtime(&curTime.tv_sec); \
+						strcat(text, fmt); \
+						fprintf(stdout, text, readable->tm_hour, readable->tm_min, readable->tm_sec, curTime.tv_usec,##__VA_ARGS__); \
+                    } \
+            } while (0)
+
+#define err_print(fmt, ...) \
+            do {    struct timeval curTime; \
+					gettimeofday(&curTime, NULL); \
+					char text[2000] = RED "[%02d:%02d:%02d.%06d] " RESET; \
+					struct tm *readable = localtime(&curTime.tv_sec); \
+					strcat(text, fmt); \
+					fprintf(stdout, text, readable->tm_hour, readable->tm_min, readable->tm_sec, curTime.tv_usec,##__VA_ARGS__); \
+            } while (0)
+
+#define vv_print(fmt, ...) \
+            do {    if (VV) { \
+						struct timeval curTime; \
+						gettimeofday(&curTime, NULL); \
+						char text[2000] = GREEN "[%02d:%02d:%02d.%06d] " RESET; \
+						struct tm *readable = localtime(&curTime.tv_sec); \
+						strcat(text, fmt); \
+						fprintf(stdout, text, readable->tm_hour, readable->tm_min, readable->tm_sec, curTime.tv_usec,##__VA_ARGS__); \
+                    } \
+            } while (0)
+
+#define v_print(fmt, ...) \
+            do {    if (V) { \
+						struct timeval curTime; \
+						gettimeofday(&curTime, NULL); \
+						char text[2000] = GREEN "[%02d:%02d:%02d.%06d] " RESET; \
+						struct tm *readable = localtime(&curTime.tv_sec); \
+						strcat(text, fmt); \
+						fprintf(stdout, text, readable->tm_hour, readable->tm_min, readable->tm_sec, curTime.tv_usec,##__VA_ARGS__); \
+                    } \
+            } while (0)			
+
 
 /* Backend structures */
 enum requestTypesEnum {
@@ -523,17 +605,17 @@ typedef enum acquire_status_t{
 } acquire_status_t;
 
 typedef struct pimega_acquire_params_t {
-	uint32_t numImages;						//US_NumImages
-	uint32_t numImagesCounter;				//US_NumImagesCounter_RBV
-	uint32_t numExposures;					//US_NumExposures
-	float acquireTime;						//US_AcquireTime
-	float acquirePeriod;
-	bool acquireState;						//US_Acquire_RBV
+	uint32_t numImages = 0;						//US_NumImages
+	uint32_t numImagesCounter = 0;				//US_NumImagesCounter_RBV
+	uint32_t numExposures = 0;					//US_NumExposures
+	float acquireTime = 0;						//US_AcquireTime
+	float acquirePeriod = 0;
+	bool acquireState = 0;						//US_Acquire_RBV
 	char detectorState[512];				//US_DetectorState_RBV
-	float timeRemaining;					//US_TimeRemaining_RBV
-	uint32_t numExposuresCounter;
-	uint32_t numExposuresTotal;				//US_NumExposuresCounter_RBV
-	int numCapture;
+	float timeRemaining = 0;					//US_TimeRemaining_RBV
+	uint32_t numExposuresCounter = 0;
+	uint32_t numExposuresTotal = 0;				//US_NumExposuresCounter_RBV
+	int numCapture = 0;
 	acquire_status_t acquireStatus;
 } pimega_acquire_params_t;
 

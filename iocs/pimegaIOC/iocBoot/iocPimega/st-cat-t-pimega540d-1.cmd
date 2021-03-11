@@ -70,7 +70,7 @@ NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=$(NELEMENTS)")
 
 # Load all other plugins using commonPlugins.cmd
-#< commonPlugins.cmd
+< commonPlugins.cmd
 set_requestfile_path("$(ADPIMEGA)/pimegaApp/Db")
 
 
@@ -79,7 +79,7 @@ iocInit()
 dbpf(${PREFIX}cam1:FilePath,"/tmp")
 dbpf(${PREFIX}cam1:FileName,"teste")
 dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
-dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega540d-1.ini")
+#dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega540d-1.ini")
 dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
