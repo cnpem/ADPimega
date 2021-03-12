@@ -1172,6 +1172,7 @@ int pimegaDetector::startCaptureBackend(void)
     char IndexID[30] = "";
     int indexEnable;
     int indexSendMode;//enum IndexSendMode
+    setStringParam(ADStatusMessage, "Starting acquisition");
     setParameter(ADStringFromServer, "Configuring");
     callParamCallbacks();
     
