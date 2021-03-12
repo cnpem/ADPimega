@@ -192,12 +192,12 @@ void pimegaDetector::acqTask()
 
             /* Identify if Module error occured or received frames in all, or some modules is 0 */
             bool moduleError = false;
-            uint64_t minumumFrameCount = UINT64_MAX;
+            uint64_t minumumAcquisitionCount = UINT64_MAX;
             for (i = 0;  i < pimega->max_num_modules; i++)
             {
                 moduleError |= pimega->acq_status_return.moduleError[i];
-                if (minumumFrameCount > pimega->acq_status_return.noOfFrames[i])
-                    minumumFrameCount = pimega->acq_status_return.noOfFrames[i];
+                if (minumumAcquisitionCount > pimega->acq_status_return.noOfAquisitions[i])
+                    minumumAcquisitionCount = pimega->acq_status_return.noOfAquisitions[i];
             }
             /* Index enable */
             getIntegerParam(PimegaIndexEnable, &indexEnable);
@@ -218,7 +218,14 @@ void pimegaDetector::acqTask()
                 }     
                 else if (pimega->acq_status_return.savedAquisitionNum != 
                     (unsigned int)pimega->acquireParam.numCapture && autoSave == 1) {
-                        setStringParam(ADStatusMessage, "Saving acquired frames"); 
+                        if (minumumAcquisitionCount > pimega->acq_status_return.savedAquisitionNum)
+                        {
+                            setStringParam(ADStatusMessage, "Saving acquired frames"); 
+                        }
+                        else{
+                            setStringParam(ADStatusMessage, "Detector not responding");
+                            setParameter(ADStringFromServer, "Not all images received. Waiting...");
+                        }
                 }
                 else {
                     setStringParam(ADStatusMessage, "Acquisition finished");
@@ -227,7 +234,7 @@ void pimegaDetector::acqTask()
                     acquireStatus = 0;
                     setIntegerParam(ADStatus, ADStatusIdle);   
                 }  
-                if (minumumFrameCount == 0) 
+                if (minumumAcquisitionCount == 0) 
                 {                
                     /* At this point, when the acquisition is only 1 frame, it still does not show up. A delay can be introduced at the beginning 
                        of this scope to get updated backend acquire status */     
@@ -257,7 +264,14 @@ void pimegaDetector::acqTask()
                 }     
                 else if (pimega->acq_status_return.savedAquisitionNum != 
                     (unsigned int)pimega->acquireParam.numCapture && autoSave == 1) {
-                        setStringParam(ADStatusMessage, "Saving acquired frames"); 
+                        if (minumumAcquisitionCount > pimega->acq_status_return.savedAquisitionNum)
+                        {
+                            setStringParam(ADStatusMessage, "Saving acquired frames"); 
+                        }
+                        else{
+                            setStringParam(ADStatusMessage, "Detector not responding");
+                            setParameter(ADStringFromServer, "Not all images received. Waiting...");
+                        }
                 }
                 else {
                         acquire=0;
@@ -268,7 +282,7 @@ void pimegaDetector::acqTask()
                 }  
                 US_NumExposuresCounter_RBV(pimega);
 
-                if (minumumFrameCount == 0)    
+                if (minumumAcquisitionCount == 0)    
                 {                   
                     get_acqStatus_fromBackend(pimega);
                     setStringParam(ADStatusMessage, "Detector not responding");
