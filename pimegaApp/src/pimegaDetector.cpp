@@ -218,7 +218,7 @@ void pimegaDetector::acqTask()
                 }     
                 else if (pimega->acq_status_return.savedAquisitionNum != 
                     (unsigned int)pimega->acquireParam.numCapture && autoSave == 1) {
-                        setStringParam(ADStatusMessage, "Saving acquired frames..."); 
+                        setStringParam(ADStatusMessage, "Saving acquired frames"); 
                 }
                 else {
                     setStringParam(ADStatusMessage, "Acquisition finished");
@@ -233,6 +233,7 @@ void pimegaDetector::acqTask()
                        of this scope to get updated backend acquire status */     
                     get_acqStatus_fromBackend(pimega);
                     setStringParam(ADStatusMessage, "Detector not responding");
+                    setParameter(ADStringFromServer, "No images received. Waiting...");
                 }
                 else if (moduleError != false)
                 {
@@ -271,6 +272,7 @@ void pimegaDetector::acqTask()
                 {                   
                     get_acqStatus_fromBackend(pimega);
                     setStringParam(ADStatusMessage, "Detector not responding");
+                    setParameter(ADStringFromServer, "No images received. Waiting..."); //¯\_(⊙︿⊙)_/¯
                 }
                 else if (moduleError != false)
                 {
@@ -340,7 +342,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (value) {
             if (acquireRunning == 0)
             {
-                //setParameter(ADStatusMessage, "Backend ready");
                 status |= startCaptureBackend();
             } else
             {
@@ -1171,7 +1172,7 @@ int pimegaDetector::startCaptureBackend(void)
     char IndexID[30] = "";
     int indexEnable;
     int indexSendMode;//enum IndexSendMode
-    setParameter(ADStringFromServer, "Configuring...");
+    setParameter(ADStringFromServer, "Configuring");
     callParamCallbacks();
     
     /* Create the full filename */
@@ -1228,7 +1229,7 @@ int pimegaDetector::startCaptureBackend(void)
         rc |= US_Acquire(pimega, 1);
     }
 
-    //setParameter(ADStringFromServer, "Backend Ready");
+    setParameter(ADStringFromServer, "Backend Ready");
 
     return rc;
 }
