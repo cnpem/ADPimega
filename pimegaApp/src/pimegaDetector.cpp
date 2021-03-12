@@ -66,9 +66,8 @@ void pimegaDetector::acqTask()
     double acquireTime, acquirePeriod, delay, elapsedTime;
     int acquireStatus = 0;
     bool bufferOverflow=0;
-    int newImage=0;
     epicsTimeStamp startTime, endTime;
-    int indexEnable;
+    int indexEnable, backendStatus;
     const char *functionName = "pimegaDetector::acqTask";
 
     this->lock();
@@ -76,6 +75,9 @@ void pimegaDetector::acqTask()
     while (1) {
         /* No acquisition in place */
         if (!acquire)  {
+
+            /* reset acquireStatus */
+            acquireStatus = 0;
             // Release the lock while we wait for an event that says acquire has started, then lock again
             asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
@@ -104,6 +106,9 @@ void pimegaDetector::acqTask()
             callParamCallbacks();
             bufferOverflow =0;
 
+            /* Backend status */
+            getParameter(NDFileCapture,&backendStatus);
+
             /* if continous mode is chosen! */
             if (imageMode == ADImageContinuous) {
                 setParameter (ADNumExposures, 1);   
@@ -125,7 +130,7 @@ void pimegaDetector::acqTask()
         }
 
         /* Acquisition just started because startAcquire() was successful */
-        if (acquire) {
+        if (acquire && acquireStatus != DONE_ACQ) {
             // Read detector state
             acquireStatus = status_acquire(pimega);
             //numImagesCounter = pimega->acq_status_return.noOfAquisitions[1];
@@ -146,12 +151,6 @@ void pimegaDetector::acqTask()
             else
                 setDoubleParam(ADTimeRemaining, delay);
 
-            /* TODO: Not necessary anymore*/
-            if (newImage != numImagesCounter)
-                {
-                    //generateImage();
-                    newImage = numImagesCounter;
-                }
         }
 
         this->unlock();
@@ -191,7 +190,7 @@ void pimegaDetector::acqTask()
             /* Added this delay to guarantee that the scan of NDFileNumCaptured was performed at least once after acquireStatus turned DONE_ACQ */
             //usleep(200000);
 
-            /* Identify if Module error occured or received frames in all modules is 0 */
+            /* Identify if Module error occured or received frames in all, or some modules is 0 */
             bool moduleError = false;
             uint64_t minumumFrameCount = UINT64_MAX;
             for (i = 0;  i < pimega->max_num_modules; i++)
@@ -200,7 +199,6 @@ void pimegaDetector::acqTask()
                 if (minumumFrameCount > pimega->acq_status_return.noOfFrames[i])
                     minumumFrameCount = pimega->acq_status_return.noOfFrames[i];
             }
-
             /* Index enable */
             getIntegerParam(PimegaIndexEnable, &indexEnable);
 
@@ -209,12 +207,10 @@ void pimegaDetector::acqTask()
 
 
             if (imageMode == ADImageSingle) {
-                acquire=0;
-                setIntegerParam(ADAcquire, 0);                
-                newImage = 0;
+            
 
                 //printf("indexError=%x\n", pimega->acq_status_return.indexError);
-                setIntegerParam(ADStatus, ADStatusIdle);
+                
                 if (pimega->acq_status_return.indexSentAquisitionNum != (unsigned int)pimega->acquireParam.numCapture && 
                     (bool)indexEnable == true)  
                 {
@@ -225,30 +221,34 @@ void pimegaDetector::acqTask()
                         setStringParam(ADStatusMessage, "Saving acquired frames..."); 
                 }
                 else {
-                        setStringParam(ADStatusMessage, "Acquisition finished");
+                    setStringParam(ADStatusMessage, "Acquisition finished");
+                    acquire=0;
+                    setIntegerParam(ADAcquire, 0); 
+                    acquireStatus = 0;
+                    setIntegerParam(ADStatus, ADStatusIdle);   
                 }  
                 if (minumumFrameCount == 0) 
                 {                
                     /* At this point, when the acquisition is only 1 frame, it still does not show up. A delay can be introduced at the beginning 
-                       of this scope to get updated backend acquire status */      
-                    //setStringParam(ADStatusMessage, "Detector not responding");
+                       of this scope to get updated backend acquire status */     
+                    get_acqStatus_fromBackend(pimega);
+                    setStringParam(ADStatusMessage, "Detector not responding");
                 }
                 else if (moduleError != false)
                 {
                     setParameter(ADStatusMessage, "Detector error");
-                    setParameter(ADStringFromServer, "Frames lost.");
+                    setParameter(ADStringFromServer, "Detector dropped frames");
                 }
                 else if (pimega->acq_status_return.indexError != false)
                 {
                     setParameter(ADStatusMessage, "Index error");
-                    setParameter(ADStringFromServer, "Frames could not be sent.");
+                    setParameter(ADStringFromServer, "Index not responding");
                 }                              
             }
 
             else if (imageMode == ADImageMultiple) {
-                acquire=0;
-                setIntegerParam(ADAcquire, 0);
-                setIntegerParam(ADStatus, ADStatusIdle);
+
+                
                 if (pimega->acq_status_return.indexSentAquisitionNum != (unsigned int)pimega->acquireParam.numCapture && 
                     (bool)indexEnable == true)  
                 {
@@ -259,33 +259,36 @@ void pimegaDetector::acqTask()
                         setStringParam(ADStatusMessage, "Saving acquired frames"); 
                 }
                 else {
+                        acquire=0;
+                        setIntegerParam(ADAcquire, 0);
+                        setIntegerParam(ADStatus, ADStatusIdle);
+                        acquireStatus = 0;
                         setStringParam(ADStatusMessage, "Acquisition finished");
                 }  
                 US_NumExposuresCounter_RBV(pimega);
-                newImage = 0;
+
                 if (minumumFrameCount == 0)    
                 {                   
-                    //setStringParam(ADStatusMessage, "Detector not responding");
+                    get_acqStatus_fromBackend(pimega);
+                    setStringParam(ADStatusMessage, "Detector not responding");
                 }
                 else if (moduleError != false)
                 {
                     setParameter(ADStatusMessage, "Detector error");
-                    setParameter(ADStringFromServer, "Frames lost.");
+                    setParameter(ADStringFromServer, "Detector dropped frames");
                 }
                 else if (pimega->acq_status_return.indexError != false)
                 {
                     setParameter(ADStatusMessage, "Index error");
-                    setParameter(ADStringFromServer, "Frames could not be sent.");
+                    setParameter(ADStringFromServer, "Index not responding");
                 }                   
             }
 
             else if (imageMode == ADImageContinuous) {
                 status = startAcquire();
+                acquireStatus = 0;
                 numImagesCounter++;
-                //acquire=0;
-                //newImage = 0;
             }
-            
         }
         /* Call the callbacks to update any changes */
         callParamCallbacks();
@@ -337,7 +340,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (value) {
             if (acquireRunning == 0)
             {
-                setParameter(ADStatusMessage, "Backend ready");
+                //setParameter(ADStatusMessage, "Backend ready");
                 status |= startCaptureBackend();
             } else
             {
@@ -1225,7 +1228,7 @@ int pimegaDetector::startCaptureBackend(void)
         rc |= US_Acquire(pimega, 1);
     }
 
-    setParameter(ADStringFromServer, "Backend Ready");
+    //setParameter(ADStringFromServer, "Backend Ready");
 
     return rc;
 }

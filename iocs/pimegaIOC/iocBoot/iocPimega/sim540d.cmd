@@ -8,7 +8,7 @@ dbLoadDatabase("$(TOP)/dbd/pimegaApp.dbd")
 pimegaApp_registerRecordDeviceDriver(pdbbase) 
 
 # Prefix for all records
-epicsEnvSet("PREFIX", "SOLSIM:")
+epicsEnvSet("PREFIX", "540DSIM:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
 # The detector model (0:mobipix; 1:pimega45D; 2:pimega135D; 3:pimega540D)
