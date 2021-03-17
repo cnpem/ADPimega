@@ -174,6 +174,7 @@ void pimegaDetector::acqTask()
             if (imageMode == ADImageContinuous) {
                 setIntegerParam(ADStatus, ADStatusIdle);
                 setStringParam(ADStatusMessage, "Acquisition finished");
+                setParameter(ADStringFromServer, "Done"); //¯\_(⊙︿⊙)_/¯
             }
             else {
                 setIntegerParam(ADStatus, ADStatusAborted);
@@ -211,12 +212,7 @@ void pimegaDetector::acqTask()
 
                 //printf("indexError=%x\n", pimega->acq_status_return.indexError);
                 
-                if (pimega->acq_status_return.indexSentAquisitionNum != (unsigned int)pimega->acquireParam.numCapture && 
-                    (bool)indexEnable == true)  
-                {
-                    setStringParam(ADStatusMessage, "Sending frames to Index");
-                }     
-                else if (pimega->acq_status_return.savedAquisitionNum != 
+                 if (pimega->acq_status_return.savedAquisitionNum != 
                     (unsigned int)pimega->acquireParam.numCapture && autoSave == 1) {
                         if (minumumAcquisitionCount > pimega->acq_status_return.savedAquisitionNum)
                         {
@@ -225,44 +221,52 @@ void pimegaDetector::acqTask()
                         else{
                             setStringParam(ADStatusMessage, "Detector not responding");
                             setParameter(ADStringFromServer, "Not all images received. Waiting...");
+                            setIntegerParam(ADStatus, ADStatusError);
                         }
                 }
+                else if (pimega->acq_status_return.indexSentAquisitionNum != (unsigned int)pimega->acquireParam.numCapture && 
+                    (bool)indexEnable == true)  
+                {
+                    setStringParam(ADStatusMessage, "Sending frames to Index");
+                }     
                 else {
                     setStringParam(ADStatusMessage, "Acquisition finished");
+                    setParameter(ADStringFromServer, "Done"); //¯\_(⊙︿⊙)_/¯
                     acquire=0;
                     setIntegerParam(ADAcquire, 0); 
                     acquireStatus = 0;
                     setIntegerParam(ADStatus, ADStatusIdle);   
                 }  
-                if (minumumAcquisitionCount == 0) 
+                if (minumumAcquisitionCount != (unsigned int)pimega->acquireParam.numCapture) 
                 {                
                     /* At this point, when the acquisition is only 1 frame, it still does not show up. A delay can be introduced at the beginning 
                        of this scope to get updated backend acquire status */     
                     get_acqStatus_fromBackend(pimega);
                     setStringParam(ADStatusMessage, "Detector not responding");
-                    setParameter(ADStringFromServer, "No images received. Waiting...");
+                    if (minumumAcquisitionCount == 0)
+                        setParameter(ADStringFromServer, "No images received. Waiting..."); //¯\_(⊙︿⊙)_/¯
+                    else
+                        setParameter(ADStringFromServer, "Not all images received. Waiting..."); //¯\_(⊙︿⊙)_/¯
+                    setIntegerParam(ADStatus, ADStatusError);
                 }
                 else if (moduleError != false)
                 {
                     setParameter(ADStatusMessage, "Detector error");
                     setParameter(ADStringFromServer, "Detector dropped frames");
+                    setIntegerParam(ADStatus, ADStatusError);
                 }
                 else if (pimega->acq_status_return.indexError != false)
                 {
                     setParameter(ADStatusMessage, "Index error");
                     setParameter(ADStringFromServer, "Index not responding");
+                    setIntegerParam(ADStatus, ADStatusError);
                 }                              
             }
 
             else if (imageMode == ADImageMultiple) {
 
                 
-                if (pimega->acq_status_return.indexSentAquisitionNum != (unsigned int)pimega->acquireParam.numCapture && 
-                    (bool)indexEnable == true)  
-                {
-                    setStringParam(ADStatusMessage, "Sending frames to Index");
-                }     
-                else if (pimega->acq_status_return.savedAquisitionNum != 
+                 if (pimega->acq_status_return.savedAquisitionNum != 
                     (unsigned int)pimega->acquireParam.numCapture && autoSave == 1) {
                         if (minumumAcquisitionCount > pimega->acq_status_return.savedAquisitionNum)
                         {
@@ -271,32 +275,45 @@ void pimegaDetector::acqTask()
                         else{
                             setStringParam(ADStatusMessage, "Detector not responding");
                             setParameter(ADStringFromServer, "Not all images received. Waiting...");
+                            setIntegerParam(ADStatus, ADStatusError);
                         }
-                }
+                }                 
+                else if (pimega->acq_status_return.indexSentAquisitionNum != (unsigned int)pimega->acquireParam.numCapture && 
+                    (bool)indexEnable == true)  
+                {
+                    setStringParam(ADStatusMessage, "Sending frames to Index");
+                }     
                 else {
                         acquire=0;
                         setIntegerParam(ADAcquire, 0);
                         setIntegerParam(ADStatus, ADStatusIdle);
                         acquireStatus = 0;
                         setStringParam(ADStatusMessage, "Acquisition finished");
+                        setParameter(ADStringFromServer, "Done"); //¯\_(⊙︿⊙)_/¯
                 }  
                 US_NumExposuresCounter_RBV(pimega);
 
-                if (minumumAcquisitionCount == 0)    
+                if (minumumAcquisitionCount != (unsigned int)pimega->acquireParam.numCapture)    
                 {                   
                     get_acqStatus_fromBackend(pimega);
                     setStringParam(ADStatusMessage, "Detector not responding");
-                    setParameter(ADStringFromServer, "No images received. Waiting..."); //¯\_(⊙︿⊙)_/¯
+                    if (minumumAcquisitionCount == 0)
+                        setParameter(ADStringFromServer, "No images received. Waiting..."); //¯\_(⊙︿⊙)_/¯
+                    else
+                        setParameter(ADStringFromServer, "Not all images received. Waiting..."); //¯\_(⊙︿⊙)_/¯
+                    setIntegerParam(ADStatus, ADStatusError);
                 }
                 else if (moduleError != false)
                 {
                     setParameter(ADStatusMessage, "Detector error");
                     setParameter(ADStringFromServer, "Detector dropped frames");
+                    setIntegerParam(ADStatus, ADStatusError);
                 }
                 else if (pimega->acq_status_return.indexError != false)
                 {
                     setParameter(ADStatusMessage, "Index error");
                     setParameter(ADStringFromServer, "Index not responding");
+                    setIntegerParam(ADStatus, ADStatusError);
                 }                   
             }
 
@@ -333,6 +350,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     getParameter(ADAcquire,&acquireRunning);
 
     if (function == ADAcquire) {
+        /* if d */
         if (value && backendStatus && 
             (adstatus == ADStatusIdle || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
             /* Send an event to wake up the acq task.  */
@@ -340,14 +358,18 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             epicsEventSignal(this->startEventId_);
             
         }
-        else if (!value && (adstatus == ADStatusAcquire)) {
+        else if (!value && (adstatus == ADStatusAcquire || adstatus == ADStatusError)) {
           /* This was a command to stop acquisition */
             v_print("Stop event detected. Sending stop event signal.\n");
             epicsEventSignal(this->stopEventId_);
             epicsThreadSleep(.1);
         }
         else {
-            err_print("Neither value nor !value condition was chosen. returning asynError\n");
+            err_print("Neither value nor !value condition was chosen. value=%d, adstatus=%s(%d), backendStatus=%d. returning asynError\n", value, 
+                        adstatus == ADStatusIdle? "ADStatusIdle" :
+                        adstatus == ADStatusError? "ADStatusError" :
+                        adstatus == ADStatusAborted? "ADStatusAborted" :
+                        adstatus == ADStatusAcquire? "ADStatusAcquire" : "adstatus not known", adstatus, backendStatus);
             return asynError;
         }
     }
