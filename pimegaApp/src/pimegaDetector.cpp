@@ -59,7 +59,8 @@ void pimegaDetector::acqTask()
     int status = asynSuccess;
     int eventStatus=0;
     int numImages, numExposuresVar;
-    int imageMode, numImagesCounter = 0;
+    int imageMode; 
+    uint64_t numImagesCounter;
     int acquire=0, i;
     int autoSave;
     //NDArray *pImage;
@@ -78,6 +79,7 @@ void pimegaDetector::acqTask()
 
             /* reset acquireStatus */
             acquireStatus = 0;
+            numImagesCounter = 0;
             // Release the lock while we wait for an event that says acquire has started, then lock again
             asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
@@ -130,7 +132,7 @@ void pimegaDetector::acqTask()
         }
 
         /* Acquisition just started because startAcquire() was successful */
-        if (acquire && acquireStatus != DONE_ACQ) {
+        if (acquire && (acquireStatus != DONE_ACQ || imageMode == ADImageContinuous)) {
             // Read detector state
             acquireStatus = status_acquire(pimega);
             //numImagesCounter = pimega->acq_status_return.noOfAquisitions[1];
@@ -318,9 +320,17 @@ void pimegaDetector::acqTask()
             }
 
             else if (imageMode == ADImageContinuous) {
-                status = startAcquire();
-                acquireStatus = 0;
-                numImagesCounter++;
+                if (minumumAcquisitionCount == numImagesCounter)
+                {
+                    status = startAcquire();
+                    acquireStatus = 0;
+                    numImagesCounter++;
+                    setStringParam(ADStatusMessage, "Acquiring");
+                    setParameter(ADStringFromServer, "Receiving images"); //¯\_(⊙︿⊙)_/¯                    
+                } else {
+                    setStringParam(ADStatusMessage, "Detector not responding");
+                    setParameter(ADStringFromServer, "No images received. Waiting..."); //¯\_(⊙︿⊙)_/¯
+                }
             }
         }
         /* Call the callbacks to update any changes */
