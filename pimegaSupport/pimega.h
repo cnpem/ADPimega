@@ -605,17 +605,17 @@ typedef enum acquire_status_t{
 } acquire_status_t;
 
 typedef struct pimega_acquire_params_t {
-	uint32_t numImages = 0;						//US_NumImages
-	uint32_t numImagesCounter = 0;				//US_NumImagesCounter_RBV
-	uint32_t numExposures = 0;					//US_NumExposures
-	float acquireTime = 0;						//US_AcquireTime
-	float acquirePeriod = 0;
-	bool acquireState = 0;						//US_Acquire_RBV
+	uint32_t numImages;						//US_NumImages
+	uint32_t numImagesCounter;				//US_NumImagesCounter_RBV
+	uint32_t numExposures;					//US_NumExposures
+	float acquireTime;						//US_AcquireTime
+	float acquirePeriod;
+	bool acquireState;						//US_Acquire_RBV
 	char detectorState[512];				//US_DetectorState_RBV
-	float timeRemaining = 0;					//US_TimeRemaining_RBV
-	uint32_t numExposuresCounter = 0;
-	uint32_t numExposuresTotal = 0;				//US_NumExposuresCounter_RBV
-	int numCapture = 0;
+	float timeRemaining;					//US_TimeRemaining_RBV
+	uint32_t numExposuresCounter;
+	uint32_t numExposuresTotal;				//US_NumExposuresCounter_RBV
+	int numCapture;
 	acquire_status_t acquireStatus;
 } pimega_acquire_params_t;
 

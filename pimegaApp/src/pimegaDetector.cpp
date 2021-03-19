@@ -79,7 +79,7 @@ void pimegaDetector::acqTask()
 
             /* reset acquireStatus */
             acquireStatus = 0;
-            numImagesCounter = 0;
+            numImagesCounter = 1;
             // Release the lock while we wait for an event that says acquire has started, then lock again
             asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
