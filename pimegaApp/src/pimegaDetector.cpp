@@ -64,7 +64,7 @@ void pimegaDetector::acqTask()
     int acquire=0, i;
     int autoSave;
     //NDArray *pImage;
-    double acquireTime, acquirePeriod, delay, elapsedTime;
+    double acquireTime, acquirePeriod, remainingTime, elapsedTime;
     int acquireStatus = 0;
     bool bufferOverflow=0;
     epicsTimeStamp startTime, endTime;
@@ -131,27 +131,34 @@ void pimegaDetector::acqTask()
             }
         }
 
-        /* Acquisition just started because startAcquire() was successful */
-        if (acquire && (acquireStatus != DONE_ACQ || imageMode == ADImageContinuous)) {
-            // Read detector state
-            acquireStatus = status_acquire(pimega);
-            //numImagesCounter = pimega->acq_status_return.noOfAquisitions[1];
 
+        /* Decoupled this from the next loop. Only needs to update acquireStatus
+           when this condition is true (acquire && (acquireStatus != DONE_ACQ) */
+        if (acquire && (acquireStatus != DONE_ACQ)) {
+                acquireStatus = status_acquire(pimega);
+        }
+
+        /* will enter here when the detector did not finish acquisition (acquireStatus != DONE_ACQ)
+           or when continous mode is selected (imageMode == ADImageContinuous)
+           This loop has the function of updating the timer of the experiment. 
+           Count up or down depending on whether continous or not */
+        if (acquire && (acquireStatus != DONE_ACQ || imageMode == ADImageContinuous)) {
+            
             epicsTimeGetCurrent(&endTime);
             elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
-            if (acquirePeriod > acquireTime) {
-                delay = (acquirePeriod * numExposuresVar) - elapsedTime;
+            if (acquirePeriod != 0) {
+                remainingTime = (acquirePeriod * numExposuresVar) - elapsedTime;
             }
             else {
-                delay = (acquireTime * numExposuresVar)  - elapsedTime;
+                remainingTime = (acquireTime * numExposuresVar)  - elapsedTime;
             }
 
-            if (delay < 0) delay = 0;
+            if (remainingTime < 0) remainingTime = 0;
 
             if (imageMode == ADImageContinuous)
                 setDoubleParam(ADTimeRemaining, elapsedTime);
             else
-                setDoubleParam(ADTimeRemaining, delay);
+                setDoubleParam(ADTimeRemaining, remainingTime);
 
         }
 
@@ -320,8 +327,9 @@ void pimegaDetector::acqTask()
             }
 
             else if (imageMode == ADImageContinuous) {
-                if (minumumAcquisitionCount == numImagesCounter)
+                if (minumumAcquisitionCount >= numImagesCounter)
                 {
+                    usleep(100000);
                     status = startAcquire();
                     acquireStatus = 0;
                     numImagesCounter++;
