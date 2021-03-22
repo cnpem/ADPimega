@@ -329,7 +329,6 @@ void pimegaDetector::acqTask()
             else if (imageMode == ADImageContinuous) {
                 if (minumumAcquisitionCount >= numImagesCounter)
                 {
-                    usleep(100000);
                     status = startAcquire();
                     acquireStatus = 0;
                     numImagesCounter++;
