@@ -745,8 +745,6 @@ int US_Load_Equalization(pimega_t *pimega, uint8_t cfg_number, uint8_t sensor);
 int US_ConfigDiscL(pimega_t *pimega, uint32_t value, pimega_send_to_all_t send_to);
 int pixel_load(pimega_t *pimega, uint8_t sensor, uint32_t value);
 int send_image(pimega_t *pimega, uint8_t send_to_all, uint8_t pattern);
-int Set_Trigger(pimega_t *pimega, bool set_trigger);
-int Set_Trigger_RBV(pimega_t *pimega);
 int select_board(pimega_t *pimega, int board_id);
 int select_board_rbv(pimega_t *pimega);
 int select_chipNumber(pimega_t *pimega, int chip_id);
@@ -814,8 +812,6 @@ int US_AcquirePeriod_RBV(pimega_t *pimega);
 
 int US_TriggerMode(pimega_t *pimega, pimega_trigger_mode_t trigger_mode);
 int US_TriggerMode_RBV(pimega_t *pimega);
-int US_SoftawareTrigger(pimega_t *pimega, bool software_trigger);
-int US_SoftawareTrigger_RBV(pimega_t *pimega);
 
 int US_ImgChipNumberID_RBV(pimega_t *pimega);
 
@@ -850,6 +846,7 @@ int US_DAC_Scan(pimega_t *pimega, pimega_dac_t dac, int initial, int final, int 
 int trigger_out(pimega_t *pimega, pimega_trigger_out_t trigger_out_mode);
 int trigger_out_get(pimega_t *pimega);
 
+int configure_trigger(pimega_t *pimega, pimega_trigger_mode_t trigger_mode);
 
 
 // -------- Backend functions -----------------------------------

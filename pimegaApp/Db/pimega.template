@@ -89,8 +89,6 @@ record(mbbo,"$(P)$(R)TriggerMode") {
     field(ZRST,"Internal")
     field(ONVL,"1")
     field(ONST,"External positive edge")
-    field(TWVL,"2")
-    field(TWST,"External negative edge")
     field(IVOA, "Don't drive outputs")
 }
 
