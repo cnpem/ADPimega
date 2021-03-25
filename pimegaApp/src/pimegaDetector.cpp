@@ -1032,6 +1032,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaIndexIDString,        asynParamOctet,     &PimegaIndexID);
     createParam(pimegaIndexCounterString,   asynParamInt32,     &PimegaIndexCounter);
     createParam(pimegaMBSendModeString,     asynParamInt32,     &PimegaMBSendMode);
+    createParam(pimegaDistanceString,       asynParamInt32,     &PimegaDistance);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
