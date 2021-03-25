@@ -190,6 +190,7 @@ void pimegaDetector::acqTask()
             else {
                 setIntegerParam(ADStatus, ADStatusAborted);
                 setStringParam(ADStatusMessage, "Acquisition aborted by user");
+                setParameter(ADStringFromServer, "Backend stopped"); 
             }
             callParamCallbacks();
         }
@@ -842,7 +843,7 @@ pimegaDetector::pimegaDetector(const char *portName,
     //fflush(pimega->debug_out);
 
     createParameters();
-    check_and_disable_sensors(pimega);
+    //check_and_disable_sensors(pimega);
 
     setDefaults();
     define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
