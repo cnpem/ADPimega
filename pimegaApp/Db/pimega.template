@@ -1396,3 +1396,12 @@ record(ao, "$(P)$(R)Distance")
 	field(DRVL, "0")
 
 }
+
+record(waveform, "$(P)$(R)logFile")
+{
+    field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LOGFILE")
+    field(FTVL, "CHAR")
+    field(NELM, "40")
+    field(SCAN, "I/O Intr")
+}

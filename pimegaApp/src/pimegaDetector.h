@@ -139,7 +139,7 @@ static const char *driverName = "pimegaDetector";
 #define pimegaIndexSendModeString        "INDEX_SEND_MODE"
 #define pimegaIndexCounterString         "INDEX_COUNTER"
 #define pimegaDistanceString             "DISTANCE"
-
+#define pimegaLogFileString              "LOGFILE"
 
 class pimegaDetector: public ADDriver
 {
@@ -147,7 +147,7 @@ public:
     pimegaDetector(const char *portName, const char *address_module01, const char *address_module02,
                    const char *address_module03, const char *address_module04,
                    int port, int maxSizeX, int maxSizeY,
-                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate, int backendOn);
+                   int detectorModel, int maxBuffers, size_t maxMemory, int priority, int stackSize, int simulate, int backendOn, int log);
 
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -248,6 +248,7 @@ protected:
     int PimegaIndexSendMode;
     int PimegaIndexCounter;
     int PimegaDistance;    
+    int PimegaLogFile;  
     int PimegaSensorBiasHigh;
     #define LAST_PIMEGA_PARAM PimegaSensorBiasHigh
 
@@ -287,7 +288,7 @@ private:
     void getParameter(int index, int maxChars, char *value);
     void getParameter(int index, int *value);
     void getParameter(int index, double *value);
-
+    bool initLog(pimega_t *pimega);
     void getDacsValues(void);
     void getOmrValues(void);
     

@@ -699,6 +699,9 @@ typedef struct pimega_t {
 	uint32_t max_bias;
 	uint8_t num_mb_sources;
 	int     backendOn;
+	bool    log;
+	char    logFileName[40];
+	FILE *  logfp;
 } pimega_t;
 
 typedef struct dac_scan_t {
