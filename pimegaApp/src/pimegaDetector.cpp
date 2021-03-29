@@ -307,6 +307,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     static const char *functionName = "writeInt32";
     const char *paramName;
 
+
     int adstatus, backendStatus, acquireRunning;
     //int acquiring;
 
@@ -319,6 +320,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     getIntegerParam(ADStatus, &adstatus);
     getParameter(NDFileCapture,&backendStatus);
     getParameter(ADAcquire,&acquireRunning);
+
 
     if (function == ADAcquire) {
         /* if d */
@@ -373,11 +375,14 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaSendImage) {
         if (value) status |= sendImage();
     }
+    else if (function == PimegaLoadEqStart) {
+        
+        if (value) status |= loadEqualization(pimega->loadEqCFG);
+    }    
+    
     else if (function == PimegaCheckSensors) {
         if (value) status |= checkSensors();
     }
-    else if (function == PimegaLoadEqualization)
-        status |= loadEqualization(value);
     else if (function == PimegaOmrOPMode)
         status |= setOMRValue(OMR_M, value, function);
     else if (function == ADNumExposures)
@@ -485,6 +490,54 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 }
 
 
+asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	value, size_t 	nElements )
+{
+    int function = pasynUser->reason;
+    size_t i;
+    int status = asynSuccess;
+    const char *paramName;
+
+    getParamName(function, &paramName);
+    printf("String Function Idx: %d\n", function);
+    printf("String Function Name: %s\n", paramName);
+    printf("writeInt32Array Function Value: ");
+    for (i = 0; i < nElements; i++)
+        printf("%d ", value[i]);
+    printf("\n");
+  
+
+    if (function == PimegaLoadEqualization)
+    {
+        set_eq_cfg(pimega, (uint32_t *)value, nElements);
+    }
+    /* If this parameter belongs to a base class call its method */
+    if (function < FIRST_PIMEGA_PARAM) 
+        status = ADDriver::writeInt32Array(pasynUser, value, nElements);
+
+
+    if (status)
+    {
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+              "%s:writeInt32Array error, status=%d function=%d, value=",
+              driverName, status, function);
+              for ( i = 0; i < nElements; i++)
+                printf("%d ", value[i]);
+                printf("\n");
+    }else{
+        /* Do callbacks so higher layers see any changes */
+        callParamCallbacks();
+        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:writeInt32Array: function=%d, value=",
+              driverName, function);
+              for ( i = 0; i < nElements; i++)
+                printf("%d ", value[i]);
+                printf("\n");              
+    }
+
+    return((asynStatus)status);
+}
+
+
 asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, size_t maxChars, size_t *nActual)
 {
     int function = pasynUser->reason;
@@ -559,11 +612,8 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     else if (function == ADAcquirePeriod)
         status |= acqPeriod(value);
 
-    else if (function == PimegaSensorBiasLow)
-        status |= sensorBias(PIMEGA_MB_FLEX_LOW, value);
-
-    else if (function == PimegaSensorBiasHigh)
-        status |= sensorBias(PIMEGA_MB_FLEX_HIGH, value);
+    else if (function == PimegaSensorBias)
+        status |= sensorBias(value);
 
     else if (function == PimegaExtBgIn)
         status |= setExtBgIn(value);
@@ -981,6 +1031,7 @@ void pimegaDetector::getParameter(int index, double *value)
         panic("getDoubleParam failed.");
 }
 
+
 void pimegaDetector::createParameters(void)
 {
     createParam(pimegaMedipixModeString,    asynParamInt32,     &PimegaMedipixMode);
@@ -1026,15 +1077,14 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaBackendBufferString,  asynParamFloat64,     &PimegaBackBuffer);
     createParam(pimegaResetRDMABufferString,asynParamInt32,     &PimegaResetRDMABuffer);
     createParam(pimegaBackendLFSRString,    asynParamInt32,     &PimegaBackLFSR);
-    createParam(pimegaSensorBiasLowString,  asynParamFloat64,   &PimegaSensorBiasLow);
-    createParam(pimegaSensorBiasHighString, asynParamFloat64,   &PimegaSensorBiasHigh);
+    createParam(pimegaSensorBiasString,     asynParamFloat64,   &PimegaSensorBias);
     createParam(pimegaAllModulesString,     asynParamInt32,     &PimegaAllModules);
     createParam(pimegaDacsOutSenseString,   asynParamFloat32Array, &PimegaDacsOutSense);
     createParam(pimegaSendImageString,      asynParamInt32,     &PimegaSendImage);
     createParam(pimegaSelSendImageString,   asynParamInt32,     &PimegaSelSendImage);
     createParam(pimegaSendDacDoneString,    asynParamInt32,     &PimegaSendDacDone);
     createParam(pimegaConfigDiscLString,    asynParamInt32,     &PimegaConfigDiscL);
-    createParam(pimegaLoadEqString,         asynParamInt32,     &PimegaLoadEqualization);
+    createParam(pimegaLoadEqString,         asynParamInt32Array, &PimegaLoadEqualization);
     createParam(pimegaExtBgInString,        asynParamFloat64,   &PimegaExtBgIn);
     createParam(pimegaExtBgSelString,       asynParamInt32,     &PimegaExtBgSel);
     createParam(pimegaMbM1TempString,       asynParamFloat32Array, &PimegaMBTemperatureM1);
@@ -1046,6 +1096,8 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaMBAvgM3String,        asynParamFloat64,   &PimegaMBAvgTSensorM3);
     createParam(pimegaMBAvgM4String,        asynParamFloat64,   &PimegaMBAvgTSensorM4);
     createParam(pimegaMbSelTSensorString,   asynParamInt32,     &PimegaMBSelTSensor);
+    createParam(pimegaLoadEqStartString,    asynParamInt32,     &PimegaLoadEqStart);
+    
     createParam(pimegaMbTSensorString,      asynParamFloat64,   &PimegaMBTSensor);
     createParam(pimegaMPAvgM1String,        asynParamFloat64,   &PimegaMPAvgTSensorM1);
     createParam(pimegaMPAvgM2String,        asynParamFloat64,   &PimegaMPAvgTSensorM2);
@@ -1309,20 +1361,19 @@ int pimegaDetector::dac_scan_tmp(pimega_dac_t dac)
 asynStatus pimegaDetector::selectModule(uint8_t module)
 {
     int rc;
-    int mfb;
+    int mfb, send_mode;
     getParameter(PimegaMedipixBoard, &mfb);
-
+    getParameter(PimegaMBSendMode, &send_mode);
     rc = select_module(pimega, module);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid module number: %s\n", pimega_error_string(rc));
         return asynError;
     }
     rc |= select_board(pimega, mfb);
-    rc |= getSensorBias(pimega);
-    setParameter(PimegaSensorBiasLow, 
-                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_LOW]);
-    setParameter(PimegaSensorBiasHigh, 
-                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_HIGH]);
+    rc |= getSensorBias(pimega, (pimega_send_mb_flex_t) send_mode);
+    setParameter(PimegaSensorBias, 
+                 pimega->pimegaParam.bias_voltage);
+
     setParameter(PimegaModule, module);
     return asynSuccess;    
 }
@@ -1389,18 +1440,16 @@ asynStatus pimegaDetector::setOMRValue(pimega_omr_t omr, int value, int paramete
     return asynSuccess;
 }
 
-asynStatus pimegaDetector::loadEqualization(int cfg)
+asynStatus pimegaDetector::loadEqualization(uint32_t *cfg)
 {
-    int rc = 0, send_to_all, sensor;
+    int rc = 0, send_form, sensor;
 
-    getParameter(PimegaAllModules, &send_to_all);
+    getParameter(PimegaAllModules, &send_form);
     getParameter(PimegaMedipixChip, &sensor);
-    
-    if ((send_to_all == 0) || (send_to_all == 2))
-        rc |= US_Load_Equalization(pimega, cfg, sensor);
-    else {
-        rc |= US_Load_Equalization(pimega, cfg, 0);
-    }
+
+    if (send_form == PIMEGA_SEND_ONE_CHIP_ONE_MODULE || send_form == PIMEGA_SEND_ALL_CHIPS_ONE_MODULE)
+
+    rc |= load_equalization(pimega, cfg, sensor, (pimega_send_to_all_t)send_form);
 
     if (rc != PIMEGA_SUCCESS) return asynError;
     return asynSuccess;
@@ -1470,19 +1519,19 @@ asynStatus pimegaDetector::reset(short action)
 
 asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
 {
-    int rc = 0;
+    int rc = 0, send_mode;
 
     rc = select_board(pimega, board_id);
+    getParameter(PimegaMBSendMode, &send_mode);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid number of boards: %s\n", pimega_error_string(rc));
         return asynError;
     }
 
-    rc |= getSensorBias(pimega);
-    setParameter(PimegaSensorBiasLow, 
-                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_LOW]);
-    setParameter(PimegaSensorBiasHigh, 
-                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_HIGH]);
+    rc |= getSensorBias(pimega, (pimega_send_mb_flex_t) send_mode);
+    setParameter(PimegaSensorBias, 
+                 pimega->pimegaParam.bias_voltage);
+
 
     //getMfbTemperature();
     setParameter(PimegaMedipixBoard, board_id);
@@ -1581,21 +1630,20 @@ asynStatus pimegaDetector::setExtBgIn(float voltage)
     return asynSuccess;
 }
 
-asynStatus pimegaDetector::sensorBias(uint8_t source_sel,  float voltage)
+asynStatus pimegaDetector::sensorBias(float voltage)
 {
     int rc;
     int send_mode;
 
     getParameter(PimegaMBSendMode, &send_mode);
-    rc = setSensorBias(pimega, source_sel, voltage, (pimega_send_mb_flex_t)send_mode);
+    rc = setSensorBias(pimega, voltage, (pimega_send_mb_flex_t)send_mode);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid value: %s\n", pimega_error_string(rc));
         return asynError;
     }
-    setParameter(PimegaSensorBiasLow,
-                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_LOW]);
-    setParameter(PimegaSensorBiasHigh,
-                 pimega->pimegaParam.bias_voltage[PIMEGA_MB_FLEX_HIGH]);
+    setParameter(PimegaSensorBias,
+                 pimega->pimegaParam.bias_voltage);
+
     
     return asynSuccess;
 }

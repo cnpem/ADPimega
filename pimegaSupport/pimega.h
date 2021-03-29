@@ -563,7 +563,7 @@ typedef struct pimega_params_t {
 	pimega_dac_t dac;							//US_Set/Get DAC
 	pimega_trigger_mode_t trigger_mode;			//US_TriggerMode
 	bool discard_data;							//US_DiscardData
-	float bias_voltage[2];						//US_SensorBias_RBV (Flex Low (0) and flex high (1))
+	float bias_voltage;  						//US_SensorBias_RBV (Flex Low (0) and flex high (1))
 	pimega_read_counter_t read_counter;
 	pimega_image_mode_t image_mode;
 	float mb_temperature[4][48];
@@ -636,14 +636,16 @@ typedef enum pimega_send_to_all_t
 	PIMEGA_SEND_ALL_CHIPS_ALL_MODULES,
 } pimega_send_to_all_t;
 
+
 typedef enum pimega_send_mb_flex_t
 {
-	PIMEGA_ONE_MB_ONE_FLEX = 0,
-	PIMEGA_ONE_MB_BOTH_FLEX,
-	PIMEGA_ALL_MBS_ONE_FLEX,
-	PIMEGA_ALL_MBS_BOTH_FLEX,
-	PIMEGA_ALL_MBS_FLEX_BOTH_ALL_MODULES,
+	PIMEGA_ONE_MB_LOW_FLEX_ONE_MODULE = 0,
+	PIMEGA_ONE_MB_HIGH_FLEX_ONE_MODULE,
+	PIMEGA_ONE_MB_ALL_FLEX_ONE_MODULE,
+	PIMEGA_ALL_MBS_ALL_FLEX_ONE_MODULE,
+	PIMEGA_ALL_MBS_ALL_FLEX_ALL_MODULES
 } pimega_send_mb_flex_t;
+
 
 typedef enum pimega_mb_flex_t
 {
@@ -702,6 +704,7 @@ typedef struct pimega_t {
 	bool    log;
 	char    logFileName[40];
 	FILE *  logfp;
+	uint32_t loadEqCFG[4];
 } pimega_t;
 
 typedef struct dac_scan_t {
@@ -744,7 +747,7 @@ int US_NumExposures(pimega_t *pimega, int num_exposures);
 int US_NumExposures_RBV(pimega_t *pimega);
 int US_NumExposuresCounter_RBV(pimega_t *pimega);
 
-int US_Load_Equalization(pimega_t *pimega, uint8_t cfg_number, uint8_t sensor);
+
 int US_ConfigDiscL(pimega_t *pimega, uint32_t value, pimega_send_to_all_t send_to);
 int pixel_load(pimega_t *pimega, uint8_t sensor, uint32_t value);
 int send_image(pimega_t *pimega, uint8_t send_to_all, uint8_t pattern);
@@ -803,10 +806,8 @@ int US_BandGapOutput_RBV(pimega_t *pimega);
 int US_BandGapTemperature_RBV(pimega_t *pimega);
 int US_CascodeBias_RBV(pimega_t *pimega);
 
-int setSensorBias(pimega_t *pimega, uint8_t source_sel, float voltage, pimega_send_mb_flex_t send_to);
-int getSensorBias(pimega_t *pimega);
-int US_SensorBias(pimega_t *pimega, uint8_t source_sel, float bias_voltage);
-int US_SensorBias_RBV(pimega_t *pimega, uint8_t source_sel);
+int setSensorBias(pimega_t *pimega, float voltage, pimega_send_mb_flex_t send_to);
+int getSensorBias(pimega_t *pimega, pimega_send_mb_flex_t send_to);
 
 int US_AcquireTime(pimega_t *pimega, float acquire_time_s);
 int US_AcquireTime_RBV(pimega_t *pimega);
@@ -842,7 +843,7 @@ int select_module(pimega_t *pimega, int module);
 int set_acquireTime(pimega_t *pimega, float acquire_time_s);
 int set_periodTime(pimega_t *pimega, float period_time_s);
 int set_numberExposures(pimega_t *pimega, int num_exposures);
-
+int load_equalization(pimega_t *pimega, uint32_t *cfg_number, uint8_t sensor, pimega_send_to_all_t send_to);
 int US_DAC_Scan(pimega_t *pimega, pimega_dac_t dac, int initial, int final, int step,
 				pimega_send_to_all_t send_to);
 
@@ -850,7 +851,7 @@ int trigger_out(pimega_t *pimega, pimega_trigger_out_t trigger_out_mode);
 int trigger_out_get(pimega_t *pimega);
 
 int configure_trigger(pimega_t *pimega, pimega_trigger_mode_t trigger_mode);
-
+int set_imageChipOMR(pimega_t *pimega, pimega_omr_operation_t op, pimega_omr_t omr, int value);
 
 // -------- Backend functions -----------------------------------
 int receive_initArgs_fromBackend(pimega_t *pimega, int sockfd);
@@ -885,6 +886,7 @@ void pimega_set_debug_stream(pimega_t *pimega, FILE *stream);
 typedef int (*method)(pimega_t *pimega, pimega_dac_t, int);
 int run_dacs_all_chips(pimega_t *pimega, pimega_dac_t dac, int value, method _method);
 int configure_module_dacs_with_file(pimega_t *pimega, const char * dac_file_ini);
+int set_eq_cfg(pimega_t *pimega, uint32_t * cfg, size_t nelements);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

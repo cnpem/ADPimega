@@ -99,12 +99,13 @@ static const char *driverName = "pimegaDetector";
 #define pimegaDacsOutSenseString        "DACS_OUT_SENSE"
 #define pimegaBackendBufferString       "BACK_BUFFER"
 #define pimegaResetRDMABufferString     "RESET_RDMA_BUFFER"
-#define pimegaSensorBiasLowString       "SENSOR_BIAS_LOW"
-#define pimegaSensorBiasHighString      "SENSOR_BIAS_HIGH"
+#define pimegaSensorBiasString          "SENSOR_BIAS"
 #define pimegaModuleString              "PIMEGA_MODULE"
 #define pimegaAllModulesString          "ALL_MODULES"
 #define pimegaBackendLFSRString         "BACK_LFSR"
 #define pimegaSendImageString           "SEND_IMAGE"
+
+#define pimegaLoadEqStartString         "LOAD_EQUALIZATION_START"
 #define pimegaSelSendImageString        "SEL_SEND_IMAGE"
 #define pimegaSendDacDoneString         "SEND_DAC_DONE"
 #define pimegaConfigDiscLString         "CONFIG_DISCL"
@@ -155,6 +156,7 @@ public:
     virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
     virtual asynStatus readFloat32Array(asynUser *pasynUser, epicsFloat32 *value, size_t nElements, size_t *nIn);
     virtual asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t maxChars, size_t *nActual);
+    virtual asynStatus writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	value, size_t 	nElements );
     virtual void report(FILE *fp, int details);
     virtual void acqTask(void);
     virtual void generateImage(void);
@@ -240,7 +242,7 @@ protected:
     int PimegaDisabledSensorsM3;
     int PimegaDisabledSensorsM4;
     int PimegaMBSendMode;
-    int PimegaSensorBiasLow;
+    int PimegaSensorBias;
     int PimegaEnableBulkProcessing;
     int PimegaAbortSave;
     int PimegaIndexID;
@@ -248,9 +250,9 @@ protected:
     int PimegaIndexSendMode;
     int PimegaIndexCounter;
     int PimegaDistance;    
+    int PimegaLoadEqStart;
     int PimegaLogFile;  
-    int PimegaSensorBiasHigh;
-    #define LAST_PIMEGA_PARAM PimegaSensorBiasHigh
+    #define LAST_PIMEGA_PARAM PimegaLogFile
 
 private:
 
@@ -313,13 +315,13 @@ private:
     asynStatus numExposures(unsigned number);
     asynStatus acqPeriod(float period_time_s);
     asynStatus acqTime(float acquire_time_s);
-    asynStatus sensorBias(uint8_t source_sel, float voltage);
+    asynStatus sensorBias(float voltage);
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
     asynStatus imageMode(u_int8_t mode);
     asynStatus sendImage(void);
     asynStatus checkSensors(void);
-    asynStatus loadEqualization(int cfg);
+    asynStatus loadEqualization(uint32_t * cfg);
     asynStatus setExtBgIn(float voltage);
     asynStatus dacDefaults(const char * file);
 };
