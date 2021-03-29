@@ -246,7 +246,7 @@ record(ao, "$(P)$(R)SensorBias") {
 }
 
 record(ai, "$(P)$(R)SensorBias_RBV") {
-	field(DESC, "Sensor Bias Voltage Flex Low/High Readback")
+	field(DESC, "Sensor Bias Voltage Flex Readback")
 	field(DTYP, "asynFloat64")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS_RBV")
 	field(SCAN, "I/O Intr")
@@ -728,7 +728,7 @@ record(waveform, "$(P)$(R)LoadEqualization")
 {
 	field(DESC, "Load Equalization")
    	field(DTYP, "asynInt32ArrayOut")
-   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LOAD_EQUALIZATION")
+   	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LOAD_EQUALIZATION")
     field(FTVL, "LONG")
     field(NELM, "4")
 }
@@ -1295,11 +1295,11 @@ record(mbbo,"$(P)$(R)MB_SendMode") {
     field(DESC, "Select MB parameters send mode")
     field(DTYP, "asynInt32")
    	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEND_MODE")
-    field(ZRST, "One MB low flex one module") 	  field(ZRVL, "0")
-	field(ZRST, "One MB high flex one module") 	  field(ZRVL, "1")
-	field(ZRST, "One MB all flex one module") 	  field(ZRVL, "2")	
-	field(TWST, "All MBs all flex one module")	  field(TWVL, "3")
-	field(THST, "All MBs all flex all modules")   field(THVL, "4")
+    field(ZRST, "One MB low flex") 	  field(ZRVL, "0")
+	field(ONST, "One MB high flex") 	  field(ONVL, "1")
+	field(TWST, "One MB all flex") 	  field(TWVL, "2")	
+	field(THST, "All flex one module")	  field(THVL, "3")
+	field(FRST, "All flex all modules")   field(FRVL, "4")
 	field(VAL,  "0")
 	field(PINI, "YES")
 }
@@ -1308,11 +1308,11 @@ record(mbbi,"$(P)$(R)MB_SendMode_RBV") {
     field(DESC, "Select MB parameters send mode RBV")
     field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEND_MODE")
-    field(ZRST, "One MB low flex one module") 	  field(ZRVL, "0")
-	field(ZRST, "One MB high flex one module") 	  field(ZRVL, "1")
-	field(ZRST, "One MB all flex one module") 	  field(ZRVL, "2")	
-	field(TWST, "All MBs all flex one module")	  field(TWVL, "3")
-	field(THST, "All MBs all flex all modules")   field(THVL, "4")
+    field(ZRST, "One MB low flex") 	  field(ZRVL, "0")
+	field(ONST, "One MB high flex") 	  field(ONVL, "1")
+	field(TWST, "One MB all flex") 	  field(TWVL, "2")	
+	field(THST, "All flex one module")	  field(THVL, "3")
+	field(FRST, "All flex all modules")   field(FRVL, "4")
 	field(SCAN, "I/O Intr")
 }
 

@@ -800,7 +800,7 @@ int set_OptimizedDiscL(pimega_t *pimega);
 // --------------------------------------------------------------------------
 
 int US_ImgChipDACOUTSense_RBV(pimega_t *pimega);
-int US_ImgChip_ExtBgIn(pimega_t *pimega, float voltage);
+int set_ImgChip_ExtBgIn(pimega_t *pimega, float voltage);
 int US_ImgChip_ExtBgIn_RBV(pimega_t *pimega);
 int US_BandGapOutput_RBV(pimega_t *pimega);
 int US_BandGapTemperature_RBV(pimega_t *pimega);

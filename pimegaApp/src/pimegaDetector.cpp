@@ -500,23 +500,28 @@ asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	
     getParamName(function, &paramName);
     printf("String Function Idx: %d\n", function);
     printf("String Function Name: %s\n", paramName);
+    printf("writeInt32Array Function nElements: %lu\n", nElements);
     printf("writeInt32Array Function Value: ");
     for (i = 0; i < nElements; i++)
         printf("%d ", value[i]);
     printf("\n");
   
-
+    printf("String Function Idx: %d\n", function);
     if (function == PimegaLoadEqualization)
     {
-        set_eq_cfg(pimega, (uint32_t *)value, nElements);
+        int idxParam = PimegaLoadEqualization;
+        status = set_eq_cfg(pimega, (uint32_t *)value, nElements);
+        doCallbacksInt32Array(value, nElements, idxParam, 0);
+        printf("executed set_eq_cfg\n");
     }
     /* If this parameter belongs to a base class call its method */
-    if (function < FIRST_PIMEGA_PARAM) 
+    else if (function < FIRST_PIMEGA_PARAM) 
         status = ADDriver::writeInt32Array(pasynUser, value, nElements);
 
 
     if (status)
     {
+        printf("Status not ok\n");
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:writeInt32Array error, status=%d function=%d, value=",
               driverName, status, function);
@@ -525,7 +530,7 @@ asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	
                 printf("\n");
     }else{
         /* Do callbacks so higher layers see any changes */
-        callParamCallbacks();
+        printf("Status ok\n");
         asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
               "%s:writeInt32Array: function=%d, value=",
               driverName, function);
@@ -1175,7 +1180,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaBackBuffer, 0.0);
     setParameter(ADImageMode, ADImageSingle);
     setParameter(PimegaModule, 1);
-    Set_DAC_Defaults(pimega);
+    //Set_DAC_Defaults(pimega);
 
     imgChipID(1);
     US_ImageMode_RBV(pimega);
@@ -1447,8 +1452,6 @@ asynStatus pimegaDetector::loadEqualization(uint32_t *cfg)
     getParameter(PimegaAllModules, &send_form);
     getParameter(PimegaMedipixChip, &sensor);
 
-    if (send_form == PIMEGA_SEND_ONE_CHIP_ONE_MODULE || send_form == PIMEGA_SEND_ALL_CHIPS_ONE_MODULE)
-
     rc |= load_equalization(pimega, cfg, sensor, (pimega_send_to_all_t)send_form);
 
     if (rc != PIMEGA_SUCCESS) return asynError;
@@ -1621,7 +1624,7 @@ asynStatus pimegaDetector::setExtBgIn(float voltage)
 {
     int rc;
 
-    rc = US_ImgChip_ExtBgIn(pimega, voltage);
+    rc = set_ImgChip_ExtBgIn(pimega, voltage);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid value: %s\n", pimega_error_string(rc));
         return asynError;
