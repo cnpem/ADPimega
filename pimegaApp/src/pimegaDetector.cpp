@@ -172,7 +172,7 @@ void pimegaDetector::acqTask()
         if (eventStatus == epicsEventWaitOK) {
             v_print("epicsEventWaitWithTimeout returned epicsEventWaitOK (Stop signal detected).\n");
             //US_Acquire(pimega,0);
-            stop_acquire(pimega);
+            //stop_acquire(pimega);
             send_stopAcquire_toBackend(pimega);
             setShutter(0);
             setIntegerParam(ADAcquire, 0);
