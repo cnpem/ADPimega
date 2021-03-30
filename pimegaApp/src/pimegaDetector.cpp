@@ -224,7 +224,8 @@ void pimegaDetector::acqTask()
 
                 //printf("indexError=%x\n", pimega->acq_status_return.indexError);
                  /* Saving is enabled and the saved images is less than requested */
-                 if (pimega->acq_status_return.savedAquisitionNum < (unsigned int)pimega->acquireParam.numCapture && 
+                 if (pimega->acquireParam.numCapture != 0 && 
+                     pimega->acq_status_return.savedAquisitionNum < (unsigned int)pimega->acquireParam.numCapture && 
                      autoSave == 1) {
                         /* Check if there are still images to save by comparing the received with the saved.
                            This is due to the slower saving rate. */
@@ -251,13 +252,14 @@ void pimegaDetector::acqTask()
                 }
                 /* if index is enabled and the number of requested acquisitions is larger than the number of acquisitions
                    sent to index */
-                else if (pimega->acq_status_return.indexSentAquisitionNum < (unsigned int)pimega->acquireParam.numCapture && 
-                    (bool)indexEnable == true)  
+                else if (pimega->acquireParam.numCapture != 0 &&
+                         pimega->acq_status_return.indexSentAquisitionNum < (unsigned int)pimega->acquireParam.numCapture && 
+                         (bool)indexEnable == true)  
                 {
                     setStringParam(ADStatusMessage, "Sending frames to Index");
                 }  
                 /* Saving is not enabled, or saving is enabled and all images arrived */   
-                else {
+                else if (pimega->acquireParam.numCapture != 0) {
                     setStringParam(ADStatusMessage, "Acquisition finished");
                     setParameter(ADStringFromServer, "Done"); //¯\_(⊙︿⊙)_/¯
                     acquire=0;
@@ -498,46 +500,22 @@ asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	
     const char *paramName;
 
     getParamName(function, &paramName);
-    printf("String Function Idx: %d\n", function);
-    printf("String Function Name: %s\n", paramName);
+    printf("writeInt32Array Function Idx: %d\n", function);
+    printf("writeInt32Array Function Name: %s\n", paramName);
     printf("writeInt32Array Function nElements: %lu\n", nElements);
     printf("writeInt32Array Function Value: ");
     for (i = 0; i < nElements; i++)
         printf("%d ", value[i]);
     printf("\n");
   
-    printf("String Function Idx: %d\n", function);
     if (function == PimegaLoadEqualization)
     {
         int idxParam = PimegaLoadEqualization;
         status = set_eq_cfg(pimega, (uint32_t *)value, nElements);
         doCallbacksInt32Array(value, nElements, idxParam, 0);
-        printf("executed set_eq_cfg\n");
     }
-    /* If this parameter belongs to a base class call its method */
     else if (function < FIRST_PIMEGA_PARAM) 
         status = ADDriver::writeInt32Array(pasynUser, value, nElements);
-
-
-    if (status)
-    {
-        printf("Status not ok\n");
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:writeInt32Array error, status=%d function=%d, value=",
-              driverName, status, function);
-              for ( i = 0; i < nElements; i++)
-                printf("%d ", value[i]);
-                printf("\n");
-    }else{
-        /* Do callbacks so higher layers see any changes */
-        printf("Status ok\n");
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-              "%s:writeInt32Array: function=%d, value=",
-              driverName, function);
-              for ( i = 0; i < nElements; i++)
-                printf("%d ", value[i]);
-                printf("\n");              
-    }
 
     return((asynStatus)status);
 }
@@ -749,12 +727,15 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
             int backend_saved = pimega->acq_status_return.savedAquisitionNum;
 
             if ((num_capture != 0) && (backend_saved == num_capture)) {
-                send_stopAcquire_toBackend(pimega);
+                setParameter(NDFileCapture, 0);
+                /*send_stopAcquire_toBackend(pimega);
 
                 setParameter(ADStatusMessage, "Finished acquisition");
                 setParameter(ADStringToServer, "");
                 setParameter(ADStringFromServer, "HDF5 file saved");
                 setParameter(NDFileCapture, 0);
+                setIntegerParam(ADAcquire, 0);
+                */
             }
         
             callParamCallbacks();

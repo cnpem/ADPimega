@@ -152,6 +152,17 @@ extern "C" {
             } while (0)			
 
 
+#define fd_print(fd, fmt, ...) \
+            do {    if (V) { \
+						struct timeval curTime; \
+						gettimeofday(&curTime, NULL); \
+						char text[2000] = GREEN "[%02d:%02d:%02d.%06d] " RESET; \
+						struct tm *readable = localtime(&curTime.tv_sec); \
+						strcat(text, fmt); \
+						fprintf(fd, text, readable->tm_hour, readable->tm_min, readable->tm_sec, curTime.tv_usec,##__VA_ARGS__); \
+                    } \
+            } while (0)	
+
 /* Backend structures */
 enum requestTypesEnum {
     INIT_ARGS = 0,
