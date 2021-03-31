@@ -260,14 +260,30 @@ void pimegaDetector::acqTask()
                     setStringParam(ADStatusMessage, "Sending frames to Index");
                 }  
                 /* Saving is not enabled, or saving is enabled and all images arrived */   
-                else if (pimega->acquireParam.numCapture != 0) {
+                else if (pimega->acquireParam.numCapture != 0 && minumumAcquisitionCount < (unsigned int) pimega->acquireParam.numCapture) {
+                /* The number of received images is equal or less than requested. Problem exists. 
+                    Check if external trigger is enabled. If not, detector dropped frames. */ 
+                    setIntegerParam(ADStatus, ADStatusError);  
+                    if (minumumAcquisitionCount == 0)
+                        setParameter(ADStringFromServer, "No images received. Waiting...");
+                    else    
+                        setParameter(ADStringFromServer, "Not all images received. Waiting..."); 
+
+                    if (triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL) {
+                        setStringParam(ADStatusMessage, "Detector not responding");
+                    }
+                    else {
+                            setStringParam(ADStatusMessage, "Trigger not received/Detector failure");
+                    }
+                }  
+                else {
                     setStringParam(ADStatusMessage, "Acquisition finished");
                     setParameter(ADStringFromServer, "Done"); //¯\_(⊙︿⊙)_/¯
                     acquire=0;
                     setIntegerParam(ADAcquire, 0); 
                     acquireStatus = 0;
                     setIntegerParam(ADStatus, ADStatusIdle);   
-                }  
+                }
                 /* Errors reported by backend override previous messages. */                
                 if (moduleError != false)
                 {
