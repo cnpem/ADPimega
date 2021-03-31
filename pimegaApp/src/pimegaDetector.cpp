@@ -138,6 +138,7 @@ void pimegaDetector::acqTask()
            when this condition is true (acquire && (acquireStatus != DONE_ACQ) */
         if (acquire && (acquireStatus != DONE_ACQ)) {
                 acquireStatus = status_acquire(pimega);
+                get_acqStatus_fromBackend(pimega);
         }
 
         /* will enter here when the detector did not finish acquisition (acquireStatus != DONE_ACQ)
@@ -1160,12 +1161,18 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFileWriteMessage, "");
     setParameter(PimegaBackBuffer, 0.0);
     setParameter(ADImageMode, ADImageSingle);
-    setParameter(PimegaModule, 1);
+    setParameter(PimegaModule, 4);
+    setParameter(PimegaMedipixBoard, 2);
+    select_board(pimega, 2);
     //Set_DAC_Defaults(pimega);
 
-    imgChipID(1);
-    US_ImageMode_RBV(pimega);
-    setParameter(PimegaMedipixMode, pimega->pimegaParam.image_mode);
+    set_medipix_mode(pimega, PIMEGA_MEDIPIX_MODE_DEFAULT);
+    setParameter(PimegaMedipixMode, PIMEGA_MEDIPIX_MODE_DEFAULT);
+
+    getSensorBias(pimega, PIMEGA_ONE_MB_LOW_FLEX_ONE_MODULE);
+    setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage);
+   
+    setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
     setParameter(PimegaLogFile, pimega->logFileName);
     callParamCallbacks();
 }
@@ -1492,9 +1499,7 @@ asynStatus pimegaDetector::reset(short action)
     acqPeriod(0.0);
     acqTime(1.0);
     numExposures(1);
-    setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
-    medipixMode(PIMEGA_MEDIPIX_MODE_DEFAULT);
-
+    setDefaults();
     if (rc != PIMEGA_SUCCESS) {
         return asynError; }
 
@@ -1513,6 +1518,7 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
     }
 
     rc |= getSensorBias(pimega, (pimega_send_mb_flex_t) send_mode);
+
     setParameter(PimegaSensorBias, 
                  pimega->pimegaParam.bias_voltage);
 

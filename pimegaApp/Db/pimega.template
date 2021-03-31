@@ -248,7 +248,7 @@ record(ao, "$(P)$(R)SensorBias") {
 record(ai, "$(P)$(R)SensorBias_RBV") {
 	field(DESC, "Sensor Bias Voltage Flex Readback")
 	field(DTYP, "asynFloat64")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS_RBV")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_BIAS")
 	field(SCAN, "I/O Intr")
 }
 

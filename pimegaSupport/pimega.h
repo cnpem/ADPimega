@@ -832,8 +832,7 @@ int US_ImgChipNumberID_RBV(pimega_t *pimega);
 
 int US_ReadCounter(pimega_t *pimega, pimega_read_counter_t counter);
 int US_ReadCounter_RBV(pimega_t *pimega);
-int US_ImageMode(pimega_t *pimega, uint8_t image_mode);
-int US_ImageMode_RBV(pimega_t *pimega);
+
 int US_DiscardData(pimega_t *pimega, bool discard_data);
 int US_DiscardData_RBV(pimega_t *pimega);
 int getMB_Temperatures(pimega_t *pimega);
