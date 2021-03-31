@@ -1172,7 +1172,7 @@ void pimegaDetector::setDefaults(void)
     getSensorBias(pimega, PIMEGA_ONE_MB_LOW_FLEX_ONE_MODULE);
     setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage);
    
-    setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
+
     setParameter(PimegaLogFile, pimega->logFileName);
     callParamCallbacks();
 }
@@ -1499,7 +1499,9 @@ asynStatus pimegaDetector::reset(short action)
     acqPeriod(0.0);
     acqTime(1.0);
     numExposures(1);
-    setDefaults();
+    setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
+    medipixMode(PIMEGA_MEDIPIX_MODE_DEFAULT);
+
     if (rc != PIMEGA_SUCCESS) {
         return asynError; }
 
