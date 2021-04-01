@@ -119,7 +119,8 @@ void pimegaDetector::acqTask()
                 numExposuresVar = 1;             
                 numExposures(1);
             }
-            if (triggerMode != PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE)
+            /* Override numExposuresVar since it will most probably be 1 */
+            if (triggerMode == PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE)
             {
                 numExposuresVar = pimega->acquireParam.numCapture;  
             }
