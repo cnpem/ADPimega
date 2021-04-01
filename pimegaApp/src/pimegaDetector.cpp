@@ -119,7 +119,10 @@ void pimegaDetector::acqTask()
                 numExposuresVar = 1;             
                 numExposures(1);
             }
-            
+            if (triggerMode != PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE)
+            {
+                numExposuresVar = pimega->acquireParam.numCapture;  
+            }
             status = startAcquire();
             if (status != asynSuccess) {
                 err_print("startAcquire() failed. Stop event sent.\n");
@@ -319,6 +322,14 @@ void pimegaDetector::acqTask()
 
 }
 
+
+
+void pimegaDetector::updateIOCStatus(const char * message)
+{
+    setParameter(ADStatusMessage, "Equalizing...");
+    callParamCallbacks();
+}
+
 asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     int function = pasynUser->reason;
@@ -392,11 +403,14 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
     }
     else if (function == PimegaSendImage) {
+        updateIOCStatus("Sending Images...");
         if (value) status |= sendImage();
+        updateIOCStatus("Sending image done.");
     }
     else if (function == PimegaLoadEqStart) {
-        
+        updateIOCStatus( "Equalizing. Please Wait...");
         if (value) status |= loadEqualization(pimega->loadEqCFG);
+        updateIOCStatus( "Equalization Finished.");
     }    
     
     else if (function == PimegaCheckSensors) {
@@ -407,7 +421,11 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == ADNumExposures)
         status |=  numExposures(value);
     else if (function == PimegaReset)
+    {
+        updateIOCStatus("Reseting. Please wait...");
         status |=  reset(value);
+        updateIOCStatus("Reset done.");
+    }
     else if (function == PimegaMedipixMode)
         status |= medipixMode(value);
     else if (function == PimegaModule)
@@ -552,7 +570,9 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
     if (function == pimegaDacDefaults)
     {
         *nActual = maxChars;
+        updateIOCStatus("Setting DACs...");
         status = dacDefaults(value);
+        updateIOCStatus("Setting DACs done.");
     }
     else if (function == PimegaIndexID)
     {
@@ -654,9 +674,11 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
         numPoints = N_DACS_OUTS;
     }
     else if (function == PimegaMBTemperatureM1){
+        updateIOCStatus("Reading temperatures...");
         getMbTemperature();
         inPtr = PimegaMBTemperature_;
         numPoints = pimega->num_mb_tsensors;
+        updateIOCStatus("Reading temperatures done.");
     }
     else {
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
