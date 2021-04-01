@@ -327,7 +327,7 @@ void pimegaDetector::acqTask()
 
 void pimegaDetector::updateIOCStatus(const char * message)
 {
-    setParameter(ADStatusMessage, "Equalizing...");
+    setParameter(ADStatusMessage, message);
     callParamCallbacks();
 }
 
