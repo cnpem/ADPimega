@@ -349,7 +349,6 @@ void pimegaDetector::newImageTask()
             {        
                 prevAcquisitionCount = minumumAcquisitionCount;
                 generateImage();
-                err_print("-----------------------------------Generate image called!!\n");
             }
         }
         else{
