@@ -161,6 +161,7 @@ public:
     virtual void acqTask(void);
     virtual void generateImage(void);
     void updateIOCStatus(const char * message);
+    void newImageTask();
     // Debugging routines
     asynStatus initDebugger(int initDebug);
     asynStatus debugLevel(const std::string& method, int onOff);

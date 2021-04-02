@@ -324,6 +324,40 @@ void pimegaDetector::acqTask()
 }
 
 
+static void newImageTaskC(void *drvPvt)
+{
+    pimegaDetector *pPvt = (pimegaDetector *) drvPvt;
+    pPvt->newImageTask();
+}
+
+void pimegaDetector::newImageTask()
+{
+    int backendStatus, i;
+    uint64_t prevAcquisitionCount = 0;
+    while (1) {
+        usleep(50000);
+        getParameter(NDFileCapture, &backendStatus);
+        if (backendStatus) {
+            get_acqStatus_fromBackend(pimega);
+            uint64_t minumumAcquisitionCount = UINT64_MAX;
+            for (i = 0;  i < pimega->max_num_modules; i++)
+            {
+                if (minumumAcquisitionCount > pimega->acq_status_return.noOfAquisitions[i])
+                    minumumAcquisitionCount = pimega->acq_status_return.noOfAquisitions[i];
+            }
+            if (prevAcquisitionCount < minumumAcquisitionCount)    
+            {        
+                prevAcquisitionCount = minumumAcquisitionCount;
+                generateImage();
+                err_print("-----------------------------------Generate image called!!\n");
+            }
+        }
+        else{
+            prevAcquisitionCount = 0;
+        }
+    }
+}
+
 
 void pimegaDetector::updateIOCStatus(const char * message)
 {
@@ -356,7 +390,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     if (function == ADAcquire) {
         /* if d */
         if (value && backendStatus && 
-            (adstatus == ADStatusIdle || adstatus == ADStatusError || adstatus == ADStatusAborted)) {
+            (adstatus == ADStatusIdle || adstatus == ADStatusAborted)) {
             /* Send an event to wake up the acq task.  */
             v_print("Start event detected. Sending start event signal.\n");
             epicsEventSignal(this->startEventId_);
@@ -369,7 +403,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             epicsThreadSleep(.1);
         }
         else {
-            err_print("Neither value nor !value condition was chosen. value=%d, adstatus=%s(%d), backendStatus=%d. returning asynError\n", value, 
+            err_print("Neither value nor !value condition was chosen. value=%d, adstatus=%s(%d), backendStatus=%d. \n ADAcquire is not activated. returning asynError\n", value, 
                         adstatus == ADStatusIdle? "ADStatusIdle" :
                         adstatus == ADStatusError? "ADStatusError" :
                         adstatus == ADStatusAborted? "ADStatusAborted" :
@@ -762,8 +796,6 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     else if (function == NDFileNumCaptured) {
         if (backendStatus) {
             int num_capture = (unsigned int)pimega->acquireParam.numCapture;
-            status = get_acqStatus_fromBackend(pimega);
-            generateImage();
             int backend_saved = pimega->acq_status_return.savedAquisitionNum;
 
             if ((num_capture != 0) && (backend_saved == num_capture)) {
@@ -944,6 +976,13 @@ pimegaDetector::pimegaDetector(const char *portName,
                                 epicsThreadGetStackSize(epicsThreadStackMedium),
                                 (EPICSTHREADFUNC)acquisitionTaskC,
                                 this) == NULL);
+
+    status = (epicsThreadCreate("pimegaNewImageTask", 
+                                epicsThreadPriorityMedium,
+                                epicsThreadGetStackSize(epicsThreadStackMedium),
+                                (EPICSTHREADFUNC)newImageTaskC,
+                                this) == NULL);
+
     if (status) {
         debug(functionName, "epicsTheadCreate failure for image task");
     }
