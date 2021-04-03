@@ -229,9 +229,11 @@ void pimegaDetector::acqTask()
 
                 //printf("indexError=%x\n", pimega->acq_status_return.indexError);
                  /* Saving is enabled and the saved images is less than requested */
+                 /* New case added in scan case when ADImageSingle, numCapture > 1, triggerMode is internal should not enter here. */
                  if (pimega->acquireParam.numCapture != 0 && 
                      pimega->acq_status_return.savedAquisitionNum < (unsigned int)pimega->acquireParam.numCapture && 
-                     autoSave == 1) {
+                     autoSave == 1 && 
+                     !( imageMode == ADImageSingle && pimega->acquireParam.numCapture != 1 && triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)) {
                         /* Check if there are still images to save by comparing the received with the saved.
                            This is due to the slower saving rate. */
                         if (minumumAcquisitionCount > pimega->acq_status_return.savedAquisitionNum)
@@ -264,7 +266,8 @@ void pimegaDetector::acqTask()
                     setStringParam(ADStatusMessage, "Sending frames to Index");
                 }  
                 /* Saving is not enabled, or saving is enabled and all images arrived */   
-                else if (pimega->acquireParam.numCapture != 0 && minumumAcquisitionCount < (unsigned int) pimega->acquireParam.numCapture) {
+                else if (pimega->acquireParam.numCapture != 0 && minumumAcquisitionCount < (unsigned int) pimega->acquireParam.numCapture &&
+                        autoSave == 0) {
                 /* The number of received images is equal or less than requested. Problem exists. 
                     Check if external trigger is enabled. If not, detector dropped frames. */ 
                     setIntegerParam(ADStatus, ADStatusError);  
@@ -281,6 +284,9 @@ void pimegaDetector::acqTask()
                     }
                 }  
                 else {
+                    /*Enters here in this case too:
+                    imageMode == ADImageSingle && pimega->acquireParam.numCapture != 1 && triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)
+                    Only when scan is used. */
                     setStringParam(ADStatusMessage, "Acquisition finished");
                     setParameter(ADStringFromServer, "Done"); //¯\_(⊙︿⊙)_/¯
                     acquire=0;
