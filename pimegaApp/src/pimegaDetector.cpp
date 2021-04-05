@@ -673,7 +673,11 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
         status |= acqPeriod(value);
 
     else if (function == PimegaSensorBias)
+    {
+        updateIOCStatus("Adjusting sensor bias...");
         status |= sensorBias(value);
+        updateIOCStatus("Sensor bias adjusted.");
+    }
 
     else if (function == PimegaExtBgIn)
         status |= setExtBgIn(value);
@@ -1725,8 +1729,17 @@ asynStatus pimegaDetector::sensorBias(float voltage)
         error("Invalid value: %s\n", pimega_error_string(rc));
         return asynError;
     }
-    setParameter(PimegaSensorBias,
-                 pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
+    if (send_mode == PIMEGA_ALL_MBS_ALL_FLEX_ALL_MODULES)
+    {
+        /* Use that of Module 1 since all of them had the same thing written */
+        setParameter(PimegaSensorBias,
+                    pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MODULE1]);
+    }
+    else
+    {
+        setParameter(PimegaSensorBias,
+                    pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
+    }
 
     
     return asynSuccess;
