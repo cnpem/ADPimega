@@ -969,6 +969,10 @@ pimegaDetector::pimegaDetector(const char *portName,
     //check_and_disable_sensors(pimega);
 
     setDefaults();
+
+    /* get the MB Hardware version and store it */
+    get_MbHwVersion(pimega);
+
     define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
 
     //Alocate memory for PimegaMBTemperature_
@@ -1233,7 +1237,9 @@ void pimegaDetector::setDefaults(void)
     setParameter(ADReverseX, 0);
     setParameter(ADReverseY, 0);
     setParameter(ADFrameType, ADFrameNormal);
-    setParameter(ADNumExposures, 1);
+    acqPeriod(0.0);
+    acqTime(1.0);
+    numExposures(1);
     /* String parameters are initialized in st.cmd file because of a bug in asyn
      * that makes string records behave differently from integer records.  */
     setParameter(NDAttributesFile, "");
@@ -1253,7 +1259,7 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaMedipixMode, PIMEGA_MEDIPIX_MODE_DEFAULT);
 
     getSensorBias(pimega, PIMEGA_ONE_MB_LOW_FLEX_ONE_MODULE);
-    setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage);
+    setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
    
 
     setParameter(PimegaLogFile, pimega->logFileName);
@@ -1344,6 +1350,9 @@ int pimegaDetector::startCaptureBackend(void)
     setParameter(ADStringFromServer, "Configuring");
     callParamCallbacks();
     
+    /* Clean up */
+    reset_acq_status_return(pimega);
+
     /* Create the full filename */
     createFileName(sizeof(fullFileName), fullFileName);
     rc = set_file_name_template(pimega, fullFileName);
@@ -1448,7 +1457,7 @@ asynStatus pimegaDetector::selectModule(uint8_t module)
     rc |= select_board(pimega, mfb);
     rc |= getSensorBias(pimega, (pimega_send_mb_flex_t) send_mode);
     setParameter(PimegaSensorBias, 
-                 pimega->pimegaParam.bias_voltage);
+                 pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
 
     setParameter(PimegaModule, module);
     return asynSuccess;    
@@ -1605,7 +1614,7 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
     rc |= getSensorBias(pimega, (pimega_send_mb_flex_t) send_mode);
 
     setParameter(PimegaSensorBias, 
-                 pimega->pimegaParam.bias_voltage);
+                    pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
 
 
     //getMfbTemperature();
@@ -1717,7 +1726,7 @@ asynStatus pimegaDetector::sensorBias(float voltage)
         return asynError;
     }
     setParameter(PimegaSensorBias,
-                 pimega->pimegaParam.bias_voltage);
+                 pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
 
     
     return asynSuccess;

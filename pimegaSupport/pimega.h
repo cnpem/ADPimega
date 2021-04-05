@@ -574,7 +574,7 @@ typedef struct pimega_params_t {
 	pimega_dac_t dac;							//US_Set/Get DAC
 	pimega_trigger_mode_t trigger_mode;			//US_TriggerMode
 	bool discard_data;							//US_DiscardData
-	float bias_voltage;  						//US_SensorBias_RBV (Flex Low (0) and flex high (1))
+	float bias_voltage[5];  						//US_SensorBias_RBV (Flex Low (0) and flex high (1))
 	pimega_read_counter_t read_counter;
 	pimega_image_mode_t image_mode;
 	float mb_temperature[4][48];
@@ -848,6 +848,7 @@ void pimega_disconnect_backend(pimega_t *pimega);
 void pimega_delete(pimega_t *pimega);
 int prepare_pimega(pimega_t *pimega);
 
+int get_MbHwVersion(pimega_t *pimega);
 int define_master_module(pimega_t *pimega, uint8_t module, bool ext_trigger, pimega_trigger_mode_t trigger_mode);
 int select_module(pimega_t *pimega, int module);
 int set_acquireTime(pimega_t *pimega, float acquire_time_s);
@@ -880,6 +881,7 @@ void get_array_data(pimega_t *pimega);
 void decode_backend_error(uint8_t ret, char *error);
 bool evaluateBulkProcessing(enum bulkProcessingEnum bulkProcessing, float acquirePeriod, float acquireTime, bool externalTrigger, uint64_t capture);
 int abort_save(pimega_t *pimega);
+void reset_acq_status_return(pimega_t *pimega);
 // ---------------------------------------------------------
 
 int check_and_disable_sensors(pimega_t *pimega);
