@@ -58,7 +58,15 @@ static const char *driverName = "pimegaDetector";
 
 #define error(fmt, ...) asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, \
         "%s:%d " fmt, __FILE__, __LINE__, __VA_ARGS__)
-                                  
+
+
+#define UPDATEIOCSTATUS(x)         \
+do {                               \
+    updateIOCStatus(x, sizeof(x)); \
+} while(0)
+
+
+
 #define pimegaMedipixModeString         "MEDIPIX_MODE"
 #define pimegaefuseIDString             "EFUSE_ID"
 #define pimegaOmrOPModeString           "OMR_OP_MODE"
@@ -141,6 +149,8 @@ static const char *driverName = "pimegaDetector";
 #define pimegaIndexCounterString         "INDEX_COUNTER"
 #define pimegaDistanceString             "DISTANCE"
 #define pimegaLogFileString              "LOGFILE"
+#define pimegaIOCStatusMsgString         "IOC_STATUS_MESSAGE"
+
 
 class pimegaDetector: public ADDriver
 {
@@ -160,7 +170,7 @@ public:
     virtual void report(FILE *fp, int details);
     virtual void acqTask(void);
     virtual void generateImage(void);
-    void updateIOCStatus(const char * message);
+    void updateIOCStatus(const char * message, int size);
     void newImageTask();
     // Debugging routines
     asynStatus initDebugger(int initDebug);
@@ -252,6 +262,7 @@ protected:
     int PimegaIndexCounter;
     int PimegaDistance;    
     int PimegaLoadEqStart;
+    int PimegaIOCStatusMessage;
     int PimegaLogFile;  
     #define LAST_PIMEGA_PARAM PimegaLogFile
 
