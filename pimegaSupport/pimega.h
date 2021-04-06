@@ -477,6 +477,19 @@ typedef enum pimega_dac_t {
 	DAC_ENUM_END,
 } pimega_dac_t;
 
+typedef enum ini_general_cfg_t {
+    CFG_threshold0=0,
+    CFG_threshold1,
+    CFG_shaper,
+	CFG_gain,
+	CFG_mfb0_sensorbias_low,
+	CFG_mfb0_sensorbias_high,
+	CFG_mfb1_sensorbias_low,
+	CFG_mfb1_sensorbias_high,
+	CFG_mfb2_sensorbias_low,
+	CFG_mfb2_sensorbias_high,
+	CFG_END
+} ini_general_cfg_t;
 
 typedef enum pimega_trigger_mode_t {
 	PIMEGA_TRIGGER_MODE_INTERNAL = 0,
