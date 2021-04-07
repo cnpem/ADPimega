@@ -65,7 +65,10 @@ do {                               \
     updateIOCStatus(x, sizeof(x)); \
 } while(0)
 
-
+#define UPDATESERVERSTATUS(x)         \
+do {                               \
+    updateServerStatus(x, sizeof(x)); \
+} while(0)
 
 #define pimegaMedipixModeString         "MEDIPIX_MODE"
 #define pimegaefuseIDString             "EFUSE_ID"
@@ -150,7 +153,7 @@ do {                               \
 #define pimegaDistanceString             "DISTANCE"
 #define pimegaLogFileString              "LOGFILE"
 #define pimegaIOCStatusMsgString         "IOC_STATUS_MESSAGE"
-
+#define pimegaServerStatusMsgString      "SERVER_STATUS_MESSAGE"
 
 class pimegaDetector: public ADDriver
 {
@@ -171,6 +174,7 @@ public:
     virtual void acqTask(void);
     virtual void generateImage(void);
     void updateIOCStatus(const char * message, int size);
+    void updateServerStatus(const char * message, int size);
     void newImageTask();
     // Debugging routines
     asynStatus initDebugger(int initDebug);
@@ -263,6 +267,7 @@ protected:
     int PimegaDistance;    
     int PimegaLoadEqStart;
     int PimegaIOCStatusMessage;
+    int PimegaServerStatusMessage;
     int PimegaLogFile;  
     #define LAST_PIMEGA_PARAM PimegaLogFile
 

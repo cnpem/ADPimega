@@ -1415,3 +1415,12 @@ record(waveform, "$(P)$(R)IOCStatusMessage_RBV") {
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IOC_STATUS_MESSAGE")
     field(SCAN, "I/O Intr")
 }
+
+record(waveform, "$(P)$(R)ServerStatusMessage_RBV") {
+	field(DESC, "Server Status Message")
+	field(NELM, "100")
+	field(FTVL, "UCHAR")
+	field(DTYP, "asynInt8ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SERVER_STATUS_MESSAGE")
+    field(SCAN, "I/O Intr")
+}
