@@ -384,7 +384,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     static const char *functionName = "writeInt32";
     const char *paramName;
 
-
+    char ok_str[100] = "";
     int adstatus, backendStatus, acquireRunning;
     //int acquiring;
 
@@ -429,16 +429,17 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             if (acquireRunning == 0)
             {
                 status = startCaptureBackend();
+                strcat(ok_str, "Starting acquisition");
             } else
             {
                 err_print("Detector acquisition running. Will not start a new backend capture. Sending asynError.\n");
+                strncpy(pimega->error, "Stop current acquisition first", sizeof("Stop current acquisition first"));
                 status = asynError;
             }
         }
         if (!value) { 
             status |= send_stopAcquire_toBackend(pimega);
             UPDATESERVERSTATUS("Backend Stopped");
-
         }
     }
     else if (function == PimegaAbortSave){
@@ -453,116 +454,197 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaSendImage) {
         UPDATEIOCSTATUS("Sending Images...");
         if (value) status |= sendImage();   
-        UPDATEIOCSTATUS("Sending image done.");
+        strcat(ok_str, "Sending image done");
     }
     else if (function == PimegaLoadEqStart) {
         UPDATEIOCSTATUS( "Equalizing. Please Wait...");
         if (value) status |= loadEqualization(pimega->loadEqCFG);
-        UPDATEIOCSTATUS( "Equalization Finished.");
+        strcat(ok_str, "Equalization Finished");
     }    
     
     else if (function == PimegaCheckSensors) {
+        UPDATEIOCSTATUS( "Checking sensors. Please Wait...");
         if (value) status |= checkSensors();
+        strcat(ok_str, "Sensors checked");
     }
-    else if (function == PimegaOmrOPMode)
+    else if (function == PimegaOmrOPMode){
         status |= setOMRValue(OMR_M, value, function);
-    else if (function == ADNumExposures)
+        strcat(ok_str, "OMR value set");
+    }
+    else if (function == ADNumExposures) {
         status |=  numExposures(value);
-    else if (function == PimegaReset)
-    {
+        strcat(ok_str, "Exposures # set");
+    }
+    else if (function == PimegaReset)    {
         UPDATEIOCSTATUS("Reseting. Please wait...");
         status |=  reset(value);
-        UPDATEIOCSTATUS("Reset done.");
+        strcat(ok_str, "Reset done");
     }
-    else if (function == PimegaMedipixMode)
+    else if (function == PimegaMedipixMode)    {
         status |= medipixMode(value);
-    else if (function == PimegaModule)
+        strcat(ok_str, "Medipix mode set");
+    }
+    else if (function == PimegaModule) {
         status |= selectModule(value);
-    else if (function == ADTriggerMode)
+        strcat(ok_str, "Module selected");
+    }
+    else if (function == ADTriggerMode) {
         status |=  triggerMode(value);
-    else if (function == PimegaConfigDiscL)
+        strcat(ok_str, "Trigger mode set");
+    }
+    else if (function == PimegaConfigDiscL) {
         status |= configDiscL(value);
-    else if (function == PimegaMedipixBoard)
+        strcat(ok_str, "ConfigDiscL set");
+    }
+    else if (function == PimegaMedipixBoard) {
         status |= medipixBoard(value);
-    else if (function == PimegaMedipixChip)
+        strcat(ok_str, "ConfigDiscL set");
+    }
+    else if (function == PimegaMedipixChip) {
         status |= imgChipID(value);
-    else if (function == PimegaPixelMode)
+        strcat(ok_str, "Chip selected");
+    }
+    else if (function == PimegaPixelMode) {
         status |= setOMRValue(OMR_CSM_SPM, value, function);
-    else if (function == PimegaContinuosRW)
+        strcat(ok_str, "Pixel mode set");
+    }
+    else if (function == PimegaContinuosRW) {
         status |= setOMRValue(OMR_CRW_SRW, value, function);
-    else if (function == PimegaPolarity)
+        strcat(ok_str, "read/write set");
+    }
+    else if (function == PimegaPolarity){
         status |= setOMRValue(OMR_Polarity, value, function);
-    else if (function == PimegaDiscriminator)
+        strcat(ok_str, "Polarity set");
+    }
+    else if (function == PimegaDiscriminator) {
         status |= setOMRValue(OMR_Disc_CSM_SPM, value, function);
-    else if (function == PimegaTestPulse)
+        strcat(ok_str, "Discriminator set");
+    }
+    else if (function == PimegaTestPulse) {
         status |= setOMRValue(OMR_EnableTP, value, function);
-    else if (function == PimegaCounterDepth)
+        strcat(ok_str, "Test pulse set");
+    }
+    else if (function == PimegaCounterDepth) {
         status |= setOMRValue(OMR_CountL, value, function);
-    else if (function == PimegaEqualization)
+        strcat(ok_str, "Counter depth set");
+    }
+    else if (function == PimegaEqualization) {
         status |= setOMRValue(OMR_Equalization, value, function);
-    else if (function == PimegaGain)
+        strcat(ok_str, "Equalization set");
+    }
+    else if (function == PimegaGain) {
         status |= setOMRValue(OMR_Gain_Mode, value, function);
-    else if (function == PimegaExtBgSel)
+        strcat(ok_str, "Gain set");
+    }
+    else if (function == PimegaExtBgSel) {
         status |= setOMRValue(OMR_Ext_BG_Sel, value, function);
-    else if (function == PimegaReadCounter)
+        strcat(ok_str, "BG select set");
+    }
+    else if (function == PimegaReadCounter) {
         status |= readCounter(value);
-    else if (function == PimegaSenseDacSel)
+        strcat(ok_str, "Read counter set");
+    }
+    else if (function == PimegaSenseDacSel) {
         status |= senseDacSel(value);
+        strcat(ok_str, "Sense DAC set");
+    }
     //DACS functions
-    else if (function == PimegaCas)
+    else if (function == PimegaCas) {
         status |=  setDACValue(DAC_CAS, value, function);
-    else if (function == PimegaDelay)
+        strcat(ok_str, "DAC CAS set");
+    }
+    else if (function == PimegaDelay) {
         status |=  setDACValue(DAC_Delay, value, function);
-    else if (function == PimegaDisc)
+        strcat(ok_str, "DAC Delay set");
+    }
+    else if (function == PimegaDisc) {
         status |=  setDACValue(DAC_Disc, value, function);
-    else if (function == PimegaDiscH)
+        strcat(ok_str, "DAC Disc set");
+    }
+    else if (function == PimegaDiscH) {
         status |=  setDACValue(DAC_DiscH, value, function);
-    else if (function == PimegaDiscL)
+        strcat(ok_str, "DAC DiscH set");
+    }
+    else if (function == PimegaDiscL) {
         status |=  setDACValue(DAC_DiscL, value, function);
-    else if (function == PimegaDiscLS)
+        strcat(ok_str, "DAC DiscL set");
+    }
+    else if (function == PimegaDiscLS) {
         status |=  setDACValue(DAC_DiscLS, value, function);
-    else if (function == PimegaFbk)
+        strcat(ok_str, "DAC DiscLS set");
+    }
+    else if (function == PimegaFbk) {
         status |=  setDACValue(DAC_FBK, value, function);
-    else if (function == PimegaGnd)
+        strcat(ok_str, "DAC FBK set");
+    }
+    else if (function == PimegaGnd) {
         status |=  setDACValue(DAC_GND, value, function);
-    else if (function == PimegaIkrum)
+        strcat(ok_str, "DAC GND set");
+    }
+    else if (function == PimegaIkrum) {
         status |=  setDACValue(DAC_IKrum, value, function);
-    else if (function == PimegaPreamp)
+        strcat(ok_str, "DAC IKrum set");
+    }
+    else if (function == PimegaPreamp) {
         status |=  setDACValue(DAC_Preamp, value, function);
-    else if (function == PimegaRpz)
+        strcat(ok_str, "DAC Preamp set");
+    }
+    else if (function == PimegaRpz) {
         status |=  setDACValue(DAC_RPZ, value, function);
-    else if (function == PimegaShaper)
+        strcat(ok_str, "DAC RPZ set");
+    }
+    else if (function == PimegaShaper) {
         status |=  setDACValue(DAC_Shaper, value, function);
-    else if (function == PimegaThreshold0)
+        strcat(ok_str, "DAC Shaper set");
+    }
+    else if (function == PimegaThreshold0) {
         status |=  setDACValue(DAC_ThresholdEnergy0, value, function);
-    else if (function == PimegaThreshold1)
+        strcat(ok_str, "DAC TH0 set");
+    }
+    else if (function == PimegaThreshold1){
         status |=  setDACValue(DAC_ThresholdEnergy1, value, function);
-    else if (function == PimegaTpBufferIn)
+        strcat(ok_str, "DAC TH1 set");
+    }
+    else if (function == PimegaTpBufferIn) {
         status |=  setDACValue(DAC_TPBufferIn, value, function);
-    else if (function == PimegaTpBufferOut)
+        strcat(ok_str, "DAC TPBufferIn set");
+    }
+    else if (function == PimegaTpBufferOut) {
         status |=  setDACValue(DAC_TPBufferOut, value, function);
-    else if (function == PimegaTpRef)
+        strcat(ok_str, "DAC TPBufferOut set");
+    }
+    else if (function == PimegaTpRef) {
         status |=  setDACValue(DAC_TPRef, value, function);
-    else if (function == PimegaTpRefA)
+        strcat(ok_str, "DAC TPRef set");
+    }
+    else if (function == PimegaTpRefA) {
         status |=  setDACValue(DAC_TPRefA, value, function);
-    else if (function == PimegaTpRefB)
+        strcat(ok_str, "DAC TPRefA set");
+    }
+    else if (function == PimegaTpRefB) {
         status |=  setDACValue(DAC_TPRefB, value, function);
+        strcat(ok_str, "DAC TPRefB set");
+    }
     else if (function == PimegaMBSelTSensor) {
         setParameter(PimegaMBTSensor, pimega->pimegaParam.mb_temperature[0][value-1]);
+        strcat(ok_str, "Temperature fetched");
     }
     else
     {
         if (function < FIRST_PIMEGA_PARAM)
+        {
                 status = ADDriver::writeInt32(pasynUser, value);
+                strcat(ok_str, paramName);
+                strcat(ok_str, " OK");
+        }
     }
 
     if (status){
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:%s: error, status=%d function=%d, value=%d\n",
               driverName, functionName, status, function, value);
-        char err[500] = "Error setting ";
-        strcat(err, paramName);
-        UPDATEIOCSTATUS(err);              
+        UPDATEIOCSTATUS(pimega->error);    
+        pimega->error[0] = '\0';          
     } else {
         /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
         * status at the end, but that's OK */
@@ -572,10 +654,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
               "%s:%s: function=%d, value=%d\n",
               driverName, functionName, function, value);
-        /*char ok_str[500] = "";
-        strcat(ok_str, paramName);
-        strcat(ok_str, " done.");
-        UPDATEIOCSTATUS(ok_str);  */
+        UPDATEIOCSTATUS(ok_str);  
     }
     return (asynStatus)status;
 
@@ -588,7 +667,7 @@ asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	
     size_t i;
     int status = asynSuccess;
     const char *paramName;
-    char ok_str[500] = "";
+    char ok_str[100] = "";
 
     getParamName(function, &paramName);
     printf("writeInt32Array Function Idx: %d\n", function);
@@ -602,15 +681,20 @@ asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	
     if (function == PimegaLoadEqualization)
     {
         status = set_eq_cfg(pimega, (uint32_t *)value, nElements);
-        strcat(ok_str, "Equalization string set.");
+        strcat(ok_str, "Equalization string set");
         
     }
     else if (function < FIRST_PIMEGA_PARAM) 
+    {
         status = ADDriver::writeInt32Array(pasynUser, value, nElements);
+        strcat(ok_str, paramName);
+        strcat(ok_str, " OK");
+    }
+
 
     if (status)
     {
-        char err[500] = "Error setting ";
+        char err[100] = "Error setting ";
         strcat(err, paramName);
         UPDATEIOCSTATUS(err);
     } else {
@@ -637,17 +721,21 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
         *nActual = maxChars;
         UPDATEIOCSTATUS("Setting DACs...");
         status = dacDefaults(value);
-        //UPDATEIOCSTATUS("Setting DACs done.");
+        strcat(ok_str, "Setting DACs done");
     }
     else if (function == PimegaIndexID)
     {
         *nActual = maxChars;
         setParameter(function, value);
-        strcat(ok_str, "Index ID set.");
+        strcat(ok_str, "Index ID set");
     }
     else {
     /* If this parameter belongs to a base class call its method */
-        if (function < FIRST_PIMEGA_PARAM) status = ADDriver::writeOctet(pasynUser, value, maxChars, nActual);
+        if (function < FIRST_PIMEGA_PARAM) {
+            status = ADDriver::writeOctet(pasynUser, value, maxChars, nActual);
+            strcat(ok_str, paramName);
+            strcat(ok_str, " OK");
+        }
     }
 
     if (status)
@@ -655,9 +743,8 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:writeOctet error, status=%d function=%d, value=%s\n",
               driverName, status, function, value);
-        char err[500] = "Error setting ";
-        strcat(err, paramName);
-        UPDATEIOCSTATUS(err);                
+        UPDATEIOCSTATUS(pimega->error);     
+        pimega->error[0] = '\0';              
     }
     else{
         /* Do callbacks so higher layers see any changes */
@@ -699,25 +786,36 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     status |= setDoubleParam(function, value);
 
     if (function == ADAcquireTime)
+    {
         status |= acqTime(value);
+        strcat(ok_str, "Exposure time set");
+    }
 
     else if (function == ADAcquirePeriod)
+    {
         status |= acqPeriod(value);
+        strcat(ok_str, "Acquire period set");
+    }
 
     else if (function == PimegaSensorBias)
     {
         UPDATEIOCSTATUS("Adjusting sensor bias...");
         status |= sensorBias(value);
-        strcat(ok_str, "Sensor bias set.");
+        strcat(ok_str, "Sensor bias set");
     }
     else if (function == PimegaExtBgIn)
     {
+        UPDATEIOCSTATUS("Adjusting bandgap...");
         status |= setExtBgIn(value);
-        strcat(ok_str, "Bandgap set.");
+        strcat(ok_str, "Bandgap set");
     }
     else {
     /* If this parameter belongs to a base class call its method */
-        if (function < FIRST_PIMEGA_PARAM) status = ADDriver::writeFloat64(pasynUser, value);
+        if (function < FIRST_PIMEGA_PARAM) {
+            status = ADDriver::writeFloat64(pasynUser, value);
+            strcat(ok_str, paramName);
+            strcat(ok_str, " OK");
+        }
     }
 
     if (status)
@@ -725,9 +823,8 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:writeFloat64 error, status=%d function=%d, value=%f\n",
               driverName, status, function, value);
-        char err[500] = "Error setting ";
-        strcat(err, paramName);
-        UPDATEIOCSTATUS(err);  
+        UPDATEIOCSTATUS(pimega->error);  
+        pimega->error[0] = '\0';   
     }
     else{
         /* Do callbacks so higher layers see any changes */
@@ -762,12 +859,14 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
         getMbTemperature();
         inPtr = PimegaMBTemperature_;
         numPoints = pimega->num_mb_tsensors;
-        UPDATEIOCSTATUS("Reading temperatures done.");
+        UPDATEIOCSTATUS("Reading temperatures done");
     }
     else {
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
             "%s:%s: ERROR: unknown function=%d\n",
             driverName, functionName, function);
+        UPDATEIOCSTATUS(pimega->error);
+        pimega->error[0] = '\0';   
         return asynError;
     }
 
@@ -1432,6 +1531,7 @@ int pimegaDetector::startCaptureBackend(void)
         char error[100];
         decode_backend_error(pimega->ack.error, error);
         UPDATESERVERSTATUS(error);
+        strncpy(pimega->error, "Check path/filename", sizeof("Check path/filename"));
         return rc;
     }
 
@@ -1529,6 +1629,7 @@ asynStatus pimegaDetector::setDACValue(pimega_dac_t dac, int value, int paramete
     int rc;
     int all_modules;
 
+    /* TODO: Is this necessary? callParamCallbacks is setting the PV. PimegaSendDacDone is not used anywhere. */
     setParameter(PimegaSendDacDone, 0);
     callParamCallbacks();
 
