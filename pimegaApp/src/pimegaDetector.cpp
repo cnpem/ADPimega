@@ -783,7 +783,6 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     printf("Float Function Name: %s\n", paramName);
     printf("Float Function Value: %f\n", value);
 
-    status |= setDoubleParam(function, value);
 
     if (function == ADAcquireTime)
     {
