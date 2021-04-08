@@ -68,6 +68,10 @@ pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIM
 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
+# Load asynRecord record
+dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn1,PORT=$(PORT),ADDR=0,OMAX=256,IMAX=256")
+
+asynSetTraceMask($(PORT), 0, 0x00)
 # Create a standard arrays plugin, set it to get data from pimega driver.
 NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 

@@ -389,9 +389,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     //int acquiring;
 
     getParamName(function, &paramName);
-    printf("Int Function Idx: %d\n", function);
-    printf("Int Function Name: %s\n", paramName);
-    printf("Int Function Value: %d\n", value);
+    v_print("%s: %s(%d) requested value %d\n", functionName, paramName, function, value);
 
     /* Ensure that ADStatus is set correctly before we set ADAcquire.*/
     getIntegerParam(ADStatus, &adstatus);
@@ -404,23 +402,31 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (value && backendStatus && 
             (adstatus == ADStatusIdle || adstatus == ADStatusAborted)) {
             /* Send an event to wake up the acq task.  */
-            v_print("Start event requested. Sending start event signal.\n");
+            v_print("%s: Start event requested. Sending start event signal.\n", functionName);
             epicsEventSignal(this->startEventId_);
+            strcat(ok_str, "Starting acquisition");
             
         }
         else if (!value && (adstatus == ADStatusAcquire || adstatus == ADStatusError)) {
           /* This was a command to stop acquisition */
-            v_print("Stop event requested. Sending stop event signal.\n");
+            v_print("%s: Stop event requested. Sending stop event signal.\n", functionName);
             epicsEventSignal(this->stopEventId_);
             epicsThreadSleep(.1);
+            strcat(ok_str, "Stopping acquisition");
         }
         else {
-            err_print("Neither value nor !value condition was chosen. value=%d, adstatus=%s(%d), backendStatus=%d. \n ADAcquire is not activated. returning asynError\n", value, 
+            err_print("%s: value=%d, adstatus=%s(%d), backendStatus=%d. \n", 
+                        functionName, value, 
                         adstatus == ADStatusIdle? "ADStatusIdle" :
                         adstatus == ADStatusError? "ADStatusError" :
                         adstatus == ADStatusAborted? "ADStatusAborted" :
                         adstatus == ADStatusAcquire? "ADStatusAcquire" : "adstatus not known", adstatus, backendStatus);
-            return asynError;
+            status = asynError;
+            if (value)
+                strncpy(pimega->error, "Cannot start", sizeof("Cannot start"));
+            else
+                strncpy(pimega->error, "Cannot stop", sizeof("Cannot stop"));
+
         }
     }
 
@@ -439,6 +445,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
         if (!value) { 
             status |= send_stopAcquire_toBackend(pimega);
+            strcat(ok_str, "Stopped acquisition");
             UPDATESERVERSTATUS("Backend Stopped");
         }
     }
@@ -449,6 +456,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         { 
             status |=  abort_save(pimega);
             UPDATESERVERSTATUS("Save Aborted");
+            strcat(ok_str, "Save Aborted");
         }
     }
     else if (function == PimegaSendImage) {
@@ -640,20 +648,17 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     }
 
     if (status){
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:%s: error, status=%d function=%d, value=%d\n",
-              driverName, functionName, status, function, value);
+        err_print("%s: Failed - status=%d function=%s(%d), value=%d\n",
+              functionName, status, paramName, function, value);
         UPDATEIOCSTATUS(pimega->error);    
         pimega->error[0] = '\0';          
     } else {
         /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
         * status at the end, but that's OK */
         setIntegerParam(function, value);
-         /* Update any changed parameters */
         callParamCallbacks();
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-              "%s:%s: function=%d, value=%d\n",
-              driverName, functionName, function, value);
+        v_print("%s: Success - status=%d function=%s(%d), value=%d\n",
+              functionName, status, paramName, function, value);
         UPDATEIOCSTATUS(ok_str);  
     }
     return (asynStatus)status;
@@ -670,13 +675,10 @@ asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	
     char ok_str[100] = "";
 
     getParamName(function, &paramName);
-    printf("writeInt32Array Function Idx: %d\n", function);
-    printf("writeInt32Array Function Name: %s\n", paramName);
-    printf("writeInt32Array Function nElements: %lu\n", nElements);
-    printf("writeInt32Array Function Value: ");
+    v_print("writeInt32Array: %s(%d) nElements=%d, requested value [ ", paramName, function, nElements, value);
     for (i = 0; i < nElements; i++)
         printf("%d ", value[i]);
-    printf("\n");
+    printf("]\n");
   
     if (function == PimegaLoadEqualization)
     {
@@ -697,9 +699,19 @@ asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	
         char err[100] = "Error setting ";
         strcat(err, paramName);
         UPDATEIOCSTATUS(err);
+        err_print("%s: Failed - status=%d function=%s(%d), nElements=%d, value=",
+        "writeInt32Array", status, paramName, function, nElements);
+        for (i = 0; i < nElements; i++)
+            printf("%d ", value[i]);
+            printf("]\n");
     } else {
         doCallbacksInt32Array(value, nElements, function, 0);
         UPDATEIOCSTATUS(ok_str);  
+        v_print("%s: Success - status=%d function=%s(%d), nElements=%d, value=[ ",
+        "writeInt32Array", status, paramName, function, nElements);
+        for (i = 0; i < nElements; i++)
+            printf("%d ", value[i]);
+            printf("]\n");        
     }
     return((asynStatus)status);
 }
@@ -712,10 +724,8 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
     const char *paramName;
     char ok_str[100] = "";
     getParamName(function, &paramName);
-    printf("String Function Idx: %d\n", function);
-    printf("String Function Name: %s\n", paramName);
-    printf("String Function Value: %s\n", value);
 
+    v_print("writeOctet: %s(%d) requested value %s\n", paramName, function, value);
     if (function == pimegaDacDefaults)
     {
         *nActual = maxChars;
@@ -740,18 +750,14 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
 
     if (status)
     {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:writeOctet error, status=%d function=%d, value=%s\n",
-              driverName, status, function, value);
+        err_print("%s: Failed - status=%d function=%s(%d), value=%s\n", "writeOctet", status, paramName, function, value);
         UPDATEIOCSTATUS(pimega->error);     
         pimega->error[0] = '\0';              
     }
     else{
         /* Do callbacks so higher layers see any changes */
         callParamCallbacks();
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-              "%s:writeOctet: function=%d, value=%s\n",
-              driverName, function, value);
+        v_print("%s: Success - status=%d function=%s(%d), value=%s\n", "writeOctet", status, paramName, function, value);
 
         UPDATEIOCSTATUS(ok_str);  
     }
@@ -779,10 +785,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     const char *paramName;
     char ok_str[100] = "";
     getParamName(function, &paramName);
-    printf("Float Function Idx: %d\n", function);
-    printf("Float Function Name: %s\n", paramName);
-    printf("Float Function Value: %f\n", value);
-
+    v_print("writeFloat64: %s(%d) requested value %f\n", paramName, function, value);
 
     if (function == ADAcquireTime)
     {
@@ -819,18 +822,14 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
     if (status)
     {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:writeFloat64 error, status=%d function=%d, value=%f\n",
-              driverName, status, function, value);
+        err_print("%s: Success - status=%d function=%s(%d), value=%f\n", "writeFloat64", status, paramName, function, value);
         UPDATEIOCSTATUS(pimega->error);  
         pimega->error[0] = '\0';   
     }
     else{
         /* Do callbacks so higher layers see any changes */
         callParamCallbacks();
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-              "%s:writeFloat64: function=%d, value=%f\n",
-              driverName, function, value);
+        v_print("%s: Success - status=%d function=%s(%d), value=%f\n", "writeFloat64", status, paramName, function, value);
    
         UPDATEIOCSTATUS(ok_str);  
     }
@@ -1088,8 +1087,10 @@ pimegaDetector::pimegaDetector(const char *portName,
     }
     maxSizeX = SizeX;
     maxSizeY = SizeY;
-    //pimega_set_debug_stream(pimega, pimega->debug_out);
-    if (pimega) debug(functionName, "Pimega Object created!");
+
+    if (pimega) 
+        v_print("Pimega Object created");
+
     pimega->simulate = simulate;
     connect(ips, port);
     status = prepare_pimega(pimega);
@@ -1517,9 +1518,6 @@ int pimegaDetector::startCaptureBackend(void)
     bulkProcessingBool = evaluateBulkProcessing((enum bulkProcessingEnum)bulkProcessingEnum, acquirePeriod, 
                                                  acquireTime, externalTrigger, pimega->acquireParam.numCapture);
 
-    /* Always reset RDMA logic in the FPGA at new capture */
-    send_allinitArgs_allModules(pimega);
-
     /* Always reset backend RDMA buffers */
     rc = update_backend_acqArgs(pimega, acqMode, lfsr, autoSave, true, (bool)bulkProcessingBool,
                                (enum IndexSendMode)indexSendMode, IndexID, (bool) indexEnable);
@@ -1533,6 +1531,11 @@ int pimegaDetector::startCaptureBackend(void)
         strncpy(pimega->error, "Check path/filename", sizeof("Check path/filename"));
         return rc;
     }
+
+    /* Always reset RDMA logic in the FPGA at new capture */
+    send_allinitArgs_allModules(pimega);
+
+
 
     if (pimega->detModel == pimega540D){
         rc |= select_module(pimega, 2);
