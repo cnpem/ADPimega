@@ -70,8 +70,13 @@ dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT)
 
 # Load asynRecord record
 dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn1,PORT=$(PORT),ADDR=0,OMAX=256,IMAX=256")
-
 asynSetTraceMask($(PORT), 0, 0x00)
+
+
+dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn2,PORT=ATTR1,ADDR=0,OMAX=256,IMAX=256")
+asynSetTraceMask(ATTR1, 0, 0x00)
+
+
 # Create a standard arrays plugin, set it to get data from pimega driver.
 NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 

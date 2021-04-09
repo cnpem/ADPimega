@@ -289,11 +289,15 @@ void pimegaDetector::acqTask()
                     imageMode == ADImageSingle && pimega->acquireParam.numCapture != 1 && triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)
                     Only when scan is used. */
                     UPDATEIOCSTATUS("Acquisition finished");
-                    UPDATESERVERSTATUS("Done"); //¯\_(⊙︿⊙)_/¯
                     acquire=0;
                     setIntegerParam(ADAcquire, 0); 
                     acquireStatus = 0;
                     setIntegerParam(ADStatus, ADStatusIdle);   
+                    if(pimega->acquireParam.numCapture != 0 && minumumAcquisitionCount >= (unsigned int) pimega->acquireParam.numCapture)
+                    {
+                        setParameter(NDFileCapture , 0);
+                        UPDATESERVERSTATUS("Done"); //¯\_(⊙︿⊙)_/¯                        
+                    }
                 }
                 /* Errors reported by backend override previous messages. */                
                 if (moduleError != false)
@@ -352,6 +356,7 @@ void pimegaDetector::newImageTask()
                 if (minumumAcquisitionCount > pimega->acq_status_return.noOfAquisitions[i])
                     minumumAcquisitionCount = pimega->acq_status_return.noOfAquisitions[i];
             }
+            //color_print(BOLDCYAN, "%lu %lu\n", prevAcquisitionCount, minumumAcquisitionCount);
             if (prevAcquisitionCount < minumumAcquisitionCount)    
             {        
                 prevAcquisitionCount = minumumAcquisitionCount;
