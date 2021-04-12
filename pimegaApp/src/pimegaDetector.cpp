@@ -23,29 +23,35 @@ static void acquisitionTaskC(void *drvPvt)
 
 void pimegaDetector::generateImage(void)
 {
-    const char *functionName = "generateImage";
-
-    // simulate a image
-    get_array_data(pimega);
-
+    NDArray * pImage;
+    int backendCounter, itemp, arrayCallbacks;
 
     getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-    // Get an image buffer from the pool
-    getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
-    getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
-
-    if (this->pArrays[0]) this->pArrays[0]->release();
-    this->pArrays[0] = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
-    memcpy(this->pArrays[0]->pData, pimega->sample_frame, this->pArrays[0]->dataSize);
-
-    setIntegerParam(NDArraySizeX, dims[0]);
-    setIntegerParam(NDArraySizeY, dims[1]);
 
     if (arrayCallbacks) {
-        // Call the NDArray callback
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
-                "%s:%s: calling imageData callback\n", driverName, functionName);
-        doCallbacksGenericPointer(this->pArrays[0], NDArrayData, 0);
+
+        get_array_data(pimega);
+        getParameter(ADNumImagesCounter, &backendCounter);
+
+
+        getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
+        getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
+
+        pImage = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
+        memcpy(pImage->pData, pimega->sample_frame, pImage->dataSize);
+
+        /* Put the frame number and time stamp into the buffer */
+        pImage->uniqueId = backendCounter;
+        //pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+        updateTimeStamp(&pImage->epicsTS);
+
+        this->getAttributes(pImage->pAttributeList);
+
+        /* TODO : Make our print scheme comment here. */
+            // Call the NDArray callback
+
+        doCallbacksGenericPointer(pImage, NDArrayData, 0);
+        pImage->release();
     }
 }
 
@@ -464,6 +470,11 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             strcat(ok_str, "Save Aborted");
         }
     }
+    else if (acquireRunning == 1)
+    {
+        strncpy(pimega->error, "Stop current acquisition first", sizeof("Stop current acquisition first"));
+        status = asynError;
+    } 
     else if (function == PimegaSendImage) {
         UPDATEIOCSTATUS("Sending Images...");
         if (value) status |= sendImage();   
@@ -725,13 +736,20 @@ asynStatus pimegaDetector::writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	
 asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, size_t maxChars, size_t *nActual)
 {
     int function = pasynUser->reason;
-    int status = asynSuccess;
+    int status = asynSuccess, acquireRunning;
     const char *paramName;
     char ok_str[100] = "";
     getParamName(function, &paramName);
 
     v_print("writeOctet: %s(%d) requested value %s\n", paramName, function, value);
-    if (function == pimegaDacDefaults)
+
+    getParameter(ADAcquire,&acquireRunning);
+    if (acquireRunning == 1)
+    {
+        strncpy(pimega->error, "Stop current acquisition first", sizeof("Stop current acquisition first"));
+        status = asynError;
+    } 
+    else if (function == pimegaDacDefaults)
     {
         *nActual = maxChars;
         UPDATEIOCSTATUS("Setting DACs...");
@@ -786,13 +804,19 @@ asynStatus pimegaDetector::dacDefaults(const char * file)
 asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
     int function = pasynUser->reason;
-    int status = asynSuccess;
+    int status = asynSuccess, acquireRunning;
     const char *paramName;
     char ok_str[100] = "";
     getParamName(function, &paramName);
     v_print("writeFloat64: %s(%d) requested value %f\n", paramName, function, value);
 
-    if (function == ADAcquireTime)
+    getParameter(ADAcquire,&acquireRunning);
+    if (acquireRunning == 1)
+    {
+        strncpy(pimega->error, "Stop current acquisition first", sizeof("Stop current acquisition first"));
+        status = asynError;
+    } 
+    else if (function == ADAcquireTime)
     {
         status |= acqTime(value);
         strcat(ok_str, "Exposure time set");
@@ -846,14 +870,22 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
 {
     int function = pasynUser->reason;
     int addr;
-    int numPoints = 0;
+    int numPoints = 0, acquireRunning;
     epicsFloat32 *inPtr;
     //const char *paramName;
     static const char *functionName = "pimegaDetector::readFloat32Array";
 
     this->getAddress(pasynUser, &addr);
  
-    if(function == PimegaDacsOutSense) {
+    getParameter(ADAcquire,&acquireRunning);
+    if (acquireRunning == 1)
+    {
+        strncpy(pimega->error, "Stop current acquisition first", sizeof("Stop current acquisition first"));
+        UPDATEIOCSTATUS(pimega->error);
+        pimega->error[0] = '\0';   
+        return asynError;
+    } 
+    else if(function == PimegaDacsOutSense) {
         inPtr = PimegaDacsOutSense_;
         numPoints = N_DACS_OUTS;
     }
@@ -887,7 +919,8 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     int status=0;
     //static const char *functionName = "readFloat64";
     double temp = 0;
-    int scanStatus, i;
+    int scanStatus, i, acquireRunning;
+
 
     getParameter(ADStatus,&scanStatus);
 
@@ -895,6 +928,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     //    status = US_TemperatureActual(pimega);
     //    setParameter(ADTemperatureActual, pimega->cached_result.actual_temperature);
     //}
+    getParameter(ADAcquire,&acquireRunning);
 
     if (function == PimegaBackBuffer) {
         for (i = 0;  i < pimega->max_num_modules; i++)
@@ -902,7 +936,11 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
                 temp = pimega->acq_status_return.bufferUsed[i];
         *value = temp;        
     }
-
+    else if (acquireRunning == 1)
+    {
+        strncpy(pimega->error, "Stop current acquisition first", sizeof("Stop current acquisition first"));
+        status = asynError;
+    } 
     else if (function == PimegaDacOutSense){
         status = US_ImgChipDACOUTSense_RBV(pimega);
         *value = pimega->pimegaParam.dacOutput;
@@ -924,21 +962,26 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     int function = pasynUser->reason;
     int status=0;
     //static const char *functionName = "readInt32";
-    int scanStatus, i;
+    int scanStatus, i, acquireRunning;
     uint64_t temp = ULLONG_MAX;
     int backendStatus;
+    const char *paramName;
+
+    getParamName(function, &paramName);
+
 
     getParameter(ADStatus, &scanStatus);
     getParameter(NDFileCapture, &backendStatus);
-
+    getParameter(ADAcquire,&acquireRunning);
 
 
     if (function == ADNumImagesCounter) {
-            for (i = 0;  i < pimega->max_num_modules; i++)
-                if (temp > pimega->acq_status_return.noOfAquisitions[i])
-                    temp = pimega->acq_status_return.noOfAquisitions[i];
-            *value = temp;
-    }
+        for (i = 0;  i < pimega->max_num_modules; i++)
+            if (temp > pimega->acq_status_return.noOfAquisitions[i])
+                temp = pimega->acq_status_return.noOfAquisitions[i];
+        *value = temp;
+        //err_print("ADNumImagesCounter: %s\n", paramName);
+    } 
 
     else if (function == PimegaModule) {
         *value = pimega->pimega_module;
