@@ -674,6 +674,21 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         setParameter(PimegaMBTSensor, pimega->pimegaParam.mb_temperature[0][value-1]);
         strcat(ok_str, "Temperature fetched");
     }
+    else if (function == PimegaReadMBTemperature) {
+        if (value) {
+            UPDATEIOCSTATUS("Reading temperatures...");
+            status |= getMbTemperature();
+            UPDATEIOCSTATUS("Reading temperatures done");
+        }
+    }
+    else if (function == PimegaReadSensorTemperature) {
+        if (value) {
+            UPDATEIOCSTATUS("Reading sensors temperatures...");
+            status |= getMedipixTemperature();
+            UPDATEIOCSTATUS("Reading sensors temperatures done");
+        }
+    }
+
     else
     {
         if (function < FIRST_PIMEGA_PARAM)
@@ -891,7 +906,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *value, size_t nElements, size_t *nIn)
 {
     int function = pasynUser->reason;
-    int addr;
+    int addr, status;
     const char * paramName;
     int numPoints = 0, acquireRunning;
     epicsFloat32 *inPtr;
@@ -913,25 +928,24 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser, epicsFloat32 *v
         inPtr = PimegaDacsOutSense_;
         numPoints = N_DACS_OUTS;
     }
-    else if (function == PimegaMBTemperatureM1){
-        UPDATEIOCSTATUS("Reading temperatures...");
-        getMbTemperature();
-        inPtr = PimegaMBTemperature_;
-        numPoints = pimega->num_mb_tsensors;
-        UPDATEIOCSTATUS("Reading temperatures done");
-    }
+    
+    //Other functions we call the base class method
     else {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-            "%s:%s: ERROR: unknown function=%d\n",
-            driverName, functionName, function);
-        UPDATEIOCSTATUS(pimega->error);
-        pimega->error[0] = '\0';   
-        return asynError;
+        status = asynPortDriver::readFloat32Array(pasynUser, value, nElements, nIn);
     }
 
-    *nIn = nElements;
-    if (*nIn > (size_t) numPoints) *nIn = (size_t) numPoints;
-    memcpy(value, inPtr, *nIn*sizeof(epicsFloat32)); 
+    if (status==0) 
+    {
+        *nIn = nElements;
+        if (*nIn > (size_t) numPoints) *nIn = (size_t) numPoints;
+        memcpy(value, inPtr, *nIn*sizeof(epicsFloat32)); 
+        return asynSuccess;
+    } else {
+        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed - status=%d function=%s(%d), value=%f\n", functionName, status, paramName, function, value);
+        UPDATEIOCSTATUS(pimega->error);
+        pimega->error[0] = '\0';
+        return asynError;
+    }
 
     return asynSuccess;
 }
@@ -970,16 +984,6 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
         } else {
             status = US_ImgChipDACOUTSense_RBV(pimega);
             *value = pimega->pimegaParam.dacOutput;
-        }
-    }
-
-    else if (function == PimegaMPAvgTSensorM1){
-        if (acquireRunning == 1)
-        {
-            strncpy(pimega->error, "Stop current acquisition first", sizeof("Stop current acquisition first"));
-            status = asynError;
-        } else {        
-            status = getMedipixTemperature();
         }
     }
 
@@ -1383,13 +1387,14 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaMBAvgM4String,        asynParamFloat64,   &PimegaMBAvgTSensorM4);
     createParam(pimegaMbSelTSensorString,   asynParamInt32,     &PimegaMBSelTSensor);
     createParam(pimegaLoadEqStartString,    asynParamInt32,     &PimegaLoadEqStart);
-    
     createParam(pimegaMbTSensorString,      asynParamFloat64,   &PimegaMBTSensor);
+    createParam(pimegaReadSensorTemperatureString,   asynParamInt32,     &PimegaReadSensorTemperature);
     createParam(pimegaMPAvgM1String,        asynParamFloat64,   &PimegaMPAvgTSensorM1);
     createParam(pimegaMPAvgM2String,        asynParamFloat64,   &PimegaMPAvgTSensorM2);
     createParam(pimegaMPAvgM3String,        asynParamFloat64,   &PimegaMPAvgTSensorM3);
     createParam(pimegaMPAvgM4String,        asynParamFloat64,   &PimegaMPAvgTSensorM4);
     createParam(pimegaCheckSensorsString,   asynParamInt32,     &PimegaCheckSensors);
+    createParam(pimegaReadMBTemperatureString,   asynParamInt32,     &PimegaReadMBTemperature);
     createParam(pimegaDisabledSensorsM1String,asynParamInt32Array, &PimegaDisabledSensorsM1);
     createParam(pimegaDisabledSensorsM2String,asynParamInt32Array, &PimegaDisabledSensorsM2);
     createParam(pimegaDisabledSensorsM3String,asynParamInt32Array, &PimegaDisabledSensorsM3);
@@ -2007,11 +2012,11 @@ asynStatus pimegaDetector::getMbTemperature(void)
     int idxWaveform, idxAvg;
     float sum=0.00, average;
 
-    printf("Function: %d\n", PimegaMBTemperatureM1);
     idxWaveform = PimegaMBTemperatureM1;
     idxAvg = PimegaMBAvgTSensorM1;
 
     getMB_Temperatures(pimega);
+
     for (int module = 1; module <= pimega->max_num_modules; module++) {
         for (int i=0; i<pimega->num_mb_tsensors; i++) {
             PimegaMBTemperature_[i] = 
@@ -2038,8 +2043,10 @@ asynStatus pimegaDetector::getMedipixTemperature(void)
 {
     int idxAvg = PimegaMPAvgTSensorM1;
     get_TemperatureSensorAvg(pimega);
-    for (int module = 1; module <= pimega->max_num_modules; module++)
+    for (int module = 1; module <= pimega->max_num_modules; module++) {
         setParameter(idxAvg, pimega->pimegaParam.avg_chip_temperature[module-1]);
+        idxAvg++;
+    }
     callParamCallbacks();
     return asynSuccess;
 }

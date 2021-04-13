@@ -123,6 +123,7 @@ do {                               \
 #define pimegaLoadEqString              "LOAD_EQUALIZATION"
 #define pimegaExtBgInString             "EXT_BGIN"
 #define pimegaExtBgSelString            "EXT_BGSEL"
+#define pimegaReadMBTemperatureString   "READ_MB_TEMPERATURE"
 #define pimegaMbM1TempString            "MB_TEMPERATURE_M1"
 #define pimegaMbM2TempString            "MB_TEMPERATURE_M2"
 #define pimegaMbM3TempString            "MB_TEMPERATURE_M3"
@@ -133,6 +134,7 @@ do {                               \
 #define pimegaMBAvgM4String             "MB_AVG_TSENSOR_M4"
 #define pimegaMbSelTSensorString        "MB_SEL_TSENSOR"
 #define pimegaMbTSensorString           "MB_TSENSOR"
+#define pimegaReadSensorTemperatureString   "READ_SENSOR_TEMPERATURE"
 #define pimegaMPAvgM1String             "MP_AVG_TSENSOR_M1"
 #define pimegaMPAvgM2String             "MP_AVG_TSENSOR_M2"
 #define pimegaMPAvgM3String             "MP_AVG_TSENSOR_M3"
@@ -241,6 +243,7 @@ protected:
     int PimegaLoadEqualization;
     int PimegaExtBgIn;
     int PimegaExtBgSel;
+    int PimegaReadMBTemperature;
     int PimegaMBTemperatureM1;
     int PimegaMBTemperatureM2;
     int PimegaMBTemperatureM3;
@@ -251,6 +254,7 @@ protected:
     int PimegaMBAvgTSensorM4;
     int PimegaMBSelTSensor;
     int PimegaMBTSensor;
+    int PimegaReadSensorTemperature;
     int PimegaMPAvgTSensorM1;
     int PimegaMPAvgTSensorM2;
     int PimegaMPAvgTSensorM3;

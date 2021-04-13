@@ -403,6 +403,13 @@ record(waveform, "$(P)$(R)DacsOutSense_RBV") {
     field(SCAN, "I/O Intr")
 }
 
+record(bo, "$(P)$(R)ReadMBTemperature") {
+	field(DESC, "Process Read MB Temperatures")
+	field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_MB_TEMPERATURE")
+	field(HIGH, "1")
+}
+
 record(waveform, "$(P)$(R)M1:MB_Temperature_RBV") {
 	field(DESC, "All Temperatures on MB sensors M1")
 	field(NELM, "48")
@@ -507,6 +514,13 @@ record(ai,"$(P)$(R)MB_SensorTemperature_RBV") {
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TSENSOR")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+}
+
+record(bo, "$(P)$(R)ReadSensorsTemperature") {
+	field(DESC, "Process Read Sensors Temperatures")
+	field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_SENSOR_TEMPERATURE")
+	field(HIGH, "1")
 }
 
 #Module 1
