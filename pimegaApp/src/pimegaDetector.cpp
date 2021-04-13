@@ -302,7 +302,11 @@ void pimegaDetector::acqTask()
                     setIntegerParam(ADAcquire, 0); 
                     acquireStatus = 0;
                     setIntegerParam(ADStatus, ADStatusIdle);   
-                    if(pimega->acquireParam.numCapture != 0 && pimega->acq_status_return.savedAquisitionNum >= (unsigned int) pimega->acquireParam.numCapture)
+                    /* Set capture to 0 in case save is enabled and all the images SAVED    OR
+                                                save is disabled and all images RECIEVED            */
+                    if(pimega->acquireParam.numCapture != 0 && 
+                    ( (pimega->acq_status_return.savedAquisitionNum >= (unsigned int) pimega->acquireParam.numCapture && autoSave == 1) ||
+                      (minumumAcquisitionCount < (unsigned int) pimega->acquireParam.numCapture && autoSave == 1) ) )
                     {
                         setParameter(NDFileCapture , 0);
                         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Backend finished\n", functionName);
@@ -358,6 +362,7 @@ void pimegaDetector::newImageTask()
     while (1) {
         getParameter(NDFileCapture, &backendStatus);
         if (backendStatus) {
+            usleep(10000);
             get_acqStatus_fromBackend(pimega);
             uint64_t minumumAcquisitionCount = UINT64_MAX;
             for (i = 0;  i < pimega->max_num_modules; i++)
@@ -2019,8 +2024,7 @@ asynStatus pimegaDetector::getMbTemperature(void)
 
     for (int module = 1; module <= pimega->max_num_modules; module++) {
         for (int i=0; i<pimega->num_mb_tsensors; i++) {
-            PimegaMBTemperature_[i] = 
-                (epicsFloat32)(pimega->pimegaParam.mb_temperature[module-1][i]);
+            PimegaMBTemperature_[i] = (epicsFloat32)(pimega->pimegaParam.mb_temperature[module-1][i]);
             sum += PimegaMBTemperature_[i];
         }
         average = sum / pimega->num_mb_tsensors;
