@@ -66,6 +66,14 @@ pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIM
 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
+# Load asynRecord record
+dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn1,PORT=$(PORT),ADDR=0,OMAX=256,IMAX=256")
+asynSetTraceMask($(PORT), 0, 0x00)
+
+dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn2,PORT=ATTR1,ADDR=0,OMAX=256,IMAX=256")
+asynSetTraceMask(ATTR1, 0, 0x00)
+
+
 # Create a standard arrays plugin, set it to get data from pimega driver.
 NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 
@@ -82,7 +90,7 @@ dbpf(${PREFIX}cam1:FilePath,"/tmp")
 dbpf(${PREFIX}cam1:FileName,"teste")
 dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
 dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
-dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega540d-1.ini")
+#dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega540d-1.ini")
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
 

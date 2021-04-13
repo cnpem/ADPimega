@@ -1424,3 +1424,53 @@ record(waveform, "$(P)$(R)ServerStatusMessage_RBV") {
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SERVER_STATUS_MESSAGE")
     field(SCAN, "I/O Intr")
 }
+
+
+record(bo, "$(P)$(R)TraceMaskFlow") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Flow Trace Mask")
+	field(VAL,  "0")
+	field(ZNAM, "No mask")
+	field(ONAM, "Mask")
+
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TRACE_MASK_FLOW")
+}
+
+record(bo, "$(P)$(R)TraceMaskError") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Error Trace Mask")
+	field(VAL,  "0")
+	field(ZNAM, "No mask")
+	field(ONAM, "Mask")
+
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TRACE_MASK_ERROR")
+}
+
+record(bo, "$(P)$(R)TraceMaskWarning") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Warning Trace Mask")
+	field(VAL,  "0")
+	field(ZNAM, "No mask")
+	field(ONAM, "Mask")
+
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TRACE_MASK_WARNING")
+}
+
+record(bo, "$(P)$(R)TraceMaskDriverIO") {
+	field(DTYP, "asynInt32")
+	field(DESC, "DriverIO Trace Mask")
+	field(VAL,  "0")
+	field(ZNAM, "No mask")
+	field(ONAM, "Mask")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TRACE_MASK_DRIVERIO")
+}
+
+record(ao, "$(P)$(R)TraceMask")
+{
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))TRACE_MASK")
+	field(DESC, "Trace Masks")
+	field(VAL, "0")
+	field(PINI, "YES")
+	field(DRVL, "0")
+}

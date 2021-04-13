@@ -154,6 +154,11 @@ do {                               \
 #define pimegaLogFileString              "LOGFILE"
 #define pimegaIOCStatusMsgString         "IOC_STATUS_MESSAGE"
 #define pimegaServerStatusMsgString      "SERVER_STATUS_MESSAGE"
+#define pimegaTraceMaskWarningString     "TRACE_MASK_WARNING"
+#define pimegaTraceMaskErrorString       "TRACE_MASK_ERROR"
+#define pimegaTraceMaskDriverIOString    "TRACE_MASK_DRIVERIO"
+#define pimegaTraceMaskFlowString        "TRACE_MASK_FLOW"
+#define pimegaTraceMaskString            "TRACE_MASK"
 
 class pimegaDetector: public ADDriver
 {
@@ -268,7 +273,12 @@ protected:
     int PimegaLoadEqStart;
     int PimegaIOCStatusMessage;
     int PimegaServerStatusMessage;
-    int PimegaLogFile;  
+    int PimegaTraceMaskWarning;
+    int PimegaTraceMaskError;
+    int PimegaTraceMaskDriverIO;
+    int PimegaTraceMask;
+    int PimegaTraceMaskFlow;
+    int PimegaLogFile;     
     #define LAST_PIMEGA_PARAM PimegaLogFile
 
 private:
