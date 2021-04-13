@@ -249,18 +249,19 @@ void pimegaDetector::acqTask()
                         else{
                         /* The number of received images is equal or less than saved. Problem may exist. 
                             Check if external trigger is enabled. If not, detector dropped frames. */ 
-                            setIntegerParam(ADStatus, ADStatusError);  
+                            //setIntegerParam(ADStatus, ADStatusError);  
                             if (minumumAcquisitionCount == 0)
                                 UPDATESERVERSTATUS("No images received. Waiting...");
                             else    
                                 UPDATESERVERSTATUS("Not all images received. Waiting..."); 
-
+                            UPDATEIOCSTATUS("Waiting for images..");
+                            /*
                             if (triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL) {
                                 UPDATEIOCSTATUS("Detector not responding");
                             }
                             else {
                                  UPDATEIOCSTATUS("Trigger not received/Detector failure");
-                            }
+                            }*/
                         }
                 }
                 /* if index is enabled and the number of requested acquisitions is larger than the number of acquisitions
@@ -305,7 +306,7 @@ void pimegaDetector::acqTask()
                     {
                         setParameter(NDFileCapture , 0);
                         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Backend finished\n", functionName);
-                        UPDATESERVERSTATUS("Done"); //¯\_(⊙︿⊙)_/¯                        
+                        UPDATESERVERSTATUS("Backend done"); //¯\_(⊙︿⊙)_/¯                        
                     }
                 }
                 /* Errors reported by backend override previous messages. */                
