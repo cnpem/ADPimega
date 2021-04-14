@@ -69,11 +69,12 @@ dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT)
 
 # Load asynRecord record
 dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn1,PORT=$(PORT),ADDR=0,OMAX=256,IMAX=256")
+
 asynSetTraceMask($(PORT), 0, 0x00)
+
 
 dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn2,PORT=ATTR1,ADDR=0,OMAX=256,IMAX=256")
 asynSetTraceMask(ATTR1, 0, 0x00)
-
 
 # Create a standard arrays plugin, set it to get data from pimega driver.
 NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
@@ -95,3 +96,12 @@ dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
 
+dbpf(${PREFIX}HDF1:FilePath,"/ibira/sirius/beamlines/caterete/commissioning/crio")
+dbpf(${PREFIX}HDF1:FileName,"ADNovo")
+dbpf(${PREFIX}HDF1:FileTemplate,"%s%s_%3.3d.h5")
+dbpf(${PREFIX}HDF1:EnableCallbacks,"1")
+dbpf(${PREFIX}HDF1:FileWriteMode,"2")
+dbpf(${PREFIX}HDF1:AutoIncrement,"1")
+dbpf(${PREFIX}HDF1:AutoSave,"1")
+dbpf(${PREFIX}cam1:NDAttributesFile,"./config/params-cat-t-pimega540d-1.xml")
+dbpf(${PREFIX}HDF1:Compression,"zlib")

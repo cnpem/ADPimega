@@ -680,17 +680,17 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         strcat(ok_str, "Temperature fetched");
     }
     else if (function == PimegaReadMBTemperature) {
-        if (value) {
-            UPDATEIOCSTATUS("Reading temperatures...");
+        if (!value) {
+            UPDATEIOCSTATUS("Reading MB temperatures...");
             status |= getMbTemperature();
-            UPDATEIOCSTATUS("Reading temperatures done");
+            strcat(ok_str, "MB remperatures fetched");
         }
     }
     else if (function == PimegaReadSensorTemperature) {
-        if (value) {
+        if (!value) {
             UPDATEIOCSTATUS("Reading sensors temperatures...");
-            status |= getMedipixTemperature();
-            UPDATEIOCSTATUS("Reading sensors temperatures done");
+            status |= getMedipixTemperatures();
+            strcat(ok_str, "Sensor temperatures fetched");
         }
     }
 
@@ -1386,6 +1386,10 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaMbM2TempString,       asynParamFloat32Array, &PimegaMBTemperatureM2);
     createParam(pimegaMbM3TempString,       asynParamFloat32Array, &PimegaMBTemperatureM3);
     createParam(pimegaMbM4TempString,       asynParamFloat32Array, &PimegaMBTemperatureM4);
+    createParam(pimegaSensorM1TempString,   asynParamFloat32Array, &PimegaSensorTemperatureM1);
+    createParam(pimegaSensorM2TempString,   asynParamFloat32Array, &PimegaSensorTemperatureM2);
+    createParam(pimegaSensorM3TempString,   asynParamFloat32Array, &PimegaSensorTemperatureM3);
+    createParam(pimegaSensorM4TempString,   asynParamFloat32Array, &PimegaSensorTemperatureM4);    
     createParam(pimegaMBAvgM1String,        asynParamFloat64,   &PimegaMBAvgTSensorM1);
     createParam(pimegaMBAvgM2String,        asynParamFloat64,   &PimegaMBAvgTSensorM2);
     createParam(pimegaMBAvgM3String,        asynParamFloat64,   &PimegaMBAvgTSensorM3);
@@ -2043,7 +2047,23 @@ asynStatus pimegaDetector::getMbTemperature(void)
 }
 
 
-asynStatus pimegaDetector::getMedipixTemperature(void)
+asynStatus pimegaDetector::getMedipixTemperatures(void)
+{
+    int idxAvg[] = { PimegaSensorTemperatureM1 , PimegaSensorTemperatureM2, PimegaSensorTemperatureM3, PimegaSensorTemperatureM4 };
+    getMedipixSensor_Temperatures(pimega);
+    for (int module = 1; module <= pimega->max_num_modules; module++) {
+        doCallbacksFloat32Array(pimega->pimegaParam.allchip_temperature[module-1],
+                        pimega->num_all_chips,
+                        idxAvg[module-1],
+                        0);
+
+    }
+    callParamCallbacks();
+    return asynSuccess;
+}
+
+
+asynStatus pimegaDetector::getMedipixAvgTemperature(void)
 {
     int idxAvg = PimegaMPAvgTSensorM1;
     get_TemperatureSensorAvg(pimega);

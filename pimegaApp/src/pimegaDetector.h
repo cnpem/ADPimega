@@ -128,6 +128,10 @@ do {                               \
 #define pimegaMbM2TempString            "MB_TEMPERATURE_M2"
 #define pimegaMbM3TempString            "MB_TEMPERATURE_M3"
 #define pimegaMbM4TempString            "MB_TEMPERATURE_M4"
+#define pimegaSensorM1TempString        "SENSOR_TEMPERATURE_M1"
+#define pimegaSensorM2TempString        "SENSOR_TEMPERATURE_M2"
+#define pimegaSensorM3TempString        "SENSOR_TEMPERATURE_M3"
+#define pimegaSensorM4TempString        "SENSOR_TEMPERATURE_M4"
 #define pimegaMBAvgM1String             "MB_AVG_TSENSOR_M1"
 #define pimegaMBAvgM2String             "MB_AVG_TSENSOR_M2"
 #define pimegaMBAvgM3String             "MB_AVG_TSENSOR_M3"
@@ -255,6 +259,10 @@ protected:
     int PimegaMBSelTSensor;
     int PimegaMBTSensor;
     int PimegaReadSensorTemperature;
+    int PimegaSensorTemperatureM1;
+    int PimegaSensorTemperatureM2;
+    int PimegaSensorTemperatureM3;
+    int PimegaSensorTemperatureM4;    
     int PimegaMPAvgTSensorM1;
     int PimegaMPAvgTSensorM2;
     int PimegaMPAvgTSensorM3;
@@ -328,8 +336,8 @@ private:
     void setDefaults(void);
     asynStatus getDacsOutSense(void);
     asynStatus getMbTemperature(void);
-    asynStatus getMedipixTemperature(void);
-
+    asynStatus getMedipixTemperatures(void);
+    asynStatus getMedipixAvgTemperature(void);
     int startAcquire(void);
     int startCaptureBackend(void);
 

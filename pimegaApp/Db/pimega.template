@@ -407,7 +407,7 @@ record(bo, "$(P)$(R)ReadMBTemperature") {
 	field(DESC, "Process Read MB Temperatures")
 	field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_MB_TEMPERATURE")
-	field(HIGH, "1")
+	field(HIGH, "0.01")
 }
 
 record(waveform, "$(P)$(R)M1:MB_Temperature_RBV") {
@@ -502,6 +502,47 @@ record(longout, "$(P)$(R)MB_SelectSensor") {
 	field(DRVL, "1")
 }
 
+record(waveform, "$(P)$(R)M1:Sensor_Temperature_RBV") {
+	field(DESC, "All sensors temperatures  on M1")
+	field(NELM, "36")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_TEMPERATURE_M1")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M2:Sensor_Temperature_RBV") {
+	field(DESC, "All sensors temperatures  on M2")
+	field(NELM, "36")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_TEMPERATURE_M2")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M3:Sensor_Temperature_RBV") {
+	field(DESC, "All sensors temperatures  on M3")
+	field(NELM, "36")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_TEMPERATURE_M3")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+record(waveform, "$(P)$(R)M4:Sensor_Temperature_RBV") {
+	field(DESC, "All sensors temperatures  on M4")
+	field(NELM, "36")
+	field(FTVL, "FLOAT")
+	field(DTYP, "asynFloat32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SENSOR_TEMPERATURE_M4")
+    field(SCAN, "I/O Intr")
+	field(PREC, "2")
+}
+
+
 record(longin, "$(P)$(R)MB_SelectSensor_RBV") {
 	field(DESC, "Select temperature MB sensor Readback")
 	field(DTYP, "asynInt32")
@@ -520,7 +561,7 @@ record(bo, "$(P)$(R)ReadSensorsTemperature") {
 	field(DESC, "Process Read Sensors Temperatures")
 	field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))READ_SENSOR_TEMPERATURE")
-	field(HIGH, "1")
+	field(HIGH, "0.01")
 }
 
 #Module 1
