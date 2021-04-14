@@ -675,10 +675,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |=  setDACValue(DAC_TPRefB, value, function);
         strcat(ok_str, "DAC TPRefB set");
     }
-    else if (function == PimegaMBSelTSensor) {
-        setParameter(PimegaMBTSensor, pimega->pimegaParam.mb_temperature[0][value-1]);
-        strcat(ok_str, "Temperature fetched");
-    }
     else if (function == PimegaReadMBTemperature) {
         if (!value) {
             UPDATEIOCSTATUS("Reading MB temperatures...");
@@ -1403,9 +1399,7 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaMBAvgM2String,        asynParamFloat64,   &PimegaMBAvgTSensorM2);
     createParam(pimegaMBAvgM3String,        asynParamFloat64,   &PimegaMBAvgTSensorM3);
     createParam(pimegaMBAvgM4String,        asynParamFloat64,   &PimegaMBAvgTSensorM4);
-    createParam(pimegaMbSelTSensorString,   asynParamInt32,     &PimegaMBSelTSensor);
     createParam(pimegaLoadEqStartString,    asynParamInt32,     &PimegaLoadEqStart);
-    createParam(pimegaMbTSensorString,      asynParamFloat64,   &PimegaMBTSensor);
     createParam(pimegaReadSensorTemperatureString,   asynParamInt32,     &PimegaReadSensorTemperature);
     createParam(pimegaMPAvgM1String,        asynParamFloat64,   &PimegaMPAvgTSensorM1);
     createParam(pimegaMPAvgM2String,        asynParamFloat64,   &PimegaMPAvgTSensorM2);
@@ -2058,14 +2052,15 @@ asynStatus pimegaDetector::getMbTemperature(void)
 
 asynStatus pimegaDetector::getMedipixTemperatures(void)
 {
-    int idxAvg[] = { PimegaSensorTemperatureM1 , PimegaSensorTemperatureM2, PimegaSensorTemperatureM3, PimegaSensorTemperatureM4 };
+    int idxTemp[] = { PimegaSensorTemperatureM1 , PimegaSensorTemperatureM2, PimegaSensorTemperatureM3, PimegaSensorTemperatureM4 };
+    int idxAvg[] =  { PimegaMPAvgTSensorM1 , PimegaMPAvgTSensorM2, PimegaMPAvgTSensorM3, PimegaMPAvgTSensorM4 };
     getMedipixSensor_Temperatures(pimega);
     for (int module = 1; module <= pimega->max_num_modules; module++) {
         doCallbacksFloat32Array(pimega->pimegaParam.allchip_temperature[module-1],
                         pimega->num_all_chips,
-                        idxAvg[module-1],
+                        idxTemp[module-1],
                         0);
-
+        setParameter(idxAvg[module-1], pimega->pimegaParam.avg_chip_temperature[module-1]);
     }
     callParamCallbacks();
     return asynSuccess;

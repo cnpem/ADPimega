@@ -492,16 +492,6 @@ record(longout, "$(P)$(R)MB_Number") {
 	field(VAL, "3")
 }
 
-record(longout, "$(P)$(R)MB_SelectSensor") {
-	field(PINI, "YES")
-	field(DESC, "Select temperatura sensor from MB")
-	field(DTYP, "asynInt32")
-	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEL_TSENSOR")
-	field(VAL,  "1")
-	field(DRVH, "16")
-	field(DRVL, "1")
-}
-
 record(waveform, "$(P)$(R)M1:Sensor_Temperature_RBV") {
 	field(DESC, "All sensors temperatures  on M1")
 	field(NELM, "36")
@@ -542,20 +532,6 @@ record(waveform, "$(P)$(R)M4:Sensor_Temperature_RBV") {
 	field(PREC, "2")
 }
 
-
-record(longin, "$(P)$(R)MB_SelectSensor_RBV") {
-	field(DESC, "Select temperature MB sensor Readback")
-	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_SEL_TSENSOR")
-    field(SCAN, "I/O Intr")
-}
-
-record(ai,"$(P)$(R)MB_SensorTemperature_RBV") {
-    field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MB_TSENSOR")
-    field(SCAN, "I/O Intr")
-	field(PREC, "2")
-}
 
 record(bo, "$(P)$(R)ReadSensorsTemperature") {
 	field(DESC, "Process Read Sensors Temperatures")
@@ -600,13 +576,6 @@ record(ai,"$(P)$(R)M4:Medipix_AvgTemperature_RBV") {
 	field(PREC, "2")
 }
 
-record(ai,"$(P)$(R)Medipix_AvgTemperature_RBV") {
-    field(DTYP, "asynFloat64")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MP_AVG_SENSOR")
-    field(DESC, "Medipix average Temperature sensors")
-    field(SCAN, "I/O Intr")
-	field(PREC, "2")
-}
 
 record(bo,"$(P)$(R)ContinuousRW") {
     #field(PINI, "YES")

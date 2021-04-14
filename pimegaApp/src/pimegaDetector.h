@@ -136,8 +136,6 @@ do {                               \
 #define pimegaMBAvgM2String             "MB_AVG_TSENSOR_M2"
 #define pimegaMBAvgM3String             "MB_AVG_TSENSOR_M3"
 #define pimegaMBAvgM4String             "MB_AVG_TSENSOR_M4"
-#define pimegaMbSelTSensorString        "MB_SEL_TSENSOR"
-#define pimegaMbTSensorString           "MB_TSENSOR"
 #define pimegaReadSensorTemperatureString   "READ_SENSOR_TEMPERATURE"
 #define pimegaMPAvgM1String             "MP_AVG_TSENSOR_M1"
 #define pimegaMPAvgM2String             "MP_AVG_TSENSOR_M2"
