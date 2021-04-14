@@ -705,8 +705,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     }
 
     if (status){
-        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed - status=%d function=%s(%d), value=%d\n",
-              functionName, status, paramName, function, value);
+        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed - status=%d function=%s(%d), value=%d - %s\n",
+              __func__, status, paramName, function, value, pimega->error);
         UPDATEIOCSTATUS(pimega->error);    
         pimega->error[0] = '\0';          
     } else {
@@ -814,7 +814,13 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
 
     if (status)
     {
-        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed - status=%d function=%s(%d), value=%s\n", "writeOctet", status, paramName, function, value);
+        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed - status=%d function=%s(%d), value=%s - %s\n", 
+                    __func__, 
+                    status, 
+                    paramName, 
+                    function, 
+                    value,
+                    pimega->error );
         UPDATEIOCSTATUS(pimega->error);     
         pimega->error[0] = '\0';              
     }
@@ -893,7 +899,9 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
     if (status)
     {
-        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Success - status=%d function=%s(%d), value=%f\n", functionName, status, paramName, function, value);
+        PIMEGA_PRINT( pimega, TRACE_MASK_ERROR,
+                      "%s: Success - status=%d function=%s(%d), value=%f - %s\n", 
+                      functionName, status, paramName, function, value, pimega->error );
         UPDATEIOCSTATUS(pimega->error);  
         pimega->error[0] = '\0';   
     }
@@ -1000,7 +1008,8 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     {
         return asynSuccess;
     } else {
-        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed - status=%d function=%s(%d), value=%f\n", functionName, status, paramName, function, value);
+        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed - status=%d function=%s(%d), value=%f - %s\n",
+                     functionName, status, paramName, function, value, pimega->error);
         return asynError;
     }
 }
