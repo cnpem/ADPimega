@@ -1102,16 +1102,6 @@ record(ao, "$(P)$(R)DAC_DiscH")
 	field(DESC, "High discriminator current")
 }
 
-record(ai, "$(P)$(R)Backend_BufferUsed_RBV")
-{
-	field(DTYP, "asynFloat64")
-	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_BUFFER")
-	field(SCAN, ".1 second")
-	field(DESC, "Backend buffer used")
-	field(PREC, "1")
-	field(EGU, "%")
-}
-
 record(bo, "$(P)$(R)Reset_RDMA_Buffer") {
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_RDMA_BUFFER")
@@ -1397,7 +1387,7 @@ record(longin, "$(P)$(R)IndexSentFramesCounter_RBV") {
 	field(DESC, "Frames sent to index")
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))INDEX_COUNTER")
-    field(SCAN, ".1 second")
+    field(SCAN, "I/O Intr")
 }
 
 
@@ -1497,4 +1487,187 @@ record(ao, "$(P)$(R)TraceMask")
 	field(VAL, "0")
 	field(PINI, "YES")
 	field(DRVL, "0")
+}
+
+record(longin, "$(P)$(R)BackendStats_RBV") {
+	field(DESC, "Backend stats update")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKEND_STATS")
+    field(SCAN, ".1 second")
+}
+
+record(longin, "$(P)$(R)IndexError_RBV") {
+	field(DESC, "Index error")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))INDEX_ERROR")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)RxError_RBV") {
+	field(DESC, "Reception error")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RX_ERROR")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M1:RxError_RBV") {
+	field(DESC, "Module 1 reception error")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M1_RX_ERROR")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M2:RxError_RBV") {
+	field(DESC, "Module 2 reception error")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M2_RX_ERROR")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M3:RxError_RBV") {
+	field(DESC, "Module 3 reception error")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M3_RX_ERROR")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M4:RxError_RBV") {
+	field(DESC, "Module 4 reception error")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M4_RX_ERROR")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M1:LostFrameCount_RBV") {
+	field(DESC, "Module 1 lost frame count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M1_LOST_FRAME_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M2:LostFrameCount_RBV") {
+	field(DESC, "Module 2 lost frame count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M2_LOST_FRAME_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M3:LostFrameCount_RBV") {
+	field(DESC, "Module 3 lost frame count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M3_LOST_FRAME_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M4:LostFrameCount_RBV") {
+	field(DESC, "Module 4 lost frame count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M4_LOST_FRAME_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M1:RxFrameCount_RBV") {
+	field(DESC, "Module 1 received frame count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M1_RECEIVED_FRAME_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M2:RxFrameCount_RBV") {
+	field(DESC, "Module 2 received frame count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M2_RECEIVED_FRAME_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M3:RxFrameCount_RBV") {
+	field(DESC, "Module 3 received frame count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M3_RECEIVED_FRAME_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M4:RxFrameCount_RBV") {
+	field(DESC, "Module 4 received frame count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M4_RECEIVED_FRAME_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M1:RxAcquisitionCount_RBV") {
+	field(DESC, "Module 1 received acquisition count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M1_RECEIVED_ACQUISITION_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M2:RxAcquisitionCount_RBV") {
+	field(DESC, "Module 2 received acquisition count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M2_RECEIVED_ACQUISITION_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M3:RxAcquisitionCount_RBV") {
+	field(DESC, "Module 3 received acquisition count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M3_RECEIVED_ACQUISITION_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)M4:RxAcquisitionCount_RBV") {
+	field(DESC, "Module 4 received acquisition count")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))M4_RECEIVED_ACQUISITION_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)M1:Backend_BufferUsed_RBV")
+{
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))M1_RDMA_BUFFER")
+	field(SCAN, "I/O Intr")
+	field(DESC, "M1 Backend RDMA buffer usage")
+	field(PREC, "1")
+	field(EGU, "%")
+}
+
+record(ai, "$(P)$(R)M2:Backend_BufferUsed_RBV")
+{
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))M2_RDMA_BUFFER")
+	field(SCAN, "I/O Intr")
+	field(DESC, "M2 Backend RDMA buffer usage")
+	field(PREC, "1")
+	field(EGU, "%")
+}
+
+record(ai, "$(P)$(R)M3:Backend_BufferUsed_RBV")
+{
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))M3_RDMA_BUFFER")
+	field(SCAN, "I/O Intr")
+	field(DESC, "M3 Backend RDMA buffer usage")
+	field(PREC, "1")
+	field(EGU, "%")
+}
+
+record(ai, "$(P)$(R)M4:Backend_BufferUsed_RBV")
+{
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))M4_RDMA_BUFFER")
+	field(SCAN, "I/O Intr")
+	field(DESC, "M4 Backend RDMA buffer usage")
+	field(PREC, "1")
+	field(EGU, "%")
+}
+
+record(ai, "$(P)$(R)Backend_BufferUsed_RBV")
+{
+       field(DTYP, "asynFloat64")
+       field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACK_BUFFER")
+       field(SCAN, ".1 second")
+       field(DESC, "Backend buffer used")
+       field(PREC, "1")
+       field(EGU, "%")
 }

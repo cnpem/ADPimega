@@ -1019,7 +1019,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
     uint64_t temp = ULLONG_MAX;
     int backendStatus;
     const char *paramName;
-
+    int error;
     getParamName(function, &paramName);
 
 
@@ -1035,18 +1035,50 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value)
         *value = temp;
         //PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"ADNumImagesCounter: %s\n", paramName);
     } 
-
+    else if(function == PimegaBackendStats)
+    {
+        if (backendStatus)
+        {
+            if (pimega->acq_status_return.moduleError[0] == 1 ||
+                pimega->acq_status_return.moduleError[1] == 1 ||
+                pimega->acq_status_return.moduleError[2] == 1 || 
+                pimega->acq_status_return.moduleError[3] == 1 )
+                error = 1;
+            else
+                error = 0;
+            setParameter(PimegaReceiveError, error);
+            setParameter(PimegaM1ReceiveError, (int)pimega->acq_status_return.moduleError[0]);
+            setParameter(PimegaM2ReceiveError, (int)pimega->acq_status_return.moduleError[1]);
+            setParameter(PimegaM3ReceiveError, (int)pimega->acq_status_return.moduleError[2]);
+            setParameter(PimegaM4ReceiveError, (int)pimega->acq_status_return.moduleError[3]);
+            setParameter(PimegaM1LostFrameCount, (int)pimega->acq_status_return.lostFrameCnt[0]);
+            setParameter(PimegaM2LostFrameCount, (int)pimega->acq_status_return.lostFrameCnt[1]);
+            setParameter(PimegaM3LostFrameCount, (int)pimega->acq_status_return.lostFrameCnt[2]);
+            setParameter(PimegaM4LostFrameCount, (int)pimega->acq_status_return.lostFrameCnt[3]);
+            setParameter(PimegaM1RxFrameCount, (int)pimega->acq_status_return.noOfFrames[0]);
+            setParameter(PimegaM2RxFrameCount, (int)pimega->acq_status_return.noOfFrames[1]);
+            setParameter(PimegaM3RxFrameCount, (int)pimega->acq_status_return.noOfFrames[2]);
+            setParameter(PimegaM4RxFrameCount, (int)pimega->acq_status_return.noOfFrames[3]);
+            setParameter(PimegaM1AquisitionCount, (int)pimega->acq_status_return.noOfAquisitions[0]);
+            setParameter(PimegaM2AquisitionCount, (int)pimega->acq_status_return.noOfAquisitions[1]);
+            setParameter(PimegaM3AquisitionCount, (int)pimega->acq_status_return.noOfAquisitions[2]);
+            setParameter(PimegaM4AquisitionCount, (int)pimega->acq_status_return.noOfAquisitions[3]);
+            setParameter(PimegaM1RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[0]);
+            setParameter(PimegaM2RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[1]);
+            setParameter(PimegaM3RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[2]);
+            setParameter(PimegaM4RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[3]);
+            setParameter(PimegaIndexError, (int)pimega->acq_status_return.indexError);
+            setParameter(PimegaIndexCounter, (int)pimega->acq_status_return.indexSentAquisitionNum);
+            callParamCallbacks();
+        
+        }
+    }
     else if (function == PimegaModule) {
         *value = pimega->pimega_module;
     }
 
     else if (function == NDFileNumCaptured) {
         *value = pimega->acq_status_return.savedAquisitionNum;
-    }
-    else if (function == PimegaIndexCounter) {
-        if (backendStatus) {
-            *value = pimega->acq_status_return.indexSentAquisitionNum; 
-        }      
     }
     //Other functions we call the base class method
     else {
@@ -1427,9 +1459,29 @@ void pimegaDetector::createParameters(void)
     createParam(pimegaTraceMaskFlowString,    asynParamInt32,         &PimegaTraceMaskFlow);
     createParam(pimegaTraceMaskString,    asynParamInt32,             &PimegaTraceMask);
 
-
-
-
+    createParam(pimegaReceiveErrorString,          asynParamInt32,   &PimegaReceiveError);
+    createParam(pimegaM1ReceiveErrorString,        asynParamInt32,   &PimegaM1ReceiveError);
+    createParam(pimegaM2ReceiveErrorString,        asynParamInt32,   &PimegaM2ReceiveError);
+    createParam(pimegaM3ReceiveErrorString,        asynParamInt32,   &PimegaM3ReceiveError);
+    createParam(pimegaM4ReceiveErrorString,        asynParamInt32,   &PimegaM4ReceiveError);
+    createParam(pimegaM1LostFrameCountString,        asynParamInt32,   &PimegaM1LostFrameCount);
+    createParam(pimegaM2LostFrameCountString,        asynParamInt32,   &PimegaM2LostFrameCount);
+    createParam(pimegaM3LostFrameCountString,        asynParamInt32,   &PimegaM3LostFrameCount);
+    createParam(pimegaM4LostFrameCountString,        asynParamInt32,   &PimegaM4LostFrameCount);
+    createParam(pimegaM1RxFrameCountString,        asynParamInt32,   &PimegaM1RxFrameCount);
+    createParam(pimegaM2RxFrameCountString,        asynParamInt32,   &PimegaM2RxFrameCount);
+    createParam(pimegaM3RxFrameCountString,        asynParamInt32,   &PimegaM3RxFrameCount);
+    createParam(pimegaM4RxFrameCountString,        asynParamInt32,   &PimegaM4RxFrameCount);
+    createParam(pimegaM1AquisitionCountString,        asynParamInt32,   &PimegaM1AquisitionCount);
+    createParam(pimegaM2AquisitionCountString,        asynParamInt32,   &PimegaM2AquisitionCount);
+    createParam(pimegaM3AquisitionCountString,        asynParamInt32,   &PimegaM3AquisitionCount);
+    createParam(pimegaM4AquisitionCountString,        asynParamInt32,   &PimegaM4AquisitionCount);
+    createParam(pimegaM1RdmaBufferUsageString,        asynParamFloat64,   &PimegaM1RdmaBufferUsage);
+    createParam(pimegaM2RdmaBufferUsageString,        asynParamFloat64,   &PimegaM2RdmaBufferUsage);
+    createParam(pimegaM3RdmaBufferUsageString,        asynParamFloat64,   &PimegaM3RdmaBufferUsage);
+    createParam(pimegaM4RdmaBufferUsageString,        asynParamFloat64,   &PimegaM4RdmaBufferUsage);
+    createParam(pimegaBackendStatsString,             asynParamInt32,   &PimegaBackendStats);
+    createParam(pimegaIndexErrorString,             asynParamInt32,   &PimegaIndexError);
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -1490,6 +1542,29 @@ void pimegaDetector::setDefaults(void)
     setParameter(NDFileWriteMessage, "");
     setParameter(PimegaBackBuffer, 0.0);
     setParameter(ADImageMode, ADImageSingle);
+    setParameter(PimegaReceiveError, 0);
+    setParameter(PimegaM1ReceiveError, (int)pimega->acq_status_return.moduleError[0]);
+    setParameter(PimegaM2ReceiveError, (int)pimega->acq_status_return.moduleError[1]);
+    setParameter(PimegaM3ReceiveError, (int)pimega->acq_status_return.moduleError[2]);
+    setParameter(PimegaM4ReceiveError, (int)pimega->acq_status_return.moduleError[3]);
+    setParameter(PimegaM1LostFrameCount, (int)pimega->acq_status_return.lostFrameCnt[0]);
+    setParameter(PimegaM2LostFrameCount, (int)pimega->acq_status_return.lostFrameCnt[1]);
+    setParameter(PimegaM3LostFrameCount, (int)pimega->acq_status_return.lostFrameCnt[2]);
+    setParameter(PimegaM4LostFrameCount, (int)pimega->acq_status_return.lostFrameCnt[3]);
+    setParameter(PimegaM1RxFrameCount, (int)pimega->acq_status_return.noOfFrames[0]);
+    setParameter(PimegaM2RxFrameCount, (int)pimega->acq_status_return.noOfFrames[1]);
+    setParameter(PimegaM3RxFrameCount, (int)pimega->acq_status_return.noOfFrames[2]);
+    setParameter(PimegaM4RxFrameCount, (int)pimega->acq_status_return.noOfFrames[3]);
+    setParameter(PimegaM1AquisitionCount, (int)pimega->acq_status_return.noOfAquisitions[0]);
+    setParameter(PimegaM2AquisitionCount, (int)pimega->acq_status_return.noOfAquisitions[1]);
+    setParameter(PimegaM3AquisitionCount, (int)pimega->acq_status_return.noOfAquisitions[2]);
+    setParameter(PimegaM4AquisitionCount, (int)pimega->acq_status_return.noOfAquisitions[3]);
+    setParameter(PimegaM1RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[0]);
+    setParameter(PimegaM2RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[1]);
+    setParameter(PimegaM3RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[2]);
+    setParameter(PimegaM4RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[3]);
+    setParameter(PimegaIndexError, (int)pimega->acq_status_return.indexError);  
+    setParameter(PimegaIndexCounter, (int)pimega->acq_status_return.indexSentAquisitionNum);  
     setParameter(PimegaModule, 4);
     setParameter(PimegaMedipixBoard, 2);
     select_board(pimega, 2);

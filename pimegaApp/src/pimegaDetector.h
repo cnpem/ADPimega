@@ -163,6 +163,29 @@ do {                               \
 #define pimegaTraceMaskDriverIOString    "TRACE_MASK_DRIVERIO"
 #define pimegaTraceMaskFlowString        "TRACE_MASK_FLOW"
 #define pimegaTraceMaskString            "TRACE_MASK"
+#define pimegaReceiveErrorString         "RX_ERROR"
+#define pimegaIndexErrorString           "INDEX_ERROR"
+#define pimegaM1ReceiveErrorString       "M1_RX_ERROR"
+#define pimegaM2ReceiveErrorString       "M2_RX_ERROR"
+#define pimegaM3ReceiveErrorString       "M3_RX_ERROR"
+#define pimegaM4ReceiveErrorString       "M4_RX_ERROR"
+#define pimegaM1LostFrameCountString     "M1_LOST_FRAME_COUNT"
+#define pimegaM2LostFrameCountString     "M2_LOST_FRAME_COUNT"
+#define pimegaM3LostFrameCountString     "M3_LOST_FRAME_COUNT"
+#define pimegaM4LostFrameCountString     "M4_LOST_FRAME_COUNT"
+#define pimegaM1RxFrameCountString       "M1_RECEIVED_FRAME_COUNT"
+#define pimegaM2RxFrameCountString       "M2_RECEIVED_FRAME_COUNT"
+#define pimegaM3RxFrameCountString       "M3_RECEIVED_FRAME_COUNT"
+#define pimegaM4RxFrameCountString       "M4_RECEIVED_FRAME_COUNT"
+#define pimegaM1AquisitionCountString    "M1_RECEIVED_ACQUISITION_COUNT"
+#define pimegaM2AquisitionCountString    "M2_RECEIVED_ACQUISITION_COUNT"
+#define pimegaM3AquisitionCountString    "M3_RECEIVED_ACQUISITION_COUNT"
+#define pimegaM4AquisitionCountString    "M4_RECEIVED_ACQUISITION_COUNT"
+#define pimegaM1RdmaBufferUsageString    "M1_RDMA_BUFFER"
+#define pimegaM2RdmaBufferUsageString    "M2_RDMA_BUFFER"
+#define pimegaM3RdmaBufferUsageString    "M3_RDMA_BUFFER"
+#define pimegaM4RdmaBufferUsageString    "M4_RDMA_BUFFER"
+#define pimegaBackendStatsString         "BACKEND_STATS"
 
 class pimegaDetector: public ADDriver
 {
@@ -288,6 +311,29 @@ protected:
     int PimegaTraceMaskDriverIO;
     int PimegaTraceMask;
     int PimegaTraceMaskFlow;
+    int PimegaReceiveError;     
+    int PimegaM1ReceiveError; 
+    int PimegaM2ReceiveError; 
+    int PimegaM3ReceiveError; 
+    int PimegaM4ReceiveError; 
+    int PimegaM1LostFrameCount;
+    int PimegaM2LostFrameCount;
+    int PimegaM3LostFrameCount;
+    int PimegaM4LostFrameCount;
+    int PimegaM1RxFrameCount;
+    int PimegaM2RxFrameCount;
+    int PimegaM3RxFrameCount;
+    int PimegaM4RxFrameCount;
+    int PimegaM1AquisitionCount;
+    int PimegaM2AquisitionCount;
+    int PimegaM3AquisitionCount;
+    int PimegaM4AquisitionCount;
+    int PimegaM1RdmaBufferUsage;      
+    int PimegaM2RdmaBufferUsage;      
+    int PimegaM3RdmaBufferUsage;      
+    int PimegaM4RdmaBufferUsage; 
+    int PimegaBackendStats;  
+    int PimegaIndexError;    
     int PimegaLogFile;     
     #define LAST_PIMEGA_PARAM PimegaLogFile
 
