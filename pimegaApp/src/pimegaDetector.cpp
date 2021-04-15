@@ -1564,7 +1564,13 @@ void pimegaDetector::setDefaults(void)
     setParameter(PimegaM3RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[2]);
     setParameter(PimegaM4RdmaBufferUsage, (double)pimega->acq_status_return.bufferUsed[3]);
     setParameter(PimegaIndexError, (int)pimega->acq_status_return.indexError);  
-    setParameter(PimegaIndexCounter, (int)pimega->acq_status_return.indexSentAquisitionNum);  
+    setParameter(PimegaIndexCounter, (int)pimega->acq_status_return.indexSentAquisitionNum); 
+    setParameter(PimegaMPAvgTSensorM1, 0);
+    setParameter(PimegaMPAvgTSensorM2, 0);
+    setParameter(PimegaMPAvgTSensorM3, 0);
+    setParameter(PimegaMPAvgTSensorM4, 0);
+    setParameter(NDFileNumCaptured, 0);
+
     setParameter(PimegaModule, 4);
     setParameter(PimegaMedipixBoard, 2);
     select_board(pimega, 2);
