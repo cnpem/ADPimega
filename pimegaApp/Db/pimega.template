@@ -426,6 +426,8 @@ record(ai,"$(P)$(R)M1:MB_AvgTemperature_RBV") {
     field(DESC, "MFB Avg Temperature Mod 1 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+	field(EGU, "°C")
+	
 }
 
 record(waveform, "$(P)$(R)M2:MB_Temperature_RBV") {
@@ -444,6 +446,7 @@ record(ai,"$(P)$(R)M2:MB_AvgTemperature_RBV") {
     field(DESC, "MFB Avg Temperature Mod 2 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+	field(EGU, "°C")
 }
 
 record(waveform, "$(P)$(R)M3:MB_Temperature_RBV") {
@@ -462,6 +465,7 @@ record(ai,"$(P)$(R)M3:MB_AvgTemperature_RBV") {
     field(DESC, "MFB Avg Temperature Mod 3 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+	field(EGU, "°C")
 }
 
 record(waveform, "$(P)$(R)M4:MB_Temperature_RBV") {
@@ -480,6 +484,7 @@ record(ai,"$(P)$(R)M4:MB_AvgTemperature_RBV") {
     field(DESC, "MFB Avg Temperature Mod 4 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+	field(EGU, "°C")
 }
 
 record(longout, "$(P)$(R)MB_SensorNumber") {
@@ -547,6 +552,7 @@ record(ai,"$(P)$(R)M1:Medipix_AvgTemperature_RBV") {
     field(DESC, "Medipix Avg Temperature Mod 1 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+	field(EGU, "°C")
 }
 
 #Module 2
@@ -556,6 +562,7 @@ record(ai,"$(P)$(R)M2:Medipix_AvgTemperature_RBV") {
     field(DESC, "Medipix Avg Temperature Mod 3 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+	field(EGU, "°C")
 }
 
 #Module 3
@@ -565,6 +572,7 @@ record(ai,"$(P)$(R)M3:Medipix_AvgTemperature_RBV") {
     field(DESC, "Medipix Avg Temperature Mod 3 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+	field(EGU, "°C")
 }
 
 #Module 4
@@ -574,6 +582,7 @@ record(ai,"$(P)$(R)M4:Medipix_AvgTemperature_RBV") {
     field(DESC, "Medipix Avg Temperature Mod 4 ReadBack")
     field(SCAN, "I/O Intr")
 	field(PREC, "2")
+	field(EGU, "°C")
 }
 
 
