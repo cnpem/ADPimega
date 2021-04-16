@@ -88,7 +88,7 @@ set_requestfile_path("$(ADPIMEGA)/pimegaApp/Db")
 
 iocInit()
 
-dbpf(${PREFIX}cam1:FilePath,"/tmp")
+dbpf(${PREFIX}cam1:FilePath,"/ibira/sirius/beamlines/caterete/commissioning")
 dbpf(${PREFIX}cam1:FileName,"teste")
 dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
 #dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega540d-1.ini")

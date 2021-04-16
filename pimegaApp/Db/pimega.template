@@ -65,16 +65,6 @@ record(ai, "$(P)$(R)TimeRemaining_RBV")
    	field(EGU, "s")
 }
 
-record(longin, "$(P)$(R)NumImagesCounter_RBV")
-{
-	field(SCAN, ".1 second")	
-}
-
-record(longin, "$(P)$(R)NumCaptured_RBV")
-{
-	field(SCAN, ".1 second")	
-}
-
 record(longout, "$(P)$(R)NumCapture")
 {
 	field(DRVH, "2147483647")
