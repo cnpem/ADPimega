@@ -1730,7 +1730,7 @@ asynStatus pimegaDetector::startCaptureBackend(void)
         char error[100];
         decode_backend_error(pimega->ack.error, error);
         UPDATESERVERSTATUS(error);
-        strncpy(pimega->error, "Check path/filename", sizeof("Check path/filename"));
+        strncpy(pimega->error, "Error configuring backend", sizeof("Error configuring backend"));
         return asynError;
     }
 
