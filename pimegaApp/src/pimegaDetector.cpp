@@ -249,11 +249,13 @@ void pimegaDetector::acqTask()
                  /* Saving is enabled and the saved images is less than requested */
                  /* New case added in scan case when ADImageSingle, numCapture > 1, triggerMode is internal should not enter here.
                     Scan waits for Acquire to go back to zero for it to start a new scan, and if it enters here, it is waiting for 
-                    backend to receive all the images, but this will never happen */
+                    backend to receive all the images, but this will never happen. The truth is that flyscan also has the same case
+                    except that the trigger is external, so it enters here, but since no one waits for the images to arrives, this 
+                    logic works.  */
                  if (pimega->acquireParam.numCapture != 0 && 
                      pimega->acq_status_return.savedAquisitionNum < (unsigned int)pimega->acquireParam.numCapture && 
                      autoSave == 1 && 
-                     !( imageMode == ADImageSingle && pimega->acquireParam.numCapture != 1 && triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)) {
+                     !( numExposuresVar != pimega->acquireParam.numCapture && triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)) {
                         /* Check if there are still images to save by comparing the received with the saved.
                            This is due to the slower saving rate. */
                         if (minumumAcquisitionCount > pimega->acq_status_return.savedAquisitionNum)
