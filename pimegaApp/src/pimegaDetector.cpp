@@ -510,7 +510,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         else if (value) 
         { 
             status |=  abort_save(pimega);
-            UPDATESERVERSTATUS("Save Aborted");
+            if (status == PIMEGA_SUCCESS)
+                setParameter(NDFileCapture , 0);  
             strcat(ok_str, "Save Aborted");
         }
     }
