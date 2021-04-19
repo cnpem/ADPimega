@@ -374,18 +374,18 @@ private:
     void getParameter(int index, int *value);
     void getParameter(int index, double *value);
     bool initLog(pimega_t *pimega);
-    void getDacsValues(void);
-    void getOmrValues(void);
+    asynStatus getDacsValues(void);
+    asynStatus getOmrValues(void);
     
-    void setDefaults(void);
+    asynStatus setDefaults(void);
     asynStatus getDacsOutSense(void);
     asynStatus getMbTemperature(void);
     asynStatus getMedipixTemperatures(void);
     asynStatus getMedipixAvgTemperature(void);
-    int startAcquire(void);
-    int startCaptureBackend(void);
+    asynStatus startAcquire(void);
+    asynStatus startCaptureBackend(void);
 
-    int dac_scan_tmp(pimega_dac_t dac);
+    asynStatus dac_scan_tmp(pimega_dac_t dac);
     asynStatus selectModule(uint8_t module);
     asynStatus medipixMode(uint8_t mode);
     asynStatus configDiscL(int value);
