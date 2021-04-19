@@ -247,7 +247,9 @@ void pimegaDetector::acqTask()
 
                 //printf("indexError=%x\n", pimega->acq_status_return.indexError);
                  /* Saving is enabled and the saved images is less than requested */
-                 /* New case added in scan case when ADImageSingle, numCapture > 1, triggerMode is internal should not enter here. */
+                 /* New case added in scan case when ADImageSingle, numCapture > 1, triggerMode is internal should not enter here.
+                    Scan waits for Acquire to go back to zero for it to start a new scan, and if it enters here, it is waiting for 
+                    backend to receive all the images, but this will never happen */
                  if (pimega->acquireParam.numCapture != 0 && 
                      pimega->acq_status_return.savedAquisitionNum < (unsigned int)pimega->acquireParam.numCapture && 
                      autoSave == 1 && 
@@ -307,7 +309,7 @@ void pimegaDetector::acqTask()
                 else {
                     /*Enters here in this case too:
                     imageMode == ADImageSingle && pimega->acquireParam.numCapture != 1 && triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)
-                    Only when scan is used. */
+                    Only when scan is used. In normal operation this should be prohibited through the interface. */
                     PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Acquisition finished\n", functionName);
                     UPDATEIOCSTATUS("Acquisition finished");
                     acquire=0;
@@ -318,7 +320,7 @@ void pimegaDetector::acqTask()
                                                 save is disabled and all images RECIEVED            */
                     if(pimega->acquireParam.numCapture != 0 && 
                     ( (pimega->acq_status_return.savedAquisitionNum >= (unsigned int) pimega->acquireParam.numCapture && autoSave == 1) ||
-                      (minumumAcquisitionCount < (unsigned int) pimega->acquireParam.numCapture && autoSave == 1) ) )
+                      (minumumAcquisitionCount >= (unsigned int) pimega->acquireParam.numCapture && autoSave == 0) ) )
                     {
                         setParameter(NDFileCapture , 0);
                         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Backend finished\n", functionName);
