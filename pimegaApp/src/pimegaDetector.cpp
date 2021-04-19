@@ -1665,8 +1665,9 @@ asynStatus pimegaDetector::startAcquire(void)
 {
     int rc = 0;
     pimega->pimegaParam.software_trigger = false;
-    rc |= execute_acquire(pimega);
-    return asynError;
+    rc = execute_acquire(pimega);
+    if (rc != PIMEGA_SUCCESS) return asynError;
+    return asynSuccess;
 }
 
 asynStatus pimegaDetector::startCaptureBackend(void)
