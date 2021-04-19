@@ -503,7 +503,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
     }
     else if (function == PimegaAbortSave){
-        if (backendStatus)
+        if (acquireRunning)
             UPDATESERVERSTATUS("Cannot Abort, stop acquisition first");
         else if (value) 
         { 
