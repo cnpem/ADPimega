@@ -326,6 +326,9 @@ void pimegaDetector::acqTask()
                         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Backend finished\n", functionName);
                         UPDATESERVERSTATUS("Backend done"); //¯\_(⊙︿⊙)_/¯                        
                     }
+                    else {
+                        UPDATESERVERSTATUS("Receiving images");    
+                    }
                 }
                 /* Errors reported by backend override previous messages. */                
                 if (moduleError != false)
