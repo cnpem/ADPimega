@@ -1656,6 +1656,16 @@ asynStatus pimegaDetector::getOmrValues(void)
     return asynSuccess;
 }
 
+asynStatus pimegaDetector::getExtBgIn(void)
+{
+    int rc;
+    rc = get_ImgChip_ExtBgIn(pimega);
+    if (rc != PIMEGA_SUCCESS) return asynError;
+    setParameter(PimegaExtBgIn, pimega->pimegaParam.extBgIn);
+    return asynSuccess;
+}
+
+
 void pimegaDetector::report(FILE *fp, int details)
 {
 
@@ -2029,6 +2039,8 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
     rc = getDacsValues();
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = getOmrValues();
+    if (rc != PIMEGA_SUCCESS) return asynError;
+    rc = getExtBgIn();
     if (rc != PIMEGA_SUCCESS) return asynError;
     return asynSuccess;   
 }
