@@ -1346,7 +1346,7 @@ record(mbbo,"$(P)$(R)BulkProcessing") {
 record(bo, "$(P)$(R)AbortSave") {
 	field(DTYP, "asynInt32")
 	field(DESC, "Abort saving")
-	field(HIGH, "0.1")
+	field(HIGH, "0.01")
 	field(VAL,  "0")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ABORT_SAVE")
 }

@@ -328,9 +328,7 @@ void pimegaDetector::acqTask()
                         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Backend finished\n", functionName);
                         UPDATESERVERSTATUS("Backend done"); //¯\_(⊙︿⊙)_/¯                        
                     }
-                    else {
-                        UPDATESERVERSTATUS("Receiving images");    
-                    }
+
                 }
                 /* Errors reported by backend override previous messages. */                
                 if (moduleError != false)
@@ -507,11 +505,14 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == PimegaAbortSave){
         if (acquireRunning)
             UPDATESERVERSTATUS("Cannot Abort, stop acquisition first");
-        else if (value) 
+        else if (!value) 
         { 
             status |=  abort_save(pimega);
             if (status == PIMEGA_SUCCESS)
-                setParameter(NDFileCapture , 0);  
+            {
+                setParameter(NDFileCapture , 0); 
+                UPDATESERVERSTATUS("Save Aborted");
+            } 
             strcat(ok_str, "Save Aborted");
         }
     }
