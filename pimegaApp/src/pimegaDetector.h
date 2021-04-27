@@ -401,7 +401,7 @@ private:
     asynStatus sensorBias(float voltage);
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
-    asynStatus imageMode(u_int8_t mode);
+    //asynStatus imageMode(u_int8_t mode);
     asynStatus sendImage(void);
     asynStatus checkSensors(void);
     asynStatus loadEqualization(uint32_t * cfg);
@@ -411,5 +411,11 @@ private:
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
 
+
+typedef enum ioc_trigger_mode_t {
+	IOC_TRIGGER_MODE_INTERNAL = 0,
+	IOC_TRIGGER_MODE_EXTERNAL = 1,
+	IOC_TRIGGER_MODE_ALIGNMENT = 2
+}ioc_trigger_mode_t;
 
 

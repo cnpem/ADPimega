@@ -66,12 +66,11 @@ void pimegaDetector::acqTask()
     int status = asynSuccess;
     int eventStatus=0;
     int numImages, numExposuresVar;
-    int imageMode; 
     uint64_t numImagesCounter;
     int acquire=0, i;
     int autoSave;
     int triggerMode;
-    int rc;
+    int rc = 0;
     //NDArray *pImage;
     double acquireTime, acquirePeriod, remainingTime, elapsedTime;
     int acquireStatus = 0;
@@ -98,7 +97,6 @@ void pimegaDetector::acqTask()
 
             /* We are acquiring. */
 
-            getIntegerParam(ADImageMode, &imageMode);
             /* Get the exposure parameters */
             getDoubleParam(ADAcquireTime, &acquireTime);
             getDoubleParam(ADAcquirePeriod, &acquirePeriod);
@@ -118,7 +116,7 @@ void pimegaDetector::acqTask()
             getParameter(NDFileCapture,&backendStatus);
 
             /* if continous mode is chosen! */
-            if (imageMode == ADImageContinuous || imageMode == ADImageSingle) {
+            if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
                 /* TODO: Is this set parameter necessary? In single, the ADNumExposures should just be ignored.
                    Otherwise, for next experiments, it can remain as before. */
                 setParameter (ADNumExposures, 1);   
@@ -128,7 +126,7 @@ void pimegaDetector::acqTask()
             /* Override numExposuresVar since it will most probably be 1. The interface cannot configure pimega->acquireParam.numCapture
                to something other than numExposuresVar. In case external trigger was chosen, we are assuming that scripts configured it
                differently.  */
-            if (triggerMode == PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE)
+            if (triggerMode == IOC_TRIGGER_MODE_EXTERNAL)
             {
                 numExposuresVar = pimega->acquireParam.numCapture;  
             }
@@ -157,7 +155,7 @@ void pimegaDetector::acqTask()
            or when continous mode is selected (imageMode == ADImageContinuous)
            This loop has the function of updating the timer of the experiment. 
            Count up or down depending on whether continous or not */
-        if (acquire && (acquireStatus != DONE_ACQ || imageMode == ADImageContinuous)) {
+        if (acquire && (acquireStatus != DONE_ACQ || triggerMode == IOC_TRIGGER_MODE_ALIGNMENT)) {
             
             epicsTimeGetCurrent(&endTime);
             elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
@@ -171,7 +169,7 @@ void pimegaDetector::acqTask()
 
             if (remainingTime < 0) remainingTime = 0;
 
-            if (imageMode == ADImageContinuous || triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)
+            if (triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)
             {
                 setDoubleParam(ADTimeRemaining, elapsedTime);
             }
@@ -204,7 +202,7 @@ void pimegaDetector::acqTask()
                     UPDATEIOCSTATUS( "Acquisition aborted by buffer overflow");
 
 
-                if (imageMode == ADImageContinuous) {
+                if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
                     setIntegerParam(ADStatus, ADStatusIdle);
                     UPDATEIOCSTATUS( "Acquisition finished");
                     UPDATESERVERSTATUS("Backend done");
@@ -241,18 +239,17 @@ void pimegaDetector::acqTask()
             /* If save is enabled */
             getParameter(NDAutoSave, &autoSave);
 
-
-            if (imageMode == ADImageSingle || imageMode == ADImageMultiple) {
             
+            switch (triggerMode ) {
+            
+                case IOC_TRIGGER_MODE_INTERNAL :
 
-                //printf("indexError=%x\n", pimega->acq_status_return.indexError);
-                 /* Saving is enabled and the saved images is less than requested */
-                 /* New case added in scan case when ADImageSingle, numCapture > 1, triggerMode is internal should not enter here.
-                    Scan waits for Acquire to go back to zero for it to start a new scan, and if it enters here, it is waiting for 
-                    backend to receive all the images, but this will never happen. The truth is that flyscan also has the same case
-                    except that the trigger is external, so it enters here, but since no one waits for the images to arrives, this 
-                    logic works.  */
-                 if (pimega->acquireParam.numCapture != 0 && 
+                    /* Check if the images configured to the frontend arrived before acquire goes to 0.
+                       The number of the frontend images may or may not be the same as the number configured 
+                       to the backend. Capture should go down only after the number of captures of the backend arrived. 
+                       and if save is enabled, saved too. */
+
+                if (pimega->acquireParam.numCapture != 0 && 
                      pimega->acq_status_return.savedAquisitionNum < (unsigned int)pimega->acquireParam.numCapture && 
                      autoSave == 1 && 
                      !( numExposuresVar != pimega->acquireParam.numCapture && triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)) {
@@ -344,8 +341,8 @@ void pimegaDetector::acqTask()
                     setIntegerParam(ADStatus, ADStatusError);
                 }                              
             }
-           
-            else if (imageMode == ADImageContinuous) {
+            break;
+            case {
                 if (minumumAcquisitionCount >= numImagesCounter)
                 {
                     status = startAcquire();
@@ -853,7 +850,7 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value, si
 
 asynStatus pimegaDetector::dacDefaults(const char * file)
 {
-    int rc;
+    int rc = 0;
 
     rc = configure_module_dacs_with_file(pimega, file);
     if (rc != PIMEGA_SUCCESS) {
@@ -1501,7 +1498,7 @@ void pimegaDetector::createParameters(void)
 
 asynStatus pimegaDetector::setDefaults(void)
 {
-    int rc;
+    int rc = 0;
     setParameter(ADMaxSizeX, maxSizeX);
     setParameter(ADMaxSizeY, maxSizeY);
     setParameter(ADSizeX, maxSizeX);
@@ -1640,7 +1637,7 @@ asynStatus pimegaDetector::getDacsValues(void)
 
 asynStatus pimegaDetector::getOmrValues(void)
 {
-    int rc;
+    int rc = 0;
     rc = get_omr(pimega);
     if (rc != PIMEGA_SUCCESS) return asynError;
     setParameter(PimegaOmrOPMode, pimega->omr_values[OMR_M]);
@@ -1811,7 +1808,7 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac)
 
 asynStatus pimegaDetector::selectModule(uint8_t module)
 {
-    int rc;
+    int rc = 0;
     int mfb, send_mode;
     getParameter(PimegaMedipixBoard, &mfb);
     getParameter(PimegaMBSendMode, &send_mode);
@@ -1832,7 +1829,7 @@ asynStatus pimegaDetector::selectModule(uint8_t module)
 
 asynStatus pimegaDetector::triggerMode(int trigger)
 {
-    int rc;
+    int rc = 0;
     rc = configure_trigger(pimega, (pimega_trigger_mode_t)trigger);
     if (rc != PIMEGA_SUCCESS) {
         error("TriggerMode out the range: %s\n", pimega_error_string(rc));
@@ -1843,7 +1840,7 @@ asynStatus pimegaDetector::triggerMode(int trigger)
 
 asynStatus pimegaDetector::configDiscL(int value)
 {
-    int rc;
+    int rc = 0;
     int all_modules;
     getParameter(PimegaAllModules, &all_modules);
     rc = US_ConfigDiscL(pimega, value, (pimega_send_to_all_t)all_modules);
@@ -1856,7 +1853,7 @@ asynStatus pimegaDetector::configDiscL(int value)
 
 asynStatus pimegaDetector::setDACValue(pimega_dac_t dac, int value, int parameter)
 {
-    int rc;
+    int rc = 0;
     int all_modules;
 
     /* TODO: Is this necessary? callParamCallbacks is setting the PV. PimegaSendDacDone is not used anywhere. */
@@ -1879,7 +1876,7 @@ asynStatus pimegaDetector::setDACValue(pimega_dac_t dac, int value, int paramete
 
 asynStatus pimegaDetector::setOMRValue(pimega_omr_t omr, int value, int parameter)
 {
-    int rc;
+    int rc = 0;
     int all_modules;
 
     getParameter(PimegaAllModules, &all_modules);
@@ -1996,7 +1993,7 @@ asynStatus  pimegaDetector::medipixBoard(uint8_t board_id)
 
 asynStatus pimegaDetector::medipixMode(uint8_t mode)
 {
-    int rc;
+    int rc = 0;
     rc = set_medipix_mode(pimega, (pimega_medipix_mode_t)mode);
     if (rc != PIMEGA_SUCCESS) {
         error("Invalid Medipix Mode: %s\n", pimega_error_string(rc));
@@ -2009,7 +2006,7 @@ asynStatus pimegaDetector::medipixMode(uint8_t mode)
 
 asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
 {
-    int rc;
+    int rc = 0;
     char *_efuseID;
 
     rc = select_chipNumber(pimega, chip_id);
@@ -2035,7 +2032,7 @@ asynStatus pimegaDetector::imgChipID(uint8_t chip_id)
 
 asynStatus pimegaDetector::numExposures(unsigned number)
 {
-    int rc;
+    int rc = 0;
 
     rc = set_numberExposures(pimega, number);
     if (rc != PIMEGA_SUCCESS){
@@ -2048,7 +2045,7 @@ asynStatus pimegaDetector::numExposures(unsigned number)
 
 asynStatus pimegaDetector::acqTime(float acquire_time_s)
 {
-    int rc;
+    int rc = 0;
 
     rc = set_acquireTime(pimega, acquire_time_s);
     if (rc != PIMEGA_SUCCESS){
@@ -2061,7 +2058,7 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s)
 
 asynStatus pimegaDetector::acqPeriod(float period_time_s)
 {
-    int rc;
+    int rc = 0;
 
     rc = set_periodTime(pimega, period_time_s);
     if (rc != PIMEGA_SUCCESS){
@@ -2077,7 +2074,7 @@ asynStatus pimegaDetector::acqPeriod(float period_time_s)
 
 asynStatus pimegaDetector::setExtBgIn(float voltage)
 {
-    int rc;
+    int rc = 0;
 
     rc = set_ImgChip_ExtBgIn(pimega, voltage);
     if (rc != PIMEGA_SUCCESS) {
@@ -2090,7 +2087,7 @@ asynStatus pimegaDetector::setExtBgIn(float voltage)
 
 asynStatus pimegaDetector::sensorBias(float voltage)
 {
-    int rc;
+    int rc = 0;
     int send_mode;
 
     getParameter(PimegaMBSendMode, &send_mode);
@@ -2117,7 +2114,7 @@ asynStatus pimegaDetector::sensorBias(float voltage)
 
 asynStatus pimegaDetector::readCounter(int counter)
 {
-    int rc;
+    int rc = 0;
     rc = US_ReadCounter(pimega, (pimega_read_counter_t)counter);
     if (rc != PIMEGA_SUCCESS){ return asynError;
     }
@@ -2184,7 +2181,7 @@ asynStatus pimegaDetector::getMbTemperature(void)
 
 asynStatus pimegaDetector::getMedipixTemperatures(void)
 {
-    int rc;
+    int rc = 0;
     int idxTemp[] = { PimegaSensorTemperatureM1 , PimegaSensorTemperatureM2, PimegaSensorTemperatureM3, PimegaSensorTemperatureM4 };
     int idxAvg[] =  { PimegaMPAvgTSensorM1 , PimegaMPAvgTSensorM2, PimegaMPAvgTSensorM3, PimegaMPAvgTSensorM4 };
     rc = getMedipixSensor_Temperatures(pimega);
