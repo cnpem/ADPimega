@@ -70,6 +70,13 @@ do {                               \
     updateServerStatus(x, sizeof(x)); \
 } while(0)
 
+typedef enum ioc_trigger_mode_t {
+	IOC_TRIGGER_MODE_INTERNAL = 0,
+	IOC_TRIGGER_MODE_EXTERNAL = 1,
+	IOC_TRIGGER_MODE_ALIGNMENT = 2
+}ioc_trigger_mode_t;
+
+
 #define pimegaMedipixModeString         "MEDIPIX_MODE"
 #define pimegaefuseIDString             "EFUSE_ID"
 #define pimegaOmrOPModeString           "OMR_OP_MODE"
@@ -363,6 +370,7 @@ private:
     epicsFloat32 *PimegaMBTemperature_;
 
     int numImageSaved;
+    uint64_t recievedBackendCountOffset;
 
     void panic(const char *msg);
     void connect(const char *address[4], unsigned short port);
@@ -389,7 +397,7 @@ private:
     asynStatus selectModule(uint8_t module);
     asynStatus medipixMode(uint8_t mode);
     asynStatus configDiscL(int value);
-    asynStatus triggerMode(int trigger);
+    asynStatus triggerMode(ioc_trigger_mode_t trigger);
     asynStatus reset(short action);
     asynStatus setDACValue(pimega_dac_t dac, int value, int parameter);
     asynStatus setOMRValue(pimega_omr_t dac, int value, int parameter);
@@ -412,10 +420,6 @@ private:
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
 
 
-typedef enum ioc_trigger_mode_t {
-	IOC_TRIGGER_MODE_INTERNAL = 0,
-	IOC_TRIGGER_MODE_EXTERNAL = 1,
-	IOC_TRIGGER_MODE_ALIGNMENT = 2
-}ioc_trigger_mode_t;
+
 
 
