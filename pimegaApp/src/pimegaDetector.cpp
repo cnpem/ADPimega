@@ -148,10 +148,8 @@ void pimegaDetector::acqTask()
         }
 
         /* will enter here when the detector did not finish acquisition (acquireStatus != DONE_ACQ)
-           or when continous mode is selected (imageMode == ADImageContinuous)
-           This loop has the function of updating the timer of the experiment. 
-           Count up or down depending on whether continous or not */
-        if (acquire && (acquireStatus != DONE_ACQ || triggerMode == IOC_TRIGGER_MODE_ALIGNMENT)) {
+           or when Elapsed time is chosen (!PIMEGA_TRIGGER_MODE_INTERNAL) */
+        if (acquire && (acquireStatus != DONE_ACQ || triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)) {
             
             epicsTimeGetCurrent(&endTime);
             elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
@@ -258,7 +256,7 @@ void pimegaDetector::acqTask()
                 /* Timer finished and data should have arrived already ( but not necessarily saved ) */
                 if (recievedBackendCount < (unsigned int)pimega->acquireParam.numCapture ) {
 
-                    UPDATESERVERSTATUS("Not all images received. Waiting..."); 
+                    UPDATESERVERSTATUS("Waiting for images..."); 
 
                 } else if (autoSave == 1 && recievedBackendCount > pimega->acq_status_return.savedAquisitionNum) {
 
@@ -320,7 +318,7 @@ void pimegaDetector::acqTask()
                     {                       
                         if (recievedBackendCount < (unsigned int)pimega->acquireParam.numCapture ) {
 
-                            UPDATEIOCSTATUS("Not all images received. Waiting..."); 
+                            UPDATEIOCSTATUS("Waiting for trigger..."); 
 
                         } else if (autoSave == 1 && recievedBackendCount < pimega->acq_status_return.savedAquisitionNum) {
 
@@ -1735,7 +1733,7 @@ asynStatus pimegaDetector::startCaptureBackend(void)
     getParameter(PimegaIndexSendMode, &indexSendMode);
 
     /* Evaluate trigger if external or internal */
-    if (triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL)
+    if (triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)
         externalTrigger = false;
     else
         externalTrigger = true;
@@ -1859,6 +1857,7 @@ asynStatus pimegaDetector::triggerMode(ioc_trigger_mode_t trigger)
         rc = configure_trigger(pimega, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
         break;
         case IOC_TRIGGER_MODE_ALIGNMENT : 
+        rc = configure_trigger(pimega, PIMEGA_TRIGGER_MODE_INTERNAL);        
         break;
 
     }
