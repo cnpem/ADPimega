@@ -240,7 +240,7 @@ void pimegaDetector::acqTask()
 
             /* If save is enabled */
             getParameter(NDAutoSave, &autoSave);
-
+            getParameter(NDFileCapture,&backendStatus);
 
             /* Capture and server status message management ( UPDATESERVERSTATUS && NDFileCapture handling )
                 - The number of the frontend images may or may not be the same as the number configured 
@@ -260,7 +260,7 @@ void pimegaDetector::acqTask()
 
                     UPDATESERVERSTATUS("Not all images received. Waiting..."); 
 
-                } else if (autoSave == 1 && recievedBackendCount < pimega->acq_status_return.savedAquisitionNum) {
+                } else if (autoSave == 1 && recievedBackendCount > pimega->acq_status_return.savedAquisitionNum) {
 
                     UPDATESERVERSTATUS("Saving..."); 
 
