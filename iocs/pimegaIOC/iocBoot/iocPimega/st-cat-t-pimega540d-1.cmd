@@ -8,6 +8,8 @@ errlogInit(20000)
 dbLoadDatabase("$(TOP)/dbd/pimegaApp.dbd")
 pimegaApp_registerRecordDeviceDriver(pdbbase) 
 
+epicsEnvSet("EPICS_CA_ADDR_LIST", "10.0.38.46:60000 10.10.10.40 10.10.10.39 10.31.34.52 10.31.34.29")
+
 # Prefix for all records
 epicsEnvSet("PREFIX", "CAT:T:PIMEGA540D:")
 # The port name for the detector
