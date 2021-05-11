@@ -1345,14 +1345,6 @@ record(mbbo,"$(P)$(R)BulkProcessing") {
 	field(PINI, "YES")	
 }
 
-record(bo, "$(P)$(R)AbortSave") {
-	field(DTYP, "asynInt32")
-	field(DESC, "Abort saving")
-	field(HIGH, "0.01")
-	field(VAL,  "0")
-	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ABORT_SAVE")
-}
-
 record(waveform, "$(P)$(R)IndexDestinationID")
 {
     field(DTYP, "asynOctetWrite")
