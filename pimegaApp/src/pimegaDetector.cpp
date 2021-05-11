@@ -1764,6 +1764,7 @@ asynStatus pimegaDetector::startCaptureBackend(void)
 
     /* Create the full filename */
     createFileName(sizeof(fullFileName), fullFileName);
+    setParameter(NDFullFileName, fullFileName);
     rc = (asynStatus)set_file_name_template(pimega, fullFileName);
     if (rc != PIMEGA_SUCCESS) return asynError;
 
