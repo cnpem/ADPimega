@@ -70,11 +70,10 @@ void pimegaDetector::acqTask()
     int acquire=0, i;
     int autoSave;
     int triggerMode;
-    int rc = 0;
+
     //NDArray *pImage;
     double acquireTime, acquirePeriod, remainingTime, elapsedTime;
     int acquireStatus = 0;
-    bool bufferOverflow=0;
     epicsTimeStamp startTime, endTime;
     int indexEnable, backendStatus;
     bool indexEnableBool;
@@ -108,8 +107,6 @@ void pimegaDetector::acqTask()
             setShutter(ADShutterOpen);
             UPDATEIOCSTATUS("Acquiring...");
             setIntegerParam(ADStatus, ADStatusAcquire); 
-
-            bufferOverflow =0;
 
             /* Backend status */
             getParameter(NDFileCapture,&backendStatus);
@@ -173,31 +170,21 @@ void pimegaDetector::acqTask()
         /* Stop event detected */
         if (eventStatus == epicsEventWaitOK) {
             PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Stop request received\n", functionName);
-            rc = send_stopAcquire_toBackend(pimega);
-            if (rc != 0)
-            {
-                PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed - %s\n", __func__, pimega->error);
-                UPDATEIOCSTATUS(pimega->error);    
-                pimega->error[0] = '\0';                       
-            } else {
-                setShutter(0);
-                setIntegerParam(ADAcquire, 0);
-                acquire=0;
-                /* TODO: This condition needs checking if needed. Always returns false. */
-                if (bufferOverflow) 
-                    UPDATEIOCSTATUS( "Acquisition aborted by buffer overflow");
 
+            setShutter(0);
+            setIntegerParam(ADAcquire, 0);
+            acquire=0;
 
-                if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
-                    setIntegerParam(ADStatus, ADStatusIdle);
-                    UPDATEIOCSTATUS( "Acquisition finished");
-                }
-                else {
-                    setIntegerParam(ADStatus, ADStatusAborted);
-                    UPDATEIOCSTATUS("Acquisition aborted by user");
-                }
-                callParamCallbacks();
+            if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
+                setIntegerParam(ADStatus, ADStatusIdle);
+                UPDATEIOCSTATUS( "Acquisition finished");
             }
+            else {
+                setIntegerParam(ADStatus, ADStatusAborted);
+                UPDATEIOCSTATUS("Acquisition aborted by user");
+            }
+            callParamCallbacks();
+
         }
         //printf("Index error = %d\n", pimega->acq_status_return.indexError);      
         /* Will enter here only one time when the acqusition time is over. The current configuration assumes that
@@ -435,7 +422,8 @@ void pimegaDetector::captureTask()
                 setParameter(NDFileCapture , 0);
                 capture = 0;
                 PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Backend finished\n", __func__);
-                UPDATESERVERSTATUS("Backend done"); 
+                UPDATESERVERSTATUS("Backend done");
+                callParamCallbacks(); 
             }
         } else {
             UPDATESERVERSTATUS("Receiving images..."); 
@@ -449,7 +437,9 @@ void pimegaDetector::captureTask()
         {
             UPDATESERVERSTATUS("Index not responding");
         }  
+        
     }
+    
 }
 
 
@@ -544,7 +534,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             
                 if (status == PIMEGA_SUCCESS) {
                     epicsEventSignal(this->startCaptureEventId_);
-                    strcat(ok_str, "Starting capture"); 
+                    strcat(ok_str, "Started backend"); 
                 }               
             } else {
                 if (acquireRunning == 1)
