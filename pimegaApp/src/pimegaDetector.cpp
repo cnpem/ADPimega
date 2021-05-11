@@ -169,7 +169,7 @@ void pimegaDetector::acqTask()
 
         /* Stop event detected */
         if (eventStatus == epicsEventWaitOK) {
-            PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Stop request received\n", functionName);
+            PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Stop acquire request received in thread\n", functionName);
 
             setShutter(0);
             setIntegerParam(ADAcquire, 0);
@@ -178,22 +178,27 @@ void pimegaDetector::acqTask()
             if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
                 setIntegerParam(ADStatus, ADStatusIdle);
                 UPDATEIOCSTATUS( "Acquisition finished");
+                
             }
             else {
                 setIntegerParam(ADStatus, ADStatusAborted);
                 UPDATEIOCSTATUS("Acquisition aborted by user");
             }
             callParamCallbacks();
+            continue;
 
         }
+
+        /* Added this delay for the thread not to hog the processor. No need to run on full speed. */
+        usleep(10000);
+
         //printf("Index error = %d\n", pimega->acq_status_return.indexError);      
         /* Will enter here only one time when the acqusition time is over. The current configuration assumes that
           when time is up, the thread goes to sleep, but perhaps we should consider changing this to only after 
           when the frames are ready, acquire should become 0*/
         if (acquireStatus == DONE_ACQ && acquire) {
 
-            /* Added this delay to guarantee that the scan of NDFileNumCaptured was performed at least once after acquireStatus turned DONE_ACQ */
-            //usleep(200000);
+
 
             /* Identify if Module error occured or received frames in all, or some modules is 0 */
             bool moduleError = false;
@@ -355,7 +360,7 @@ void pimegaDetector::captureTask()
 
         /* Stop event detected */
         if (eventStatus == epicsEventWaitOK) {
-            PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Capture Stop request received\n", __func__);
+            PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Capture Stop request received in thread\n", __func__);
             status = send_stopAcquire_toBackend(pimega);
             status |=  abort_save(pimega);
             if (status != 0)
@@ -370,8 +375,9 @@ void pimegaDetector::captureTask()
             }
         }
 
-
+        /* Added this delay for the thread not to hog the processor. */
         usleep(10000);
+
         if(capture)
         {
             get_acqStatus_fromBackend(pimega);
@@ -497,14 +503,14 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
          if (value && backendStatus && 
             (adstatus == ADStatusIdle || adstatus == ADStatusAborted)) {
             /* Send an event to wake up the acq task.  */
-            PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Requesting start event. Sending start event signal\n", functionName);
+            PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Requested acquire start event. Sending acquire start event signal to thread\n", functionName);
             epicsEventSignal(this->startAcquireEventId_);
-            UPDATEIOCSTATUS("Acquiring...");
+            strcat(ok_str, "Acquiring...");
             
         }
         else if (!value && (adstatus == ADStatusAcquire || adstatus == ADStatusError)) {
           /* This was a command to stop acquisition */
-            PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Requesting stop event. Sending stop event signal\n", functionName);
+            PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Requested acquire stop event. Sending acquire stop event signal to thread\n", functionName);
             epicsEventSignal(this->stopAcquireEventId_);
             epicsThreadSleep(.1);
             strcat(ok_str, "Stopping acquisition");
@@ -529,7 +535,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (value) {
             if (acquireRunning == 0 && backendStatus == 0)
             {
-                PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Requested capture start event. Sending capture start event signal\n", functionName);
+                PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Requested capture start event. Sending capture start event signal to thread\n", functionName);
                 status = startCaptureBackend();
             
                 if (status == PIMEGA_SUCCESS) {
@@ -552,7 +558,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (!value) { 
             if (backendStatus == 1)
             {
-                PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Requested capture stop event. Sending capture stop event signal\n", functionName);
+                PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Requested capture stop event. Sending capture stop event signal to thread\n", functionName);
                 epicsEventSignal(this->stopCaptureEventId_);
                 epicsThreadSleep(.1);            
                 strcat(ok_str, "Acquisition stopped");
