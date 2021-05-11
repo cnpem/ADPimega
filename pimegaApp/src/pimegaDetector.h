@@ -211,6 +211,7 @@ public:
     virtual asynStatus writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	value, size_t 	nElements );
     virtual void report(FILE *fp, int details);
     virtual void acqTask(void);
+    virtual void captureTask(void);
     virtual void generateImage(void);
     void updateIOCStatus(const char * message, int size);
     void updateServerStatus(const char * message, int size);
@@ -354,8 +355,10 @@ private:
     int forceCallback_;
     // ***********************************
 
-    epicsEventId startEventId_;
-    epicsEventId stopEventId_;
+    epicsEventId startAcquireEventId_;
+    epicsEventId stopAcquireEventId_;
+    epicsEventId startCaptureEventId_;
+    epicsEventId stopCaptureEventId_;
 
     pimega_t *pimega;
     int maxSizeX;
