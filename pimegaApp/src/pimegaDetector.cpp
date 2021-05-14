@@ -390,6 +390,14 @@ void pimegaDetector::captureTask()
                     recievedBackendCount = pimega->acq_status_return.noOfAquisitions[i];
             }
 
+            /*Anamoly detection. Upon incorrect configuration the detector, a number of images larger 
+              that what has been requested may arrive. In that case, to establish the end of the capture,
+              an upper bound pimega->acquireParam.numCapture is set for recievedBackendCount*/
+            if (recievedBackendCount > (unsigned int)pimega->acquireParam.numCapture)
+            {
+                recievedBackendCount = (unsigned int)pimega->acquireParam.numCapture;
+            }
+            
             if (prevAcquisitionCount < recievedBackendCount)    
             {        
                 prevAcquisitionCount = recievedBackendCount;
