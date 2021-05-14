@@ -70,6 +70,13 @@ do {                               \
     updateServerStatus(x, sizeof(x)); \
 } while(0)
 
+typedef enum ioc_trigger_mode_t {
+	IOC_TRIGGER_MODE_INTERNAL = 0,
+	IOC_TRIGGER_MODE_EXTERNAL = 1,
+	IOC_TRIGGER_MODE_ALIGNMENT = 2
+}ioc_trigger_mode_t;
+
+
 #define pimegaMedipixModeString         "MEDIPIX_MODE"
 #define pimegaefuseIDString             "EFUSE_ID"
 #define pimegaOmrOPModeString           "OMR_OP_MODE"
@@ -204,6 +211,7 @@ public:
     virtual asynStatus writeInt32Array(asynUser * 	pasynUser, epicsInt32 * 	value, size_t 	nElements );
     virtual void report(FILE *fp, int details);
     virtual void acqTask(void);
+    virtual void captureTask(void);
     virtual void generateImage(void);
     void updateIOCStatus(const char * message, int size);
     void updateServerStatus(const char * message, int size);
@@ -347,8 +355,10 @@ private:
     int forceCallback_;
     // ***********************************
 
-    epicsEventId startEventId_;
-    epicsEventId stopEventId_;
+    epicsEventId startAcquireEventId_;
+    epicsEventId stopAcquireEventId_;
+    epicsEventId startCaptureEventId_;
+    epicsEventId stopCaptureEventId_;
 
     pimega_t *pimega;
     int maxSizeX;
@@ -363,6 +373,7 @@ private:
     epicsFloat32 *PimegaMBTemperature_;
 
     int numImageSaved;
+    uint64_t recievedBackendCountOffset;
 
     void panic(const char *msg);
     void connect(const char *address[4], unsigned short port);
@@ -389,7 +400,7 @@ private:
     asynStatus selectModule(uint8_t module);
     asynStatus medipixMode(uint8_t mode);
     asynStatus configDiscL(int value);
-    asynStatus triggerMode(int trigger);
+    asynStatus triggerMode(ioc_trigger_mode_t trigger);
     asynStatus reset(short action);
     asynStatus setDACValue(pimega_dac_t dac, int value, int parameter);
     asynStatus setOMRValue(pimega_omr_t dac, int value, int parameter);
@@ -401,7 +412,7 @@ private:
     asynStatus sensorBias(float voltage);
     asynStatus readCounter(int counter);
     asynStatus senseDacSel(u_int8_t dac);
-    asynStatus imageMode(u_int8_t mode);
+    //asynStatus imageMode(u_int8_t mode);
     asynStatus sendImage(void);
     asynStatus checkSensors(void);
     asynStatus loadEqualization(uint32_t * cfg);
@@ -411,6 +422,8 @@ private:
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
+
+
 
 
 

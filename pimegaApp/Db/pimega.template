@@ -78,19 +78,21 @@ record(mbbo,"$(P)$(R)TriggerMode") {
     field(ZRVL,"0")
     field(ZRST,"Internal")
     field(ONVL,"1")
-    field(ONST,"External positive edge")
+    field(ONST,"External")
+    field(TWVL,"2")
+    field(TWST,"Alignment")	
     field(IVOA, "Don't drive outputs")
 }
 
 
 record(mbbi,"$(P)$(R)TriggerMode_RBV") {
-    field(DESC,"Trigger mode")
+	field(DESC,"Trigger mode")
     field(ZRVL,"0")
     field(ZRST,"Internal")
     field(ONVL,"1")
-    field(ONST,"External positive edge")
+    field(ONST,"External")
     field(TWVL,"2")
-    field(TWST,"External negative edge")
+    field(TWST,"Alignment")	
 }
 
 # Add new items for the ImageMode records defined in ADBase.template
@@ -1341,14 +1343,6 @@ record(mbbo,"$(P)$(R)BulkProcessing") {
     field(TWST,"Disable Bulk Processing")
 	field(VAL,  "2")
 	field(PINI, "YES")	
-}
-
-record(bo, "$(P)$(R)AbortSave") {
-	field(DTYP, "asynInt32")
-	field(DESC, "Abort saving")
-	field(HIGH, "0.01")
-	field(VAL,  "0")
-	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ABORT_SAVE")
 }
 
 record(waveform, "$(P)$(R)IndexDestinationID")
