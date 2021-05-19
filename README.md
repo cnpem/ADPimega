@@ -6,9 +6,11 @@ This is an IOC for all the Pimega area detector variations (540D and 135D). It m
 * [pimega-api](https://gitlab.cnpem.br/DET/pimega/pimega-api.git)
 
 ## build
+make sure your EPICS_HOST_ARCH environment variable is set. Possible values are linux-ppc64 or linux-x86_64. After that run the following
+
 ```
 cd ADPimega
-make EPICS_HOST_ARCH=$EPICS_HOST_ARCH -j4
+make -j4
 cd iocs/pimegaIOC/iocBoot/iocPimega
 make envPaths
 ```
