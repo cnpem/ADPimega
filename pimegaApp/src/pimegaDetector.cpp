@@ -79,7 +79,7 @@ void pimegaDetector::acqTask()
     bool indexEnableBool;
     const char *functionName = "acqTask";
     int64_t acquireImageCount = 0, acquireImageSavedCount = 0;
-
+    int acquireStatusError = 0;
     /* Loop forever */
     while (1) {
         /* No acquisition in place */
@@ -92,9 +92,10 @@ void pimegaDetector::acqTask()
             PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Waiting for acquire to start\n", functionName);
             status = epicsEventWait(startAcquireEventId_);
             PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Acquire request received\n", functionName);
-
+            
             /* We are acquiring. */
-
+            acquireStatusError = 0;
+            
             /* Get the exposure parameters */
             getDoubleParam(ADAcquireTime, &acquireTime);
             getDoubleParam(ADAcquirePeriod, &acquirePeriod);
@@ -124,6 +125,7 @@ void pimegaDetector::acqTask()
             if (status != asynSuccess) {
                 PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: startAcquire() failed. Stop event sent\n", functionName);
                 epicsEventSignal(this->stopAcquireEventId_);
+                acquireStatusError = 1;
                 epicsThreadSleep(.1);
             }
             else {
@@ -180,7 +182,12 @@ void pimegaDetector::acqTask()
                 UPDATEIOCSTATUS( "Acquisition finished");
                 
             }
-            else {
+            else if (acquireStatusError == 1){
+                acquireStatusError = 0;
+                setIntegerParam(ADStatus, ADStatusAborted);
+                UPDATEIOCSTATUS(pimega->error);    
+                pimega->error[0] = '\0';  
+            } else {
                 setIntegerParam(ADStatus, ADStatusAborted);
                 UPDATEIOCSTATUS("Acquisition aborted by user");
             }
