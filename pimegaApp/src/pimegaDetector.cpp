@@ -1,15 +1,13 @@
 /* pimegaDetector.cpp
  *
- * This is a driver for the Pimega detector (Quad chip version but supports other chip counts)
- *
- * The driver is designed to communicate with the chip via the matching Labview controller over TCP/IP
+ * This is a driver for the Pimega detector
  *
  * Author: Douglas Araujo
  *         Brazilian Synchrotron Light Laboratory.
  *
  * Created:  Jan 09 2019
  *
- * Original Source from pilatusDetector by Mark Rivers and from merlinDetector by Giles Knap.
+ * Derived from pilatusDetector by Mark Rivers and from merlinDetector by Giles Knap.
  *
  */
 
