@@ -1363,6 +1363,17 @@ record(bo, "$(P)$(R)IndexEnable") {
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))INDEX_ENABLE")
 }
 
+record(bo, "$(P)$(R)AcquisitionToSharedMemoryEnable") {
+	field(DTYP, "asynInt32")
+	field(DESC, "Write Acquisition to shared memory")
+	field(VAL,  "0")
+	field(ZNAM, "No")
+	field(ONAM, "Yes")	
+	field(PINI, "YES")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ACQ_TO_SHMEM_ENABLE")
+}
+
+
 record(mbbo,"$(P)$(R)IndexSendMode") {
 	field(DESC,"Index Send Mode")
 	field(DTYP, "asynInt32")
@@ -1383,6 +1394,13 @@ record(longin, "$(P)$(R)IndexSentFramesCounter_RBV") {
     field(SCAN, "I/O Intr")
 }
 
+
+record(longin, "$(P)$(R)ProcessedAcquisitionCounter_RBV") {
+	field(DESC, "Acquisitions processed ready to save")
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PROCESSED_COUNTER")
+    field(SCAN, "I/O Intr")
+}
 
 record(ao, "$(P)$(R)Distance")
 {

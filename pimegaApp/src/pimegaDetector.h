@@ -159,8 +159,10 @@ typedef enum ioc_trigger_mode_t {
 #define pimegaAbortSaveString            "ABORT_SAVE"
 #define pimegaIndexIDString              "INDEX_ID"
 #define pimegaIndexEnableString          "INDEX_ENABLE"
+#define pimegaAcquireShmemEnableString   "ACQ_TO_SHMEM_ENABLE"
 #define pimegaIndexSendModeString        "INDEX_SEND_MODE"
 #define pimegaIndexCounterString         "INDEX_COUNTER"
+#define pimegaProcessedCounterString     "PROCESSED_COUNTER"
 #define pimegaDistanceString             "DISTANCE"
 #define pimegaLogFileString              "LOGFILE"
 #define pimegaIOCStatusMsgString         "IOC_STATUS_MESSAGE"
@@ -287,6 +289,7 @@ protected:
     int PimegaMBAvgTSensorM4;
     int PimegaMBSelTSensor;
     int PimegaMBTSensor;
+    int PimegaAcqShmemEnable;
     int PimegaReadSensorTemperature;
     int PimegaSensorTemperatureM1;
     int PimegaSensorTemperatureM2;
@@ -310,6 +313,7 @@ protected:
     int PimegaIndexEnable;
     int PimegaIndexSendMode;
     int PimegaIndexCounter;
+    int PimegaProcessedImageCounter;
     int PimegaDistance;    
     int PimegaLoadEqStart;
     int PimegaIOCStatusMessage;
