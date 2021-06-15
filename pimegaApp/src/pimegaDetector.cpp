@@ -202,14 +202,14 @@ void pimegaDetector::acqTask()
 
             /* Identify if Module error occured or received frames in all, or some modules is 0 */
             bool moduleError = false;
-            uint64_t recievedBackendCount = UINT64_MAX;
+            uint64_t recievedBackendCount = UINT64_MAX, processedBackendCount;
             for (i = 0;  i < pimega->max_num_modules; i++)
             {
                 moduleError |= pimega->acq_status_return.moduleError[i];
                 if (recievedBackendCount > pimega->acq_status_return.noOfAquisitions[i])
                     recievedBackendCount = pimega->acq_status_return.noOfAquisitions[i];
             }
-
+            processedBackendCount = pimega->acq_status_return.processedImageNum;
             /* For several Acquires with one backend Capture call, the number of images sent to backend X
                is a multiple of the number of images sent to the detector Y ( X = K x Y ). So the offset to
                establish the end of a single acquire needs to be tracked */
@@ -246,7 +246,11 @@ void pimegaDetector::acqTask()
                         
                         UPDATEIOCSTATUS("Sending frames to Index");
 
-                    } else {
+                    } else if (processedBackendCount < (unsigned int)pimega->acquireParam.numCapture ) {
+
+                        UPDATEIOCSTATUS("Images received, processing...");
+                        
+                    }else {
                         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Acquisition finished\n", functionName);
                         UPDATEIOCSTATUS("Acquisition finished");
                         recievedBackendCountOffset += numExposuresVar;
@@ -339,7 +343,7 @@ void pimegaDetector::captureTask()
     int eventStatus=0;
     bool moduleError ;
     uint64_t prevAcquisitionCount = 0;
-    uint64_t recievedBackendCount;
+    uint64_t recievedBackendCount, processedBackendCount;
     while (1) {
         if (!capture)
         {
@@ -389,7 +393,7 @@ void pimegaDetector::captureTask()
                 if (recievedBackendCount > pimega->acq_status_return.noOfAquisitions[i])
                     recievedBackendCount = pimega->acq_status_return.noOfAquisitions[i];
             }
-
+            processedBackendCount = pimega->acq_status_return.processedImageNum;
             /*Anamoly detection. Upon incorrect configuration the detector, a number of images larger 
               that what has been requested may arrive. In that case, to establish the end of the capture,
               an upper bound pimega->acquireParam.numCapture is set for recievedBackendCount*/
@@ -432,6 +436,10 @@ void pimegaDetector::captureTask()
             } else if (indexEnableBool == true && pimega->acq_status_return.indexSentAquisitionNum < (unsigned int)pimega->acquireParam.numCapture ) {
             
                 UPDATESERVERSTATUS("Sending to Index...");              
+            } else if (processedBackendCount < (unsigned int)pimega->acquireParam.numCapture){
+
+                UPDATESERVERSTATUS("Processing images..."); 
+
             } else {
                 setParameter(NDFileCapture , 0);
                 capture = 0;
