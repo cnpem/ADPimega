@@ -5,6 +5,7 @@
     <Attribute name="saxsfly"            type="EPICS_PV" source="CAT:S:m7.RBV"                                dbrtype="DBR_NATIVE"  description="Saxs Virtual Device"/>
     <Attribute name="caen_channel1"      type="EPICS_PV" source="CAT:T:AH501D:Current1:MeanValue_RBV"         dbrtype="DBR_NATIVE"  description="CAENels Ch1 Current"/>
     <Attribute name="caen_channel2"      type="EPICS_PV" source="CAT:T:AH501D:Current2:MeanValue_RBV"         dbrtype="DBR_NATIVE"  description="CAENels Ch2 Current"/>
+    <Attribute name="caen_channel3"      type="EPICS_PV" source="CAT:T:AH501D:Current3:MeanValue_RBV"         dbrtype="DBR_NATIVE"  description="CAENels Ch3 Current"/>
     <Attribute name="bim01_photodiode"   type="EPICS_PV" source="CAT:C:RIO02:9215B:ai0"                       dbrtype="DBR_NATIVE"  description="BIM01 - Photodiode"/>
     <Attribute name="bim02_photodiode"   type="EPICS_PV" source="CAT:C:RIO02:9215B:ai1"                       dbrtype="DBR_NATIVE"  description="BIM02 - Photodiode"/>
     <Attribute name="bim03_photodiode"   type="EPICS_PV" source="CAT:C:RIO02:9215B:ai2"                       dbrtype="DBR_NATIVE"  description="BIM03 - Photodiode"/>
