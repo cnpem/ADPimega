@@ -370,6 +370,7 @@ void pimegaDetector::captureTask()
         /* Stop event detected */
         if (eventStatus == epicsEventWaitOK) {
             PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,"%s: Capture Stop request received in thread\n", __func__);
+            stop_acquire(pimega);
             status = send_stopAcquire_toBackend(pimega);
             status |=  abort_save(pimega);
             if (status != 0)
