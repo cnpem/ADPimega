@@ -8,6 +8,6 @@ tar -xzf base-3.15.6.tar.gz
 mkdir /usr/local/epics
 mv base-3.15.6 /usr/local/epics
 cd /usr/local/epics/base-3.15.6
-make -j$CORES
+make -j $CORES
 ln -s /usr/local/epics/base-3.15.6 /usr/local/epics/base
 rm /tmp/base-3.15.6.tar.gz
