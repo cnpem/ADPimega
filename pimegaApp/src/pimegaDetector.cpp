@@ -1295,7 +1295,7 @@ pimegaDetector::pimegaDetector(const char *portName,
         return;
     }
 
-    pimega = pimega_new((pimega_detector_model_t)  detectorModel);
+    pimega = pimega_new((pimega_detector_model_t)  detectorModel, true);
     pimega_global = pimega;
     pimega->log = log;
     pimega->detModel = (pimega_detector_model_t) detectorModel;
@@ -1360,26 +1360,6 @@ void pimegaDetector::panic(const char *msg)
 {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s\n", msg);
     epicsExit(0);
-}
-
-bool pimegaDetector::initLog(pimega_t *pimega)
-{
-    
-    struct tm *timenow;
-
-    time_t now = time(NULL);
-    timenow = gmtime(&now);
-
-    strftime(pimega->logFileName, 40, "/tmp/ioclog_%Y%m%d_%H%M%S.log", timenow);
-
-    pimega->logfp = fopen(pimega->logFileName,"w");
-    if (pimega->logfp == NULL)
-    {
-        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: Failed to create log file %s.\n", pimega->logFileName, __func__);
-        return false;
-    }
-    else
-        return true;
 }
 
 void pimegaDetector::connect(const char *address[4], unsigned short port)
