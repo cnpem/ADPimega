@@ -1817,7 +1817,8 @@ asynStatus pimegaDetector::startCaptureBackend(void)
 
     /* Always reset backend RDMA buffers */
     rc = (asynStatus)update_backend_acqArgs(pimega, acqMode, lfsr, autoSave, true, (bool)bulkProcessingBool,
-                               (enum IndexSendMode)indexSendMode, IndexID, (bool) indexEnable, (bool) ShmemEnable);
+                               (enum IndexSendMode)indexSendMode, IndexID, (bool) indexEnable, (bool) ShmemEnable,
+                                            pimega->acquireParam.numCapture);
     if (rc != PIMEGA_SUCCESS) return asynError;
 
     rc = (asynStatus) send_acqArgs_toBackend(pimega);
