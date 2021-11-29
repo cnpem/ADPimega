@@ -1676,7 +1676,7 @@ asynStatus pimegaDetector::getDacsValues(void) {
   getParameter(PimegaMedipixChip, &sensor);
   sensor -= 1;
 
-  rc = get_dac(pimega, DIGITAL_READ_ALL_DACS, DAC_ThresholdEnergy0);
+  rc = US_get_dac(pimega, DIGITAL_READ_ALL_DACS, DAC_ThresholdEnergy0);
   if (rc != PIMEGA_SUCCESS) return asynError;
   setParameter(
       PimegaThreshold0,
@@ -1722,7 +1722,7 @@ asynStatus pimegaDetector::getDacsValues(void) {
 
 asynStatus pimegaDetector::getOmrValues(void) {
   int rc = 0;
-  rc = get_omr(pimega);
+  rc = US_get_omr(pimega);
   if (rc != PIMEGA_SUCCESS) return asynError;
   setParameter(PimegaOmrOPMode, pimega->omr_values[OMR_M]);
   setParameter(PimegaContinuosRW, pimega->omr_values[OMR_CRW_SRW]);
@@ -1859,41 +1859,38 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac) {
   int rc = 0;
   printf("DAC: %d\n", dac);
   if (dac == DAC_GND) {
-    rc = US_DAC_Scan(pimega, DAC_GND, 90, 150, 1,
-                     PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
+    rc = dac_scan(pimega, DAC_GND, 90, 150, 1,
+                  PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_module(pimega, 4);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = US_DAC_Scan(pimega, DAC_GND, 50, 100, 1,
-                     PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_GND, 50, 100, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
   else if (dac == DAC_FBK) {
-    rc = US_DAC_Scan(pimega, DAC_FBK, 140, 200, 1,
-                     PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
+    rc = dac_scan(pimega, DAC_FBK, 140, 200, 1,
+                  PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_module(pimega, 4);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = US_DAC_Scan(pimega, DAC_FBK, 80, 130, 1,
-                     PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_FBK, 80, 130, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
   else if (dac == DAC_CAS) {
-    rc = US_DAC_Scan(pimega, DAC_CAS, 140, 200, 1,
-                     PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
+    rc = dac_scan(pimega, DAC_CAS, 140, 200, 1,
+                  PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_module(pimega, 4);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = US_DAC_Scan(pimega, DAC_CAS, 80, 130, 1,
-                     PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_CAS, 80, 130, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
@@ -2010,7 +2007,7 @@ asynStatus pimegaDetector::sendImage(void) {
 
   getParameter(PimegaSelSendImage, &pattern);
   getParameter(PimegaAllModules, &send_to_all);
-  send_image(pimega, send_to_all, pattern);
+  US_send_image(pimega, send_to_all, pattern);
 
   if (rc != PIMEGA_SUCCESS) return asynError;
   return asynSuccess;
