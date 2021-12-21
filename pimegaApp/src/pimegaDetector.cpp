@@ -1045,7 +1045,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser,
               sizeof("Stop current acquisition first"));
       status = asynError;
     } else {
-      status = US_ImgChipDACOUTSense_RBV(pimega);
+      status = get_dac_out_sense(pimega);
       *value = pimega->pimegaParam.dacOutput;
     }
   }
@@ -1676,7 +1676,7 @@ asynStatus pimegaDetector::getDacsValues(void) {
   getParameter(PimegaMedipixChip, &sensor);
   sensor -= 1;
 
-  rc = US_get_dac(pimega, DIGITAL_READ_ALL_DACS, DAC_ThresholdEnergy0);
+  rc = get_dac(pimega, DIGITAL_READ_ALL_DACS, DAC_ThresholdEnergy0);
   if (rc != PIMEGA_SUCCESS) return asynError;
   setParameter(
       PimegaThreshold0,
@@ -1722,7 +1722,7 @@ asynStatus pimegaDetector::getDacsValues(void) {
 
 asynStatus pimegaDetector::getOmrValues(void) {
   int rc = 0;
-  rc = US_get_omr(pimega);
+  rc = get_omr(pimega);
   if (rc != PIMEGA_SUCCESS) return asynError;
   setParameter(PimegaOmrOPMode, pimega->omr_values[OMR_M]);
   setParameter(PimegaContinuosRW, pimega->omr_values[OMR_CRW_SRW]);
@@ -1838,15 +1838,15 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   if (pimega->detModel == pimega540D) {
     rc = (asynStatus)select_module(pimega, 2);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = (asynStatus)US_Acquire(pimega, 1);
+    rc = (asynStatus)execute_acquire(pimega);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = (asynStatus)select_module(pimega, 3);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = (asynStatus)US_Acquire(pimega, 1);
+    rc = (asynStatus)execute_acquire(pimega);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = (asynStatus)select_module(pimega, 4);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = (asynStatus)US_Acquire(pimega, 1);
+    rc = (asynStatus)execute_acquire(pimega);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
@@ -1942,7 +1942,7 @@ asynStatus pimegaDetector::configDiscL(int value) {
   int rc = 0;
   int all_modules;
   getParameter(PimegaAllModules, &all_modules);
-  rc = US_ConfigDiscL(pimega, value, (pimega_send_to_all_t)all_modules);
+  rc = config_discl_all(pimega, value, (pimega_send_to_all_t)all_modules);
   if (rc != PIMEGA_SUCCESS) {
     error("Value out the range: %s\n", pimega_error_string(rc));
     return asynError;
@@ -2007,7 +2007,7 @@ asynStatus pimegaDetector::sendImage(void) {
 
   getParameter(PimegaSelSendImage, &pattern);
   getParameter(PimegaAllModules, &send_to_all);
-  US_send_image(pimega, send_to_all, pattern);
+  send_image(pimega, send_to_all, pattern);
 
   if (rc != PIMEGA_SUCCESS) return asynError;
   return asynSuccess;
@@ -2202,7 +2202,7 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
 
 asynStatus pimegaDetector::readCounter(int counter) {
   int rc = 0;
-  rc = US_ReadCounter(pimega, (pimega_read_counter_t)counter);
+  rc = read_counter(pimega, (pimega_read_counter_t)counter);
   if (rc != PIMEGA_SUCCESS) {
     return asynError;
   }
@@ -2215,7 +2215,7 @@ asynStatus pimegaDetector::senseDacSel(u_int8_t dac) {
   int rc = 0;
   rc = setOMRValue(OMR_Sense_DAC, dac, PimegaSenseDacSel);
   if (rc != PIMEGA_SUCCESS) return asynError;
-  rc = US_ImgChipDACOUTSense_RBV(pimega);
+  rc = get_dac_out_sense(pimega);
   if (rc != PIMEGA_SUCCESS) return asynError;
   setParameter(PimegaDacOutSense, pimega->pimegaParam.dacOutput);
   setParameter(PimegaSenseDacSel, dac);
