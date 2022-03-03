@@ -388,7 +388,6 @@ private:
     void getParameter(int index, int maxChars, char *value);
     void getParameter(int index, int *value);
     void getParameter(int index, double *value);
-    bool initLog(pimega_t *pimega);
     asynStatus getDacsValues(void);
     asynStatus getOmrValues(void);
     
