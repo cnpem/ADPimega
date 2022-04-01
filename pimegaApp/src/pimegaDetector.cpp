@@ -1859,38 +1859,38 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac) {
   int rc = 0;
   printf("DAC: %d\n", dac);
   if (dac == DAC_GND) {
-    rc = dac_scan(pimega, DAC_GND, 90, 150, 1,
+    rc = dac_scan(pimega, DAC_GND, 90, 150, 1, 0.65, 75,
                   PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_module(pimega, 4);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = dac_scan(pimega, DAC_GND, 50, 100, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_GND, 50, 100, 1, 0.65, 75, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
   else if (dac == DAC_FBK) {
-    rc = dac_scan(pimega, DAC_FBK, 140, 200, 1,
+    rc = dac_scan(pimega, DAC_FBK, 140, 200, 1, 0.9, 75,
                   PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_module(pimega, 4);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = dac_scan(pimega, DAC_FBK, 80, 130, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_FBK, 80, 130, 1, 0.9, 75, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
   else if (dac == DAC_CAS) {
-    rc = dac_scan(pimega, DAC_CAS, 140, 200, 1,
+    rc = dac_scan(pimega, DAC_CAS, 140, 200, 1, 0.85, 75,
                   PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_module(pimega, 4);
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = dac_scan(pimega, DAC_CAS, 80, 130, 1, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_CAS, 80, 130, 1,  0.85, 75, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
@@ -1942,7 +1942,7 @@ asynStatus pimegaDetector::configDiscL(int value) {
   int rc = 0;
   int all_modules;
   getParameter(PimegaAllModules, &all_modules);
-  rc = config_discl_all(pimega, value, (pimega_send_to_all_t)all_modules);
+  rc = config_discl_all(pimega, value);
   if (rc != PIMEGA_SUCCESS) {
     error("Value out the range: %s\n", pimega_error_string(rc));
     return asynError;
