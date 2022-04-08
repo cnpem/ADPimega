@@ -7,11 +7,11 @@ dbLoadDatabase("$(TOP)/dbd/pimegaApp.dbd")
 pimegaApp_registerRecordDeviceDriver(pdbbase) 
 
 # Prefix for all records
-epicsEnvSet("PREFIX", "PITEC:D:PIMEGA135D:")
+epicsEnvSet("PREFIX", "PITEC:D:PIMEGA45D:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
 # The detector model (0:mobipix; 1:pimega45D; 2:pimega135D; 3:pimega540D, 4:pimega450D)
-epicsEnvSet("DMODEL", "2");
+epicsEnvSet("DMODEL", "1");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
@@ -19,7 +19,7 @@ epicsEnvSet("XSIZE",  "512")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
 epicsEnvSet("YSIZE",  "1536")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "368640")
+epicsEnvSet("NELEMENTS", "786432")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
