@@ -1,8 +1,9 @@
 #!/bin/bash
 
-cp epics.sh /etc/profile.d/
-cp RELEASE /tmp/
-cp RELEASE_motor-r7-1 /tmp/
+cp data/epics.sh /etc/profile.d/
+cp data/RELEASE /tmp/
+cp data/RELEASE_motor-r7-1 /tmp/
+cp data/RELEASE_ipac /tmp/
 chmod +x /etc/profile.d/epics.sh
 echo ". /etc/profile.d/epics.sh" >> /etc/bash.bashrc
 arch | xargs -i@ echo "/usr/local/epics/base/lib/linux-@" > /etc/ld.so.conf.d/epics.conf
@@ -14,8 +15,9 @@ tar -xvf synApps_6_1.tar.gz
 mkdir /usr/local/epics
 mv base-3.15.6 /usr/local/epics/base
 mv synApps_6_1 /usr/local/epics/synApps
-cp RELEASE /usr/local/epics/synApps/support/configure/RELEASE
-cp RELEASE_motor-r7-1 /usr/local/epics/synApps/support/motor-R7-1/configure/RELEASE
+mv RELEASE /usr/local/epics/synApps/support/configure/RELEASE
+mv RELEASE_motor-r7-1 /usr/local/epics/synApps/support/motor-R7-1/configure/RELEASE
+mv RELEASE_ipac /usr/local/epics/synApps/support/ipac-2-15/configure/RELEASE
 cd /usr/local/epics/base
 make -j
 ln -s /usr/local/epics/base /usr/local/epics/base
