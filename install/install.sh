@@ -1,9 +1,11 @@
 #!/bin/bash
 
+rm -rf /usr/local/epics
 cp data/epics.sh /etc/profile.d/
 cp data/RELEASE /tmp/
 cp data/RELEASE_motor-r7-1 /tmp/
 cp data/RELEASE_ipac /tmp/
+cp -r ../../adpimega /tmp/ADPimega
 chmod +x /etc/profile.d/epics.sh
 echo ". /etc/profile.d/epics.sh" >> /etc/bash.bashrc
 arch | xargs -i@ echo "/usr/local/epics/base/lib/linux-@" > /etc/ld.so.conf.d/epics.conf
@@ -24,5 +26,5 @@ ln -s /usr/local/epics/base /usr/local/epics/base
 cd /usr/local/epics/synApps/support
 make release
 make
-
+mv /tmp/ADPimega /usr/local/epics/synApps/support/areaDetector-R3-7/
 
