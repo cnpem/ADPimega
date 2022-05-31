@@ -214,8 +214,9 @@ void pimegaDetector::acqTask() {
          images sent to backend X is a multiple of the number of images sent to
          the detector Y ( X = K x Y ). So the offset to establish the end of a
          single acquire needs to be tracked */
-      //acquireImageCount = recievedBackendCount - recievedBackendCountOffset;
-      acquireImageCount = pimega->acq_status_return.noOfFrames[pimega->pimega_module - 1];
+      // acquireImageCount = recievedBackendCount - recievedBackendCountOffset;
+      acquireImageCount =
+          pimega->acq_status_return.noOfFrames[pimega->pimega_module - 1];
       acquireImageSavedCount = pimega->acq_status_return.savedAquisitionNum -
                                recievedBackendCountOffset;
 
@@ -373,7 +374,7 @@ void pimegaDetector::captureTask() {
         printf("\n\n\n counter: %d \n\n", counter);
         usleep(1000);
       }
-      
+
       if (status != 0) {
         PIMEGA_PRINT(pimega, TRACE_MASK_ERROR, "%s: Failed - %s\n",
                      "send_stopAcquire_toBackend", pimega->error);
@@ -435,21 +436,24 @@ void pimegaDetector::captureTask() {
       /* Timer finished and data should have arrived already ( but not
        * necessarily saved ) */
 
-      if ( (int)pimega->acq_status_return.noOfFrames[pimega->pimega_module - 1] <
+      if ((int)pimega->acq_status_return.noOfFrames[pimega->pimega_module - 1] <
           (int)pimega->acquireParam.numCapture) {
         UPDATESERVERSTATUS("Waiting for images...");
 
       } else if (autoSave == 1 &&
                  (int)pimega->acq_status_return.savedAquisitionNum <
-                 (int)pimega->acquireParam.numCapture + previous_img_saved) {
+                     (int)pimega->acquireParam.numCapture +
+                         previous_img_saved) {
         UPDATESERVERSTATUS("Saving...");
 
       } else if (indexEnableBool == true &&
                  pimega->acq_status_return.indexSentAquisitionNum <
-                     (int)pimega->acquireParam.numCapture + previous_img_saved) {
+                     (int)pimega->acquireParam.numCapture +
+                         previous_img_saved) {
         UPDATESERVERSTATUS("Sending to Index...");
       } else if ((int)pimega->acq_status_return.processedImageNum <
-                 (int)pimega->acquireParam.numCapture + previous_img_processed) {
+                 (int)pimega->acquireParam.numCapture +
+                     previous_img_processed) {
         UPDATESERVERSTATUS("Processing images...");
 
       } else {
@@ -1144,8 +1148,10 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
       if (temp > pimega->acq_status_return.noOfFrames[i])
         temp = pimega->acq_status_return.noOfFrames[i];
     setParameter(ADNumImagesCounter, (int)temp);
-    temp_proc = (int)pimega->acq_status_return.processedImageNum - previous_img_processed;
-    temp_saved = (int)pimega->acq_status_return.savedAquisitionNum - previous_img_saved;
+    temp_proc = (int)pimega->acq_status_return.processedImageNum -
+                previous_img_processed;
+    temp_saved =
+        (int)pimega->acq_status_return.savedAquisitionNum - previous_img_saved;
     setParameter(PimegaProcessedImageCounter, (int)temp_proc);
     setParameter(NDFileNumCaptured, (int)temp_saved);
     callParamCallbacks();
@@ -1885,7 +1891,8 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac) {
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = dac_scan(pimega, DAC_GND, 50, 100, 1, 0.65, 75, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_GND, 50, 100, 1, 0.65, 75,
+                  PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
@@ -1897,7 +1904,8 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac) {
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = dac_scan(pimega, DAC_FBK, 80, 130, 1, 0.9, 75, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_FBK, 80, 130, 1, 0.9, 75,
+                  PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
@@ -1909,7 +1917,8 @@ asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac) {
     if (rc != PIMEGA_SUCCESS) return asynError;
     rc = select_chipNumber(pimega, 36);
     if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = dac_scan(pimega, DAC_CAS, 80, 130, 1,  0.85, 75, PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
+    rc = dac_scan(pimega, DAC_CAS, 80, 130, 1, 0.85, 75,
+                  PIMEGA_SEND_ONE_CHIP_ONE_MODULE);
     if (rc != PIMEGA_SUCCESS) return asynError;
   }
 
@@ -2160,8 +2169,8 @@ asynStatus pimegaDetector::numExposures(unsigned number) {
 
 asynStatus pimegaDetector::acqTime(float acquire_time_s) {
   int rc = 0;
-
-  rc = set_acquireTime(pimega, acquire_time_s);
+  uint64_t acquire_time_us = (uint64_t)(acquire_time_s * 1e6);
+  rc = set_acquireTime(pimega, acquire_time_us);
   if (rc != PIMEGA_SUCCESS) {
     error("Invalid acquire time: %s\n", pimega_error_string(rc));
     return asynError;
@@ -2172,14 +2181,12 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s) {
 
 asynStatus pimegaDetector::acqPeriod(float period_time_s) {
   int rc = 0;
-
-  rc = set_periodTime(pimega, period_time_s);
+  uint64_t period_time_us = (uint64_t)(period_time_s * 1e6);
+  rc = set_periodTime(pimega, period_time_us);
   if (rc != PIMEGA_SUCCESS) {
     error("Invalid period time: %s\n", pimega_error_string(rc));
     return asynError;
-  }
-
-  else {
+  } else {
     setParameter(ADAcquirePeriod, period_time_s);
     return asynSuccess;
   }
