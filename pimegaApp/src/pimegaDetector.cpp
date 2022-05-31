@@ -1175,11 +1175,16 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
 extern "C" int pimegaDetectorConfig(
     const char *portName, const char *address_module01,
     const char *address_module02, const char *address_module03,
-    const char *address_module04, int port, int maxSizeX, int maxSizeY,
+    const char *address_module04, const char *address_module05,
+    const char *address_module06, const char *address_module07,
+    const char *address_module08, const char *address_module09,
+    const char *address_module10, int port, int maxSizeX, int maxSizeY,
     int detectorModel, int maxBuffers, size_t maxMemory, int priority,
     int stackSize, int simulate, int backendOn, int log) {
   new pimegaDetector(portName, address_module01, address_module02,
-                     address_module03, address_module04, port, maxSizeX,
+                     address_module03, address_module04, address_module05, 
+                     address_module06, address_module07, address_module08,
+                     address_module09, address_module10, port, maxSizeX,
                      maxSizeY, detectorModel, maxBuffers, maxMemory, priority,
                      stackSize, simulate, backendOn, log);
   return (asynSuccess);
@@ -1206,7 +1211,10 @@ extern "C" int pimegaDetectorConfig(
 pimegaDetector::pimegaDetector(
     const char *portName, const char *address_module01,
     const char *address_module02, const char *address_module03,
-    const char *address_module04, int port, int SizeX, int SizeY,
+    const char *address_module04, const char *address_module05,
+    const char *address_module06, const char *address_module07,
+    const char *address_module08, const char *address_module09,
+    const char *address_module10, int port, int SizeX, int SizeY,
     int detectorModel, int maxBuffers, size_t maxMemory, int priority,
     int stackSize, int simulate, int backendOn, int log)
 
@@ -1227,7 +1235,9 @@ pimegaDetector::pimegaDetector(
   int status = asynSuccess;
   const char *functionName = "pimegaDetector::pimegaDetector";
   const char *ips[] = {address_module01, address_module02, address_module03,
-                       address_module04};
+                       address_module04,  address_module05,  address_module06,
+                       address_module07,  address_module08,  address_module09,
+                       address_module10};
 
   numImageSaved = 0;
   // initialize random seed:
@@ -1337,11 +1347,11 @@ void pimegaDetector::panic(const char *msg) {
   epicsExit(0);
 }
 
-void pimegaDetector::connect(const char *address[4], unsigned short port) {
+void pimegaDetector::connect(const char *address[10], unsigned short port) {
   int rc = 0;
-  unsigned short ports[4] = {10000, 20000, 30000, 40000};
+  unsigned short ports[10] = {10000, 10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008, 10010};
 
-  if (pimega->simulate == 0) ports[0] = ports[1] = ports[2] = ports[3] = port;
+  if (pimega->simulate == 0) ports[0] = ports[1] = ports[2] = ports[3] = ports[4] = ports[5] = ports[6] = ports[7] = ports[8] = ports[9] = port;
 
   // Serial Test
   // rc = open_serialPort(pimega, "/dev/ttyUSB0");
@@ -1660,7 +1670,7 @@ asynStatus pimegaDetector::setDefaults(void) {
   setParameter(PimegaMPAvgTSensorM4, 0.0);
   setParameter(NDFileNumCaptured, 0);
 
-  setParameter(PimegaModule, 4);
+  setParameter(PimegaModule, 10);
   setParameter(PimegaMedipixBoard, 2);
   rc = select_board(pimega, 2);
   if (rc != PIMEGA_SUCCESS) return asynError;
@@ -2391,17 +2401,29 @@ static const iocshArg pimegaDetectorConfigArg3 = {"pimega module 3 address",
                                                   iocshArgString};
 static const iocshArg pimegaDetectorConfigArg4 = {"pimega module 4 address",
                                                   iocshArgString};
-static const iocshArg pimegaDetectorConfigArg5 = {"pimega port", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg6 = {"maxSizeX", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg7 = {"maxSizeY", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg8 = {"detectorModel", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg9 = {"maxBuffers", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg10 = {"maxMemory", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg11 = {"priority", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg12 = {"stackSize", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg13 = {"simulate", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg14 = {"backendOn", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg15 = {"log", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg5 = {"pimega module 5 address",
+                                                  iocshArgString};
+static const iocshArg pimegaDetectorConfigArg6 = {"pimega module 6 address",
+                                                  iocshArgString};
+static const iocshArg pimegaDetectorConfigArg7 = {"pimega module 7 address",
+                                                  iocshArgString};
+static const iocshArg pimegaDetectorConfigArg8 = {"pimega module 8 address",
+                                                  iocshArgString};
+static const iocshArg pimegaDetectorConfigArg9 = {"pimega module 9 address",
+                                                  iocshArgString};
+static const iocshArg pimegaDetectorConfigArg10 = {"pimega module 10 address",
+                                                  iocshArgString};
+static const iocshArg pimegaDetectorConfigArg11 = {"pimega port", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg12 = {"maxSizeX", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg13 = {"maxSizeY", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg14 = {"detectorModel", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg15 = {"maxBuffers", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg16 = {"maxMemory", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg17 = {"priority", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg18 = {"stackSize", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg19 = {"simulate", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg20 = {"backendOn", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg21 = {"log", iocshArgInt};
 static const iocshArg *const pimegaDetectorConfigArgs[] = {
     &pimegaDetectorConfigArg0,  &pimegaDetectorConfigArg1,
     &pimegaDetectorConfigArg2,  &pimegaDetectorConfigArg3,
@@ -2410,16 +2432,21 @@ static const iocshArg *const pimegaDetectorConfigArgs[] = {
     &pimegaDetectorConfigArg8,  &pimegaDetectorConfigArg9,
     &pimegaDetectorConfigArg10, &pimegaDetectorConfigArg11,
     &pimegaDetectorConfigArg12, &pimegaDetectorConfigArg13,
-    &pimegaDetectorConfigArg14, &pimegaDetectorConfigArg15};
-static const iocshFuncDef configpimegaDetector = {"pimegaDetectorConfig", 16,
+    &pimegaDetectorConfigArg14, &pimegaDetectorConfigArg15,
+    &pimegaDetectorConfigArg16, &pimegaDetectorConfigArg17,
+    &pimegaDetectorConfigArg18, &pimegaDetectorConfigArg19,
+    &pimegaDetectorConfigArg20, &pimegaDetectorConfigArg21};
+static const iocshFuncDef configpimegaDetector = {"pimegaDetectorConfig", 22,
                                                   pimegaDetectorConfigArgs};
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args) {
   pimegaDetectorConfig(args[0].sval, args[1].sval, args[2].sval, args[3].sval,
-                       args[4].sval, args[5].ival, args[6].ival, args[7].ival,
-                       args[8].ival, args[9].ival, args[10].ival, args[11].ival,
-                       args[12].ival, args[13].ival, args[14].ival,
-                       args[15].ival);
+                       args[4].sval, args[5].sval, args[6].sval, args[7].sval,
+                       args[8].sval, args[9].sval, args[10].sval,
+                       args[11].ival, args[12].ival, args[13].ival,
+                       args[14].ival, args[15].ival, args[16].ival, args[17].ival,
+                       args[18].ival, args[19].ival, args[20].ival,
+                       args[21].ival);
 }
 
 static void pimegaDetectorRegister(void) {

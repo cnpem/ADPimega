@@ -1,6 +1,4 @@
 #!../../bin/linux-ppc64/pimegaApp
-
-
 < envPaths
 
 errlogInit(20000)
@@ -9,36 +7,35 @@ dbLoadDatabase("$(TOP)/dbd/pimegaApp.dbd")
 pimegaApp_registerRecordDeviceDriver(pdbbase) 
 
 # Prefix for all records
-epicsEnvSet("PREFIX", "CAT:T:PIMEGA540D:")
+epicsEnvSet("PREFIX", "PITEC:D:PIMEGA135D:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
-# The detector model (0:mobipix; 1:pimega45D; 2:pimega135D; 3:pimega540D)
-epicsEnvSet("DMODEL", "3");
+# The detector model (0:mobipix; 1:pimega45D; 2:pimega135D; 3:pimega540D, 4:pimega450D)
+epicsEnvSet("DMODEL", "2");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
-epicsEnvSet("XSIZE",  "3072")
+epicsEnvSet("XSIZE",  "1536")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
-epicsEnvSet("YSIZE",  "3072")
+epicsEnvSet("YSIZE",  "1536")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "9437184")
+epicsEnvSet("NELEMENTS", "2359296")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
 epicsEnvSet("CBUFFS", "500")
 # The IP address of the Pimega system
-#epicsEnvSet("PIMEGA_MODULE01_IP", "127.0.0.1")
-#epicsEnvSet("PIMEGA_MODULE02_IP", "127.0.0.1")
-#epicsEnvSet("PIMEGA_MODULE03_IP", "127.0.0.1")
-#epicsEnvSet("PIMEGA_MODULE04_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE01_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE02_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE03_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE04_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE05_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE06_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE07_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE08_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE09_IP", "127.0.0.1")
+epicsEnvSet("PIMEGA_MODULE10_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.2")
-epicsEnvSet("PIMEGA_MODULE02_IP", "10.255.255.6")
-epicsEnvSet("PIMEGA_MODULE03_IP", "10.255.255.10")
-epicsEnvSet("PIMEGA_MODULE04_IP", "10.255.255.14")
-#epicsEnvSet("PIMEGA_IP", "10.0.27.46")
-#epicsEnvSet("PIMEGA_IP", "10.2.101.61") 
-#epicsEnvSet("PIMEGA_IP", "143.106.167.170")
-#epicsEnvSet("PIMEGA_IP", "10.255.255.2")
 # The IP port for the command socket
 epicsEnvSet("PIMEGA_PORT", "60000")
 # The search path for database files
@@ -62,24 +59,19 @@ epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "99999999")
 #              simulate            # If set to 1, simulation mode is activated
 #              backendOn           # Run the IOC without connecting to the backend. Obviously, there will be no images received.
 #              logFileEnable       # enable disable logging
-pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIMEGA_MODULE03_IP),$(PIMEGA_MODULE04_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0, 0, 1, 1)
+pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIMEGA_MODULE03_IP),$(PIMEGA_MODULE04_IP),$(PIMEGA_MODULE05_IP),$(PIMEGA_MODULE06_IP),$(PIMEGA_MODULE07_IP),$(PIMEGA_MODULE08_IP),$(PIMEGA_MODULE09_IP),$(PIMEGA_MODULE10_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0, 0, 1, 1)
 
 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 # Load asynRecord record
 dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn1,PORT=$(PORT),ADDR=0,OMAX=256,IMAX=256")
-
 asynSetTraceMask($(PORT), 0, 0x00)
-
-
-dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn2,PORT=ATTR1,ADDR=0,OMAX=256,IMAX=256")
-asynSetTraceMask(ATTR1, 0, 0x00)
 
 # Create a standard arrays plugin, set it to get data from pimega driver.
 NDStdArraysConfigure("Image1", "$(QSIZE)", 0, "$(PORT)", 0, 0)
 
-dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=$(NELEMENTS)")
+dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=$(NELEMENTS)")
 
 # Load all other plugins using commonPlugins.cmd
 < commonPlugins.cmd
@@ -88,20 +80,14 @@ set_requestfile_path("$(ADPIMEGA)/pimegaApp/Db")
 
 iocInit()
 
-dbpf(${PREFIX}cam1:FilePath,"/ibira/sirius/beamlines/caterete/commissioning")
+dbpf(${PREFIX}cam1:FilePath,"/ibira/sirius/beamlines/carnauba/commissioning")
 dbpf(${PREFIX}cam1:FileName,"teste")
 dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
-#dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega540d-1.ini")
+dbpf(${PREFIX}cam1:dac_defaults_files,"/opt/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega135d-2.ini")
 dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
+dbpf(${PREFIX}image1:EnableCallbacks, 1)
+#dbpf(${PREFIX}Stats2:EnableCallbacks, 1)
+dbpf(${PREFIX}cam1:LoadEqualization, 60)
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
 
-dbpf(${PREFIX}HDF1:FilePath,"/ibira/sirius/beamlines/caterete/commissioning/crio")
-dbpf(${PREFIX}HDF1:FileName,"ADNovo")
-dbpf(${PREFIX}HDF1:FileTemplate,"%s%s_%3.3d.h5")
-dbpf(${PREFIX}HDF1:EnableCallbacks,"1")
-dbpf(${PREFIX}HDF1:FileWriteMode,"2")
-dbpf(${PREFIX}HDF1:AutoIncrement,"1")
-dbpf(${PREFIX}HDF1:AutoSave,"1")
-dbpf(${PREFIX}cam1:NDAttributesFile,"./config/params-cat-t-pimega540d-1.xml")
-dbpf(${PREFIX}HDF1:Compression,"zlib")

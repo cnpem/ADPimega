@@ -212,7 +212,10 @@ class pimegaDetector : public ADDriver {
  public:
   pimegaDetector(const char *portName, const char *address_module01,
                  const char *address_module02, const char *address_module03,
-                 const char *address_module04, int port, int maxSizeX,
+                 const char *address_module04, const char *address_module05,
+                 const char *address_module06, const char *address_module07,
+                 const char *address_module08, const char *address_module09, 
+                 const char *address_module10, int port, int maxSizeX,
                  int maxSizeY, int detectorModel, int maxBuffers,
                  size_t maxMemory, int priority, int stackSize, int simulate,
                  int backendOn, int log);
