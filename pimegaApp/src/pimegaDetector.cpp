@@ -1238,6 +1238,7 @@ pimegaDetector::pimegaDetector(
       forceCallback_(1)
 
 {
+  int master_module {1};
   int status = asynSuccess;
   const char *functionName = "pimegaDetector::pimegaDetector";
   const char *ips[] = {address_module01, address_module02, address_module03,
@@ -1328,8 +1329,6 @@ pimegaDetector::pimegaDetector(
   /* get the MB Hardware version and store it */
   get_MbHwVersion(pimega);
 
-  define_master_module(pimega, 1, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
-
   // Alocate memory for PimegaMBTemperature_
   PimegaMBTemperature_ =
       (epicsFloat32 *)calloc(pimega->num_mb_tsensors, sizeof(epicsFloat32));
@@ -1346,6 +1345,14 @@ pimegaDetector::pimegaDetector(
   if (status) {
     debug(functionName, "epicsTheadCreate failure for image task");
   }
+
+  if (pimega->detModel == pimega450D) {
+    master_module = 5;
+  }
+
+  define_master_module(pimega, master_module, false, PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
+
+  send_allinitArgs_allModules(pimega);
 }
 
 void pimegaDetector::panic(const char *msg) {
@@ -1857,8 +1864,8 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   }
 
   /* Always reset RDMA logic in the FPGA at new capture */
-  rc = (asynStatus)send_allinitArgs_allModules(pimega);
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  //rc = (asynStatus)send_allinitArgs_allModules(pimega);
+  //if (rc != PIMEGA_SUCCESS) return asynError;
 
   if (pimega->detModel == pimega540D) {
     rc = (asynStatus)select_module(pimega, 2);
