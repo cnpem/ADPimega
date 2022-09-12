@@ -371,7 +371,6 @@ void pimegaDetector::captureTask() {
         previous_img_saved = 0;
         get_acqStatus_fromBackend(pimega);
         counter = (int)pimega->acq_status_return.savedAquisitionNum;
-        printf("\n\n\n counter: %d \n\n", counter);
         usleep(1000);
       }
 
