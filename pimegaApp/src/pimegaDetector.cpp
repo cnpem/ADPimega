@@ -142,8 +142,8 @@ void pimegaDetector::acqTask() {
       acquireStatus = status_acquire(pimega);
     }
     /* will enter here when the detector did not finish acquisition
-       (acquireStatus != DONE_ACQ) or when Elapsed time is chosen
-       (!PIMEGA_TRIGGER_MODE_INTERNAL) */
+      (acquireStatus != DONE_ACQ) or when Elapsed time is chosen
+      (!PIMEGA_TRIGGER_MODE_INTERNAL) */
     if (acquire && (acquireStatus != DONE_ACQ ||
                     triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)) {
       epicsTimeGetCurrent(&endTime);
@@ -459,8 +459,10 @@ void pimegaDetector::captureTask() {
       } else {
         setParameter(NDFileCapture, 0);
         capture = 0;
+        setDoubleParam(ADTimeRemaining, 0);
         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Backend finished\n",
                      __func__);
+        UPDATEIOCSTATUS("Acquisition finished");
         UPDATESERVERSTATUS("Backend done");
         callParamCallbacks();
       }
@@ -608,6 +610,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
                      functionName);
         epicsEventSignal(this->stopCaptureEventId_);
         epicsThreadSleep(.1);
+        setDoubleParam(ADTimeRemaining, 0);
         strcat(ok_str, "Acquisition stopped");
       } else {
         PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
