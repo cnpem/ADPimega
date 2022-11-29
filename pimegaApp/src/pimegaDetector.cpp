@@ -143,9 +143,9 @@ void pimegaDetector::acqTask() {
     }
     /* will enter here when the detector did not finish acquisition
       (acquireStatus != DONE_ACQ) or when Elapsed time is chosen
-      (!PIMEGA_TRIGGER_MODE_INTERNAL) */
+      (!pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL) */
     if (acquire && (acquireStatus != DONE_ACQ ||
-                    triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)) {
+                    triggerMode != pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL)) {
       epicsTimeGetCurrent(&endTime);
       elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
       if (acquirePeriod != 0) {
@@ -156,7 +156,7 @@ void pimegaDetector::acqTask() {
       if (remainingTime < 0) {
         remainingTime = 0;
       }
-      if (triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL) {
+      if (triggerMode == pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL) {
         setDoubleParam(ADTimeRemaining, remainingTime);
       } else {
         setDoubleParam(ADTimeRemaining, elapsedTime);
@@ -1348,7 +1348,7 @@ pimegaDetector::pimegaDetector(
   }
 
   define_master_module(pimega, pimega->master_module, false,
-                       PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
+                       pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_EXTERNAL_POS_EDGE);
 
   /* Reset RDMA logic in the FPGA at initialization */
   send_allinitArgs_allModules(pimega);
@@ -1834,7 +1834,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(PimegaIndexSendMode, &indexSendMode);
 
   /* Evaluate trigger if external or internal */
-  if (triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)
+  if (triggerMode != pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL)
     externalTrigger = false;
   else
     externalTrigger = true;
@@ -2079,7 +2079,7 @@ asynStatus pimegaDetector::reset(short action) {
   if (rc != PIMEGA_SUCCESS) return asynError;
   rc = numExposures(1);
   if (rc != PIMEGA_SUCCESS) return asynError;
-  setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
+  setParameter(ADTriggerMode, pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL);
   rc = medipixMode(MODE_B12);
 
   if (rc != PIMEGA_SUCCESS) {
