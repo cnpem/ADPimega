@@ -7,7 +7,8 @@
  *          Robert Tartarotti
  *           Lumentum
  *
- * Created:  Jan 09 2019
+ * Created:     Jan 09 2019
+ * Modified in: Dec 12 2022
  *
  * Derived from pilatusDetector by Mark Rivers and from merlinDetector by Giles
  * Knap.
