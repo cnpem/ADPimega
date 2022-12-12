@@ -2,10 +2,13 @@
  *
  * This is a driver for the Pimega detector
  *
- * Author: Douglas Araujo
- *         Brazilian Synchrotron Light Laboratory.
+ * Authors: Douglas Araujo
+ *           Brazilian Synchrotron Light Laboratory.
+ *          Robert Tartarotti
+ *           Lumentum
  *
- * Created:  Jan 09 2019
+ * Created:     Jan 09 2019
+ * Modified in: Dec 12 2022
  *
  * Derived from pilatusDetector by Mark Rivers and from merlinDetector by Giles
  * Knap.
