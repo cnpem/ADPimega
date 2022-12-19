@@ -374,7 +374,6 @@ void pimegaDetector::captureTask() {
         previous_img_saved = 0;
         get_acqStatus_fromBackend(pimega);
         counter = (int)pimega->acq_status_return.savedAquisitionNum;
-        printf("\n\n\n counter: %d \n\n", counter);
         usleep(1000);
       }
 
@@ -1372,9 +1371,6 @@ void pimegaDetector::connect(const char *address[10], unsigned short port) {
     ports[0] = ports[1] = ports[2] = ports[3] = ports[4] = ports[5] = ports[6] =
         ports[7] = ports[8] = ports[9] = port;
 
-  // Serial Test
-  // rc = open_serialPort(pimega, "/dev/ttyUSB0");
-
   // Connect to backend
   if (pimega->simulate == 1) {
     rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
@@ -1694,9 +1690,9 @@ asynStatus pimegaDetector::setDefaults(void) {
   rc = select_board(pimega, 2);
   if (rc != PIMEGA_SUCCESS) return asynError;
 
-  rc = set_medipix_mode(pimega, PIMEGA_MEDIPIX_MODE_DEFAULT);
+  rc = set_medipix_mode(pimega, MODE_B12);
   if (rc != PIMEGA_SUCCESS) return asynError;
-  setParameter(PimegaMedipixMode, PIMEGA_MEDIPIX_MODE_DEFAULT);
+  setParameter(PimegaMedipixMode, MODE_B12);
 
   rc = getSensorBias(pimega, PIMEGA_ONE_MB_LOW_FLEX_ONE_MODULE);
   if (rc != PIMEGA_SUCCESS) return asynError;
@@ -1847,16 +1843,8 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
     externalTrigger = true;
   getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
 
-  /* Evaluate if bulk processing is necessary*/
-  bulkProcessingBool = evaluateBulkProcessing(
-      (enum bulkProcessingEnum)bulkProcessingEnum, acquirePeriod, acquireTime,
-      externalTrigger, pimega->acquireParam.numCapture);
-  /* Always reset backend RDMA buffers */
-
-  rc = (asynStatus)update_backend_acqArgs(
-      pimega, acqMode, lfsr, autoSave, false, (bool)bulkProcessingBool,
-      (enum IndexSendMode)indexSendMode, IndexID, (bool)indexEnable,
-      (bool)ShmemEnable, pimega->acquireParam.numCapture);
+  rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
+                                          pimega->acquireParam.numCapture);
   if (rc != PIMEGA_SUCCESS) return asynError;
 
   rc = (asynStatus)send_acqArgs_toBackend(pimega);
@@ -2095,7 +2083,7 @@ asynStatus pimegaDetector::reset(short action) {
   rc = numExposures(1);
   if (rc != PIMEGA_SUCCESS) return asynError;
   setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
-  rc = medipixMode(PIMEGA_MEDIPIX_MODE_DEFAULT);
+  rc = medipixMode(MODE_B12);
 
   if (rc != PIMEGA_SUCCESS) {
     return asynError;
@@ -2127,7 +2115,7 @@ asynStatus pimegaDetector::medipixBoard(uint8_t board_id) {
 
 asynStatus pimegaDetector::medipixMode(uint8_t mode) {
   int rc = 0;
-  rc = set_medipix_mode(pimega, (pimega_medipix_mode_t)mode);
+  rc = set_medipix_mode(pimega, (aquisition_mode_t)mode);
   if (rc != PIMEGA_SUCCESS) {
     error("Invalid Medipix Mode: %s\n", pimega_error_string(rc));
     return asynError;

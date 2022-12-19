@@ -8,7 +8,6 @@ USR_INCLUDES += -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/inc
 
 INC += pimega.h
 INC += decode.h
-INC += serial.h
 INC += utils.h
 INC += lib/acquisition.h
 INC += lib/backend_config.h
@@ -37,6 +36,7 @@ INC += driver/US_monitoring.h
 INC += driver/US_omr.h
 INC += driver/US_scan.h
 INC += driver/US_sd_card.h
+INC += driver/US_serial.h
 INC += driver/US_system.h
 INC += driver/US_test_pulse.h
 INC += driver/US_trigger.h

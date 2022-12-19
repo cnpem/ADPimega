@@ -5,7 +5,7 @@ cp data/epics.sh /etc/profile.d/
 cp data/RELEASE /tmp/
 cp data/RELEASE_motor-r7-1 /tmp/
 cp data/RELEASE_ipac /tmp/
-cp -r ../../adpimega /tmp/ADPimega
+cp -r ../../epics /tmp/ADPimega
 chmod +x /etc/profile.d/epics.sh
 echo ". /etc/profile.d/epics.sh" >> /etc/bash.bashrc
 arch | xargs -i@ echo "/usr/local/epics/base/lib/linux-@" > /etc/ld.so.conf.d/epics.conf
