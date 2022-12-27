@@ -1300,7 +1300,6 @@ pimegaDetector::pimegaDetector(
   pimega = pimega_new((pimega_detector_model_t)detectorModel, true);
   pimega_global = pimega;
   pimega->log = log;
-  pimega->detModel = (pimega_detector_model_t)detectorModel;
   pimega->backendOn = backendOn;
   if (log == 1) {
     if (initLog(pimega) == false) {

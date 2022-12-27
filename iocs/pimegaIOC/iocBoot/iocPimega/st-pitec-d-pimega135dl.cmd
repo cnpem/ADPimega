@@ -7,19 +7,19 @@ dbLoadDatabase("$(TOP)/dbd/pimegaApp.dbd")
 pimegaApp_registerRecordDeviceDriver(pdbbase) 
 
 # Prefix for all records
-epicsEnvSet("PREFIX", "PITEC:D:PIMEGA450D:")
+epicsEnvSet("PREFIX", "PITEC:D:PIMEGA1350DL:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
 # The detector model (0:mobipix; 1:pimega45D; 2:pimega135DL; 3:pimega135D; 4:pimega540D, 5:pimega450D)
-epicsEnvSet("DMODEL", "4");
+epicsEnvSet("DMODEL", "2");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
-epicsEnvSet("XSIZE",  "256")
+epicsEnvSet("XSIZE",  "512")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
-epicsEnvSet("YSIZE",  "30720")
+epicsEnvSet("YSIZE",  "1536")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "368640")
+epicsEnvSet("NELEMENTS", "786432")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
@@ -35,16 +35,16 @@ epicsEnvSet("PIMEGA_MODULE07_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE08_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE09_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE10_IP", "127.0.0.1")
-epicsEnvSet("PIMEGA_MODULE01_IP", "223.255.255.2")
-epicsEnvSet("PIMEGA_MODULE02_IP", "223.255.255.3")
-epicsEnvSet("PIMEGA_MODULE03_IP", "223.255.255.4")
-epicsEnvSet("PIMEGA_MODULE04_IP", "223.255.255.5")
-epicsEnvSet("PIMEGA_MODULE05_IP", "223.255.255.6")
-epicsEnvSet("PIMEGA_MODULE06_IP", "223.255.255.7")
-epicsEnvSet("PIMEGA_MODULE07_IP", "223.255.255.8")
-epicsEnvSet("PIMEGA_MODULE08_IP", "223.255.255.9")
-epicsEnvSet("PIMEGA_MODULE09_IP", "223.255.255.10")
-epicsEnvSet("PIMEGA_MODULE10_IP", "223.255.255.11")
+epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.2")
+#epicsEnvSet("PIMEGA_MODULE02_IP", "223.255.255.3")
+#epicsEnvSet("PIMEGA_MODULE03_IP", "223.255.255.4")
+#epicsEnvSet("PIMEGA_MODULE04_IP", "223.255.255.5")
+#epicsEnvSet("PIMEGA_MODULE05_IP", "223.255.255.6")
+#epicsEnvSet("PIMEGA_MODULE06_IP", "223.255.255.7")
+#epicsEnvSet("PIMEGA_MODULE07_IP", "223.255.255.8")
+#epicsEnvSet("PIMEGA_MODULE08_IP", "223.255.255.9")
+#epicsEnvSet("PIMEGA_MODULE09_IP", "223.255.255.10")
+#epicsEnvSet("PIMEGA_MODULE10_IP", "223.255.255.11")
 # The IP port for the command socket
 epicsEnvSet("PIMEGA_PORT", "60000")
 # The search path for database files
@@ -70,6 +70,7 @@ epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "99999999")
 #              logFileEnable       # enable disable logging
 pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIMEGA_MODULE03_IP),$(PIMEGA_MODULE04_IP),$(PIMEGA_MODULE05_IP),$(PIMEGA_MODULE06_IP),$(PIMEGA_MODULE07_IP),$(PIMEGA_MODULE08_IP),$(PIMEGA_MODULE09_IP),$(PIMEGA_MODULE10_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0, 0, 1, 1)
 
+
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 # Load asynRecord record
@@ -91,11 +92,11 @@ iocInit()
 dbpf(${PREFIX}cam1:FilePath,"/tmp")
 dbpf(${PREFIX}cam1:FileName,"test")
 dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
-dbpf(${PREFIX}cam1:dac_defaults_files,"/opt/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega135d-2.ini")
+dbpf(${PREFIX}cam1:dac_defaults_files,"/opt/epics/synApps/support/areaDetector-R3-3-1/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega135dl.ini")
 dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
 dbpf(${PREFIX}image1:EnableCallbacks, 1)
 #dbpf(${PREFIX}Stats2:EnableCallbacks, 1)
-dbpf(${PREFIX}cam1:LoadEqualization, (1,2,3,4,5,6,7,8,9,10))
+dbpf(${PREFIX}cam1:LoadEqualization, 60)
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
 
