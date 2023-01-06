@@ -276,12 +276,12 @@ void pimegaDetector::acqTask() {
              to that of the Capture and server status message management block
            */
           if (pimega->acquireParam.numCapture != 0) {
-            if (recievedBackendCount <
+            if (pimega->acq_status_return.processedImageNum - previous_img_processed <
                 (unsigned int)pimega->acquireParam.numCapture) {
               UPDATEIOCSTATUS("Waiting for trigger...");
 
             } else if (autoSave == 1 &&
-                       recievedBackendCount <
+                       processedBackendCount <
                            pimega->acq_status_return.savedAquisitionNum) {
               UPDATEIOCSTATUS("Saving images..");
 
@@ -307,7 +307,7 @@ void pimegaDetector::acqTask() {
 
         case IOC_TRIGGER_MODE_ALIGNMENT:
           usleep(100000);
-          if (recievedBackendCount >= alignmentImagesCounter) {
+          if (processedBackendCount >= alignmentImagesCounter) {
             status = startAcquire();
             acquireStatus = 0;
             alignmentImagesCounter++;
@@ -1300,7 +1300,6 @@ pimegaDetector::pimegaDetector(
   pimega = pimega_new((pimega_detector_model_t)detectorModel, true);
   pimega_global = pimega;
   pimega->log = log;
-  pimega->detModel = (pimega_detector_model_t)detectorModel;
   pimega->backendOn = backendOn;
   if (log == 1) {
     if (initLog(pimega) == false) {
@@ -1842,6 +1841,8 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   else
     externalTrigger = true;
   getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+
+
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
                                           pimega->acquireParam.numCapture);
