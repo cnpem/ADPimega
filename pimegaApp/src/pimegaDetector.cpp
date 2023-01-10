@@ -2231,7 +2231,7 @@ asynStatus pimegaDetector::thresholdEnergy(float energy){
     error("Error while trying to set energy\n%s\n", pimega_error_string(rc));
     return asynError;
   }
-  setParameter(PimegaEnergy, pimega->pimegaParam.energy);
+  setParameter(PimegaEnergy, pimega->calibrationParam.energy);
   return asynSuccess;
 }
 
