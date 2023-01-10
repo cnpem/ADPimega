@@ -329,6 +329,7 @@ class pimegaDetector : public ADDriver {
   int PimegaDisabledSensorsM4;
   int PimegaMBSendMode;
   int PimegaSensorBias;
+  int PimegaEnergy;
   int PimegaEnableBulkProcessing;
   int PimegaAbortSave;
   int PimegaIndexID;
@@ -443,6 +444,7 @@ class pimegaDetector : public ADDriver {
   asynStatus setExtBgIn(float voltage);
   asynStatus dacDefaults(const char *file);
   asynStatus getExtBgIn(void);
+  asynStatus thresholdEnergy(float energy);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)

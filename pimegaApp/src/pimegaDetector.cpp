@@ -2224,6 +2224,17 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
   return asynSuccess;
 }
 
+asynStatus pimegaDetector::thresholdEnergy(float energy){
+  int rc = PIMEGA_SUCCESS;
+  rc = set_energy(pimega, energy);
+  if (rc != PIMEGA_SUCCESS){
+    error("Error while trying to set energy\n%s\n", pimega_error_string(rc));
+    return asynError;
+  }
+  setParameter(PimegaEnergy, pimega->pimegaParam.energy);
+  return asynSuccess;
+}
+
 asynStatus pimegaDetector::readCounter(int counter) {
   int rc = 0;
   rc = read_counter(pimega, (pimega_read_counter_t)counter);
