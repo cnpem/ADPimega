@@ -2229,7 +2229,7 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
   return asynSuccess;
 }
 
-asynStatus pimegaDetector::thresholdEnergy(float energy){
+asynStatus pimegaDetector::thresholdEnergy(float energy) {
   int rc = PIMEGA_SUCCESS;
   rc = set_energy(pimega, energy);
   if (rc != PIMEGA_SUCCESS){

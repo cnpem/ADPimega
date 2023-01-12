@@ -244,6 +244,20 @@ record(ai, "$(P)$(R)SensorBias_RBV") {
 	field(SCAN, "I/O Intr")
 }
 
+#ThresholdEnergy
+record(ao, "$(P)$(R)ThresholdEnergy") {
+	field(DESC, "Threshold Energy")
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD_ENERGY")
+}
+
+record(ai, "$(P)$(R)ThresholdEnergy") {
+	field(DESC, "Threshold Energy")
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD_ENERGY")
+	field(SCAN, "I/O Intr")
+}
+
 # Read Counter
 record(mbbo, "$(P)$(R)ReadCounter") {
 	field(DESC, "Selects the counter(s) to be read")
