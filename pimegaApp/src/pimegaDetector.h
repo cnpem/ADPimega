@@ -134,7 +134,7 @@ typedef enum ioc_trigger_mode_t {
 #define pimegaAllModulesString "ALL_MODULES"
 #define pimegaBackendLFSRString "BACK_LFSR"
 #define pimegaSendImageString "SEND_IMAGE"
-
+#define pimegaEnergyString "THRESHOLD_ENERGY"
 #define pimegaLoadEqStartString "LOAD_EQUALIZATION_START"
 #define pimegaSelSendImageString "SEL_SEND_IMAGE"
 #define pimegaSendDacDoneString "SEND_DAC_DONE"
