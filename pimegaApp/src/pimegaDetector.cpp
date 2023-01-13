@@ -952,7 +952,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser,
     strcat(ok_str, "Bandgap set");
   } else if (function == PimegaEnergy) {
     UPDATEIOCSTATUS("Setting Energy...");
-    status |= thresholdEnergy(value);
+    status |= setThresholdEnergy(value);
     strcat(ok_str, "Energy set");
   } else {
     /* If this parameter belongs to a base class call its method */
@@ -2229,7 +2229,7 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
   return asynSuccess;
 }
 
-asynStatus pimegaDetector::thresholdEnergy(float energy) {
+asynStatus pimegaDetector::setThresholdEnergy(float energy) {
   int rc = PIMEGA_SUCCESS;
   rc = set_energy(pimega, energy);
   if (rc != PIMEGA_SUCCESS){
@@ -2237,6 +2237,12 @@ asynStatus pimegaDetector::thresholdEnergy(float energy) {
     return asynError;
   }
   setParameter(PimegaEnergy, pimega->calibrationParam.energy);
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::getThresholdEnergy(void) {
+  int rc = get_energy(pimega);
+  if (rc != PIMEGA_SUCCESS) return asynError;
   return asynSuccess;
 }
 
