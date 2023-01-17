@@ -251,8 +251,8 @@ record(ao, "$(P)$(R)ThresholdEnergy") {
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD_ENERGY")
 }
 
-record(ai, "$(P)$(R)ThresholdEnergy") {
-	field(DESC, "Threshold Energy")
+record(ai, "$(P)$(R)ThresholdEnergy_RBV") {
+	field(DESC, "Threshold Energy Readback")
 	field(DTYP, "asynFloat64")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))THRESHOLD_ENERGY")
 	field(SCAN, "I/O Intr")
