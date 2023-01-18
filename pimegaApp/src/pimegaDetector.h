@@ -134,7 +134,7 @@ typedef enum ioc_trigger_mode_t {
 #define pimegaAllModulesString "ALL_MODULES"
 #define pimegaBackendLFSRString "BACK_LFSR"
 #define pimegaSendImageString "SEND_IMAGE"
-
+#define pimegaEnergyString "THRESHOLD_ENERGY"
 #define pimegaLoadEqStartString "LOAD_EQUALIZATION_START"
 #define pimegaSelSendImageString "SEL_SEND_IMAGE"
 #define pimegaSendDacDoneString "SEND_DAC_DONE"
@@ -329,6 +329,7 @@ class pimegaDetector : public ADDriver {
   int PimegaDisabledSensorsM4;
   int PimegaMBSendMode;
   int PimegaSensorBias;
+  int PimegaEnergy;
   int PimegaEnableBulkProcessing;
   int PimegaAbortSave;
   int PimegaIndexID;
@@ -443,6 +444,8 @@ class pimegaDetector : public ADDriver {
   asynStatus setExtBgIn(float voltage);
   asynStatus dacDefaults(const char *file);
   asynStatus getExtBgIn(void);
+  asynStatus setThresholdEnergy(float energy);
+  asynStatus getThresholdEnergy(void);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)

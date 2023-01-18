@@ -2,10 +2,13 @@
  *
  * This is a driver for the Pimega detector
  *
- * Author: Douglas Araujo
- *         Brazilian Synchrotron Light Laboratory.
+ * Authors: Douglas Araujo
+ *           Brazilian Synchrotron Light Laboratory.
+ *          Robert Tartarotti
+ *           Lumentum
  *
- * Created:  Jan 09 2019
+ * Created:     Jan 09 2019
+ * Modified in: Dec 12 2022
  *
  * Derived from pilatusDetector by Mark Rivers and from merlinDetector by Giles
  * Knap.
@@ -273,12 +276,12 @@ void pimegaDetector::acqTask() {
              to that of the Capture and server status message management block
            */
           if (pimega->acquireParam.numCapture != 0) {
-            if (recievedBackendCount <
+            if (pimega->acq_status_return.processedImageNum - previous_img_processed <
                 (unsigned int)pimega->acquireParam.numCapture) {
               UPDATEIOCSTATUS("Waiting for trigger...");
 
             } else if (autoSave == 1 &&
-                       recievedBackendCount <
+                       processedBackendCount <
                            pimega->acq_status_return.savedAquisitionNum) {
               UPDATEIOCSTATUS("Saving images..");
 
@@ -304,7 +307,7 @@ void pimegaDetector::acqTask() {
 
         case IOC_TRIGGER_MODE_ALIGNMENT:
           usleep(100000);
-          if (recievedBackendCount >= alignmentImagesCounter) {
+          if (processedBackendCount >= alignmentImagesCounter) {
             status = startAcquire();
             acquireStatus = 0;
             alignmentImagesCounter++;
@@ -947,6 +950,10 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser,
     UPDATEIOCSTATUS("Adjusting bandgap...");
     status |= setExtBgIn(value);
     strcat(ok_str, "Bandgap set");
+  } else if (function == PimegaEnergy) {
+    UPDATEIOCSTATUS("Setting Energy...");
+    status |= setThresholdEnergy(value);
+    strcat(ok_str, "Energy set");
   } else {
     /* If this parameter belongs to a base class call its method */
     if (function < FIRST_PIMEGA_PARAM) {
@@ -1297,7 +1304,6 @@ pimegaDetector::pimegaDetector(
   pimega = pimega_new((pimega_detector_model_t)detectorModel, true);
   pimega_global = pimega;
   pimega->log = log;
-  pimega->detModel = (pimega_detector_model_t)detectorModel;
   pimega->backendOn = backendOn;
   if (log == 1) {
     if (initLog(pimega) == false) {
@@ -1472,6 +1478,7 @@ void pimegaDetector::createParameters(void) {
               &PimegaResetRDMABuffer);
   createParam(pimegaBackendLFSRString, asynParamInt32, &PimegaBackLFSR);
   createParam(pimegaSensorBiasString, asynParamFloat64, &PimegaSensorBias);
+  createParam(pimegaEnergyString, asynParamFloat64, &PimegaEnergy);
   createParam(pimegaAllModulesString, asynParamInt32, &PimegaAllModules);
   createParam(pimegaDacsOutSenseString, asynParamFloat32Array,
               &PimegaDacsOutSense);
@@ -1839,6 +1846,8 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   else
     externalTrigger = true;
   getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+
+
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
                                           pimega->acquireParam.numCapture);
@@ -2217,6 +2226,23 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
                  pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
   }
 
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::setThresholdEnergy(float energy) {
+  int rc = PIMEGA_SUCCESS;
+  rc = set_energy(pimega, energy);
+  if (rc != PIMEGA_SUCCESS){
+    error("Error while trying to set energy\n%s\n", pimega_error_string(rc));
+    return asynError;
+  }
+  setParameter(PimegaEnergy, pimega->calibrationParam.energy);
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::getThresholdEnergy(void) {
+  int rc = get_energy(pimega);
+  if (rc != PIMEGA_SUCCESS) return asynError;
   return asynSuccess;
 }
 
