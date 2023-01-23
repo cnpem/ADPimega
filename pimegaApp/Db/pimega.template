@@ -112,7 +112,7 @@ record(mbbi,"$(P)$(R)TriggerMode_RBV") {
 
 record(ao, "$(P)$(R)AcquireTime")
 {
-	field(DRVH, "30000")
+	field(DRVH, "18446744073709551615e-6")
 	field(DRVL, "1e-6")
 	field(PREC, 6)
 }
