@@ -146,9 +146,9 @@ void pimegaDetector::acqTask() {
     }
     /* will enter here when the detector did not finish acquisition
       (acquireStatus != DONE_ACQ) or when Elapsed time is chosen
-      (!PIMEGA_TRIGGER_MODE_INTERNAL) */
+      (!pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL) */
     if (acquire && (acquireStatus != DONE_ACQ ||
-                    triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)) {
+                    triggerMode != pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL)) {
       epicsTimeGetCurrent(&endTime);
       elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
       if (acquirePeriod != 0) {
@@ -159,7 +159,7 @@ void pimegaDetector::acqTask() {
       if (remainingTime < 0) {
         remainingTime = 0;
       }
-      if (triggerMode == PIMEGA_TRIGGER_MODE_INTERNAL) {
+      if (triggerMode == pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL) {
         setDoubleParam(ADTimeRemaining, remainingTime);
       } else {
         setDoubleParam(ADTimeRemaining, elapsedTime);
@@ -276,12 +276,12 @@ void pimegaDetector::acqTask() {
              to that of the Capture and server status message management block
            */
           if (pimega->acquireParam.numCapture != 0) {
-            if (recievedBackendCount <
+            if (pimega->acq_status_return.processedImageNum - previous_img_processed <
                 (unsigned int)pimega->acquireParam.numCapture) {
               UPDATEIOCSTATUS("Waiting for trigger...");
 
             } else if (autoSave == 1 &&
-                       recievedBackendCount <
+                       processedBackendCount <
                            pimega->acq_status_return.savedAquisitionNum) {
               UPDATEIOCSTATUS("Saving images..");
 
@@ -307,7 +307,7 @@ void pimegaDetector::acqTask() {
 
         case IOC_TRIGGER_MODE_ALIGNMENT:
           usleep(100000);
-          if (recievedBackendCount >= alignmentImagesCounter) {
+          if (processedBackendCount >= alignmentImagesCounter) {
             status = startAcquire();
             acquireStatus = 0;
             alignmentImagesCounter++;
@@ -950,6 +950,10 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser,
     UPDATEIOCSTATUS("Adjusting bandgap...");
     status |= setExtBgIn(value);
     strcat(ok_str, "Bandgap set");
+  } else if (function == PimegaEnergy) {
+    UPDATEIOCSTATUS("Setting Energy...");
+    status |= setThresholdEnergy(value);
+    strcat(ok_str, "Energy set");
   } else {
     /* If this parameter belongs to a base class call its method */
     if (function < FIRST_PIMEGA_PARAM) {
@@ -1300,7 +1304,6 @@ pimegaDetector::pimegaDetector(
   pimega = pimega_new((pimega_detector_model_t)detectorModel, true);
   pimega_global = pimega;
   pimega->log = log;
-  pimega->detModel = (pimega_detector_model_t)detectorModel;
   pimega->backendOn = backendOn;
   if (log == 1) {
     if (initLog(pimega) == false) {
@@ -1351,7 +1354,7 @@ pimegaDetector::pimegaDetector(
   }
 
   define_master_module(pimega, pimega->master_module, false,
-                       PIMEGA_TRIGGER_MODE_EXTERNAL_POS_EDGE);
+                       pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_EXTERNAL_POS_EDGE);
 
   /* Reset RDMA logic in the FPGA at initialization */
   send_allinitArgs_allModules(pimega);
@@ -1475,6 +1478,7 @@ void pimegaDetector::createParameters(void) {
               &PimegaResetRDMABuffer);
   createParam(pimegaBackendLFSRString, asynParamInt32, &PimegaBackLFSR);
   createParam(pimegaSensorBiasString, asynParamFloat64, &PimegaSensorBias);
+  createParam(pimegaEnergyString, asynParamFloat64, &PimegaEnergy);
   createParam(pimegaAllModulesString, asynParamInt32, &PimegaAllModules);
   createParam(pimegaDacsOutSenseString, asynParamFloat32Array,
               &PimegaDacsOutSense);
@@ -1837,11 +1841,13 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(PimegaIndexSendMode, &indexSendMode);
 
   /* Evaluate trigger if external or internal */
-  if (triggerMode != PIMEGA_TRIGGER_MODE_INTERNAL)
+  if (triggerMode != pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL)
     externalTrigger = false;
   else
     externalTrigger = true;
   getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+
+
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
                                           pimega->acquireParam.numCapture);
@@ -2082,7 +2088,7 @@ asynStatus pimegaDetector::reset(short action) {
   if (rc != PIMEGA_SUCCESS) return asynError;
   rc = numExposures(1);
   if (rc != PIMEGA_SUCCESS) return asynError;
-  setParameter(ADTriggerMode, PIMEGA_TRIGGER_MODE_INTERNAL);
+  setParameter(ADTriggerMode, pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL);
   rc = medipixMode(MODE_B12);
 
   if (rc != PIMEGA_SUCCESS) {
@@ -2220,6 +2226,23 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
                  pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
   }
 
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::setThresholdEnergy(float energy) {
+  int rc = PIMEGA_SUCCESS;
+  rc = set_energy(pimega, energy);
+  if (rc != PIMEGA_SUCCESS){
+    error("Error while trying to set energy\n%s\n", pimega_error_string(rc));
+    return asynError;
+  }
+  setParameter(PimegaEnergy, pimega->calibrationParam.energy);
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::getThresholdEnergy(void) {
+  int rc = get_energy(pimega);
+  if (rc != PIMEGA_SUCCESS) return asynError;
   return asynSuccess;
 }
 
