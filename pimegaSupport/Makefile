@@ -40,6 +40,8 @@ INC += driver/US_serial.h
 INC += driver/US_system.h
 INC += driver/US_test_pulse.h
 INC += driver/US_trigger.h
+INC += compatibility/compatibility.h
+INC += default/default/trigger.h
 
 ifeq (linux-x86_64, $(findstring linux-x86_64, $(T_A)))
 LIB_INSTALLS_Linux += ../os/linux-x86_64/libpimega.so
