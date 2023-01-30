@@ -115,14 +115,14 @@ void pimegaDetector::acqTask() {
       /* Backend status */
       getParameter(NDFileCapture, &backendStatus);
       /* if continous mode is chosen! */
-      if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
-        /* TODO: Is this set parameter necessary? In single, the ADNumExposures
-           should just be ignored. Otherwise, for next experiments, it can
-           remain as before. */
-        setParameter(ADNumExposures, 1);
-        numExposuresVar = 1;
-        numExposures(1);
-      }
+      // if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
+      //   /* TODO: Is this set parameter necessary? In single, the ADNumExposures
+      //      should just be ignored. Otherwise, for next experiments, it can
+      //      remain as before. */
+      //   setParameter(ADNumExposures, 1);
+      //   numExposuresVar = 1;
+      //   numExposures(1);
+      // }
       status = startAcquire();
       if (status != asynSuccess) {
         PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
@@ -176,11 +176,12 @@ void pimegaDetector::acqTask() {
       setShutter(0);
       setIntegerParam(ADAcquire, 0);
       acquire = 0;
-      if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
-        setIntegerParam(ADStatus, ADStatusIdle);
-        UPDATEIOCSTATUS("Acquisition finished");
+      // if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
+      //   setIntegerParam(ADStatus, ADStatusIdle);
+      //   UPDATEIOCSTATUS("Acquisition finished");
 
-      } else if (acquireStatusError == 1) {
+      // } else
+      if (acquireStatusError == 1) {
         acquireStatusError = 0;
         setIntegerParam(ADStatus, ADStatusAborted);
         UPDATEIOCSTATUS(pimega->error);
@@ -305,15 +306,15 @@ void pimegaDetector::acqTask() {
           }
           break;
 
-        case IOC_TRIGGER_MODE_ALIGNMENT:
-          usleep(100000);
-          if (processedBackendCount >= alignmentImagesCounter) {
-            status = startAcquire();
-            acquireStatus = 0;
-            alignmentImagesCounter++;
-          }
-          UPDATEIOCSTATUS("Acquiring");
-          break;
+        // case IOC_TRIGGER_MODE_ALIGNMENT:
+        //   usleep(100000);
+        //   if (processedBackendCount >= alignmentImagesCounter) {
+        //     status = startAcquire();
+        //     acquireStatus = 0;
+        //     alignmentImagesCounter++;
+        //   }
+        //   UPDATEIOCSTATUS("Acquiring");
+        //   break;
       }
 
       /* Errors reported by backend override previous messages. */
@@ -1957,9 +1958,9 @@ asynStatus pimegaDetector::triggerMode(ioc_trigger_mode_t trigger) {
     case IOC_TRIGGER_MODE_EXTERNAL:
       rc = configure_trigger(pimega, TRIGGER_MODE_IN_EXTERNAL_OUT_ACQ);
       break;
-    case IOC_TRIGGER_MODE_ALIGNMENT:
-      rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_ACQ);
-      break;
+    // case IOC_TRIGGER_MODE_ALIGNMENT:
+    //   rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_ACQ);
+    //   break;
   }
 
   if (rc != PIMEGA_SUCCESS) {
