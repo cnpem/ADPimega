@@ -152,13 +152,13 @@ void pimegaDetector::acqTask() {
       epicsTimeGetCurrent(&endTime);
       elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
       if (acquirePeriod != 0) {
-        remainingTime = (acquirePeriod * numExposuresVar) - elapsedTime;
+        remainingTime = (acquirePeriod * numExposuresVar) - elapsedTime - acquirePeriod + acquireTime;
       } else {
         remainingTime = (acquireTime * numExposuresVar) - elapsedTime;
       }
       if (remainingTime < 0) {
         remainingTime = 0;
-      }
+      }      
       if (triggerMode == pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL) {
         setDoubleParam(ADTimeRemaining, remainingTime);
       } else {
@@ -256,7 +256,7 @@ void pimegaDetector::acqTask() {
                      (unsigned int)pimega->acquireParam.numCapture) {
             UPDATEIOCSTATUS("Images received, processing...");
 
-          } else {
+          } else if (acquireStatus == DONE_ACQ) {
             PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Acquisition finished\n",
                          functionName);
             UPDATEIOCSTATUS("Acquisition finished");
@@ -265,6 +265,8 @@ void pimegaDetector::acqTask() {
             setIntegerParam(ADAcquire, 0);
             acquireStatus = 0;
             setIntegerParam(ADStatus, ADStatusIdle);
+          } else {
+            UPDATEIOCSTATUS("Waiting Acquire Period...");
           }
 
           break;
@@ -291,7 +293,7 @@ void pimegaDetector::acqTask() {
                            (unsigned int)pimega->acquireParam.numCapture) {
               UPDATEIOCSTATUS("Sending frames to Index...");
 
-            } else {
+            } else if (acquireStatus == DONE_ACQ) {
               PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
                            "%s: Acquisition finished\n", functionName);
               UPDATEIOCSTATUS("Acquisition finished");
@@ -300,6 +302,8 @@ void pimegaDetector::acqTask() {
               setIntegerParam(ADAcquire, 0);
               acquireStatus = 0;
               setIntegerParam(ADStatus, ADStatusIdle);
+            } else {
+              UPDATEIOCSTATUS("Waiting Acquire Period...");
             }
           } else {
             UPDATEIOCSTATUS("Receiving images...");
