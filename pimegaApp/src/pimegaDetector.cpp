@@ -152,13 +152,14 @@ void pimegaDetector::acqTask() {
       epicsTimeGetCurrent(&endTime);
       elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
       if (acquirePeriod != 0) {
-        remainingTime = (acquirePeriod * numExposuresVar) - elapsedTime - acquirePeriod + acquireTime;
+        remainingTime = (acquirePeriod * numExposuresVar) - elapsedTime -
+                         acquirePeriod + acquireTime;
       } else {
         remainingTime = (acquireTime * numExposuresVar) - elapsedTime;
       }
       if (remainingTime < 0) {
         remainingTime = 0;
-      }      
+      }
       if (triggerMode == pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL) {
         setDoubleParam(ADTimeRemaining, remainingTime);
       } else {
