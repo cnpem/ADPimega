@@ -1090,7 +1090,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   int function = pasynUser->reason;
   int status = 0;
   // static const char *functionName = "readInt32";
-  int scanStatus, i, acquireRunning;
+  int scanStatus, i, acquireRunning, autoSave;
   uint64_t temp = ULLONG_MAX;
   uint64_t temp_proc = ULLONG_MAX;
   uint64_t temp_saved = ULLONG_MAX;
@@ -1102,6 +1102,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   getParameter(ADStatus, &scanStatus);
   getParameter(NDFileCapture, &backendStatus);
   getParameter(ADAcquire, &acquireRunning);
+  getParameter(NDAutoSave, &autoSave);
 
   if (function == PimegaBackendStats) {
     if (pimega->acq_status_return.moduleError[0] == 1 ||
@@ -1165,8 +1166,12 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
     setParameter(ADNumImagesCounter, (int)temp);
     temp_proc = (int)pimega->acq_status_return.processedImageNum -
                 previous_img_processed;
-    temp_saved =
-        (int)pimega->acq_status_return.savedAquisitionNum - previous_img_saved;
+    if (autoSave != 0) {
+      temp_saved =
+          (int)pimega->acq_status_return.savedAquisitionNum - previous_img_saved;
+    } else {
+      temp_saved = 0;
+    }
     setParameter(PimegaProcessedImageCounter, (int)temp_proc);
     setParameter(NDFileNumCaptured, (int)temp_saved);
     callParamCallbacks();
