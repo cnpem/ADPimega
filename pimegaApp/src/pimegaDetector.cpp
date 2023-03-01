@@ -152,7 +152,8 @@ void pimegaDetector::acqTask() {
       epicsTimeGetCurrent(&endTime);
       elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
       if (acquirePeriod != 0) {
-        remainingTime = (acquirePeriod * numExposuresVar) - elapsedTime;
+        remainingTime = (acquirePeriod * numExposuresVar) - elapsedTime -
+                         acquirePeriod + acquireTime;
       } else {
         remainingTime = (acquireTime * numExposuresVar) - elapsedTime;
       }
@@ -256,7 +257,7 @@ void pimegaDetector::acqTask() {
                      (unsigned int)pimega->acquireParam.numCapture) {
             UPDATEIOCSTATUS("Images received, processing...");
 
-          } else {
+          } else if (acquireStatus == DONE_ACQ) {
             PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Acquisition finished\n",
                          functionName);
             UPDATEIOCSTATUS("Acquisition finished");
@@ -265,6 +266,8 @@ void pimegaDetector::acqTask() {
             setIntegerParam(ADAcquire, 0);
             acquireStatus = 0;
             setIntegerParam(ADStatus, ADStatusIdle);
+          } else {
+            UPDATEIOCSTATUS("Waiting Acquire Period...");
           }
 
           break;
@@ -291,7 +294,7 @@ void pimegaDetector::acqTask() {
                            (unsigned int)pimega->acquireParam.numCapture) {
               UPDATEIOCSTATUS("Sending frames to Index...");
 
-            } else {
+            } else if (acquireStatus == DONE_ACQ) {
               PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
                            "%s: Acquisition finished\n", functionName);
               UPDATEIOCSTATUS("Acquisition finished");
@@ -300,6 +303,8 @@ void pimegaDetector::acqTask() {
               setIntegerParam(ADAcquire, 0);
               acquireStatus = 0;
               setIntegerParam(ADStatus, ADStatusIdle);
+            } else {
+              UPDATEIOCSTATUS("Waiting Acquire Period...");
             }
           } else {
             UPDATEIOCSTATUS("Receiving images...");
@@ -1085,7 +1090,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   int function = pasynUser->reason;
   int status = 0;
   // static const char *functionName = "readInt32";
-  int scanStatus, i, acquireRunning;
+  int scanStatus, i, acquireRunning, autoSave;
   uint64_t temp = ULLONG_MAX;
   uint64_t temp_proc = ULLONG_MAX;
   uint64_t temp_saved = ULLONG_MAX;
@@ -1097,6 +1102,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   getParameter(ADStatus, &scanStatus);
   getParameter(NDFileCapture, &backendStatus);
   getParameter(ADAcquire, &acquireRunning);
+  getParameter(NDAutoSave, &autoSave);
 
   if (function == PimegaBackendStats) {
     if (pimega->acq_status_return.moduleError[0] == 1 ||
@@ -1160,8 +1166,14 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
     setParameter(ADNumImagesCounter, (int)temp);
     temp_proc = (int)pimega->acq_status_return.processedImageNum -
                 previous_img_processed;
-    temp_saved =
-        (int)pimega->acq_status_return.savedAquisitionNum - previous_img_saved;
+    if (autoSave == 0 &&
+        (int)pimega->acq_status_return.savedAquisitionNum <=
+        (int)pimega->acquireParam.numCapture + previous_img_saved) {
+      temp_saved = 0;
+    } else {
+      temp_saved =
+          (int)pimega->acq_status_return.savedAquisitionNum - previous_img_saved;
+    }
     setParameter(PimegaProcessedImageCounter, (int)temp_proc);
     setParameter(NDFileNumCaptured, (int)temp_saved);
     callParamCallbacks();

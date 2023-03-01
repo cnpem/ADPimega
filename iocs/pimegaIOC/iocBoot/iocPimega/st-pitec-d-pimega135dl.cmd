@@ -87,7 +87,7 @@ dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDete
 dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
 dbpf(${PREFIX}image1:EnableCallbacks, 1)
 #dbpf(${PREFIX}Stats2:EnableCallbacks, 1)
-dbpf(${PREFIX}cam1:LoadEqualization, 60)
+#dbpf(${PREFIX}cam1:LoadEqualization, 60)
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
 
