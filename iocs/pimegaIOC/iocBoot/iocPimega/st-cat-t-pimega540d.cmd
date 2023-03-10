@@ -14,7 +14,7 @@ epicsEnvSet("EPICS_CA_ADDR_LIST")
 epicsEnvSet("PREFIX", "PITEC:T:PIMEGA540D:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
-# The detector model (0:mobipix; 1:pimega45D; 2:pimega135DL; 3:pimega135D; 4:pimega540D, 5:pimega450D, 6:pimega450DS)
+# The detector model (0:mobipix; 1:pimega45D; 2:pimega135DL; 3:pimega135D; 4:pimega540D; 5:pimega450D; 6:pimega450DS)
 epicsEnvSet("DMODEL", "3");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
