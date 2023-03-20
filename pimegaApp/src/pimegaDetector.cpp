@@ -667,6 +667,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= triggerMode((enum ioc_trigger_mode_t)value);
     strcat(ok_str, "Trigger mode set");
   } else if (function == PimegaConfigDiscL) {
+    UPDATEIOCSTATUS("Setting ConfigDiscL value...");
     status |= configDiscL(value);
     strcat(ok_str, "ConfigDiscL set");
   } else if (function == PimegaMedipixBoard) {

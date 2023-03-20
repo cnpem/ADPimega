@@ -12,7 +12,7 @@ pimegaApp_registerRecordDeviceDriver(pdbbase)
 epicsEnvSet("PREFIX", "CNB:D:PIMEGA135D:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PIMEGA")
-# The detector model (0:mobipix; 1:pimega45D; 2:pimega135DL; 3:pimega135D; 4:pimega540D, 5:pimega450D)
+# The detector model (0:mobipix; 1:pimega45D; 2:pimega135DL; 3:pimega135D; 4:pimega540D; 5:pimega450D; 6:pimega450DS)
 epicsEnvSet("DMODEL", "2");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
