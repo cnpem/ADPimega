@@ -1877,21 +1877,6 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
     return asynError;
   }
 
-  if (pimega->detModel == pimega540D) {
-    rc = (asynStatus)select_module(pimega, 2);
-    if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = (asynStatus)execute_acquire(pimega);
-    if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = (asynStatus)select_module(pimega, 3);
-    if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = (asynStatus)execute_acquire(pimega);
-    if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = (asynStatus)select_module(pimega, 4);
-    if (rc != PIMEGA_SUCCESS) return asynError;
-    rc = (asynStatus)execute_acquire(pimega);
-    if (rc != PIMEGA_SUCCESS) return asynError;
-  }
-
   UPDATESERVERSTATUS("Backend Ready");
 
   return asynSuccess;
