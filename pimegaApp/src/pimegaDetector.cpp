@@ -1,18 +1,6 @@
 /* pimegaDetector.cpp
  *
- * This is a driver for the Pimega detector
- *
- * Authors: Douglas Araujo
- *           Brazilian Synchrotron Light Laboratory.
- *          Robert Tartarotti
- *           Lumentum
- *
- * Created:     Jan 09 2019
- * Modified in: Dec 12 2022
- *
- * Derived from pilatusDetector by Mark Rivers and from merlinDetector by Giles
- * Knap.
- *
+ * This is a EPICS driver for the Pimega detector
  */
 
 #include "pimegaDetector.h"
@@ -620,13 +608,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         epicsThreadSleep(.1);
         setDoubleParam(ADTimeRemaining, 0);
         strcat(ok_str, "Acquisition stopped");
-      } else {
-        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
-                     "%s: Backend already stopped. Sending asynError\n",
-                     functionName);
-        strncpy(pimega->error, "Backend already stopped",
-                sizeof("Backend already stopped"));
-        status = asynError;
       }
     }
   } else if (acquireRunning == 1) {
