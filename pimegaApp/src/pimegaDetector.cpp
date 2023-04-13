@@ -924,6 +924,17 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser,
     status |= acqTime(value);
     strcat(ok_str, "Exposure time set");
   }
+    else if (function == PimegaDistance){
+    UPDATEIOCSTATUS("Adjusting sample distance...");
+        if (0 != send_distance_toBackend(pimega, value))
+        {
+            PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,"%s: send_distance_toBackend returned error. Sending asynError\n", functionName);
+            status = asynError;               
+        } else {
+            setParameter(PimegaDistance, value);
+            strcat(ok_str, "Distance set");
+        }
+}
 
   else if (function == ADAcquirePeriod) {
     status |= acqPeriod(value);
@@ -1536,7 +1547,7 @@ void pimegaDetector::createParameters(void) {
               &PimegaProcessedImageCounter);
 
   createParam(pimegaMBSendModeString, asynParamInt32, &PimegaMBSendMode);
-  createParam(pimegaDistanceString, asynParamInt32, &PimegaDistance);
+  createParam(pimegaDistanceString, asynParamFloat64, &PimegaDistance);
   createParam(pimegaIOCStatusMsgString, asynParamInt8Array,
               &PimegaIOCStatusMessage);
   createParam(pimegaServerStatusMsgString, asynParamInt8Array,
@@ -1637,6 +1648,7 @@ asynStatus pimegaDetector::setDefaults(void) {
   setParameter(ADMinY, 0);
   setParameter(ADReverseX, 0);
   setParameter(ADReverseY, 0);
+  setParameter(PimegaDistance, 22000.0);
   setParameter(ADFrameType, ADFrameNormal);
   rc = acqPeriod(0.0);
   if (rc != PIMEGA_SUCCESS) return asynError;
