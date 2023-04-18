@@ -124,7 +124,7 @@ void pimegaDetector::acqTask() {
       (acquireStatus != DONE_ACQ) or when Elapsed time is chosen
       (!pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL) */
     if (acquireStatus == PERMISSION_DENIED) {
-      UPDATEIOCSTATUS("Permission denied to create the file");
+      UPDATEIOCSTATUS("Permission Denied, press stop");
     }
     if (acquire &&
         (acquireStatus != DONE_ACQ || acquireStatus != PERMISSION_DENIED ||
