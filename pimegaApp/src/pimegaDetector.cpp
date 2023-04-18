@@ -99,16 +99,6 @@ void pimegaDetector::acqTask() {
       setIntegerParam(ADStatus, ADStatusAcquire);
       /* Backend status */
       getParameter(NDFileCapture, &backendStatus);
-      /* if continous mode is chosen! */
-      // if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
-      //   /* TODO: Is this set parameter necessary? In single, the
-      //   ADNumExposures
-      //      should just be ignored. Otherwise, for next experiments, it can
-      //      remain as before. */
-      //   setParameter(ADNumExposures, 1);
-      //   numExposuresVar = 1;
-      //   numExposures(1);
-      // }
       status = startAcquire();
       if (status != asynSuccess) {
         PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
@@ -323,13 +313,10 @@ static void captureTaskC(void *drvPvt) {
 }
 
 void pimegaDetector::captureTask() {
-  int i, status, adstatus;
-  int indexEnable;
-  bool indexEnableBool;
+  int i, status, adstatus, received_acq, autoSave, indexEnable;
+  bool indexEnableBool, moduleError;
   int capture = 0;
-  int autoSave;
   int eventStatus = 0;
-  bool moduleError;
   uint64_t prevAcquisitionCount = 0;
   uint64_t recievedBackendCount, processedBackendCount;
   while (1) {
@@ -420,11 +407,18 @@ void pimegaDetector::captureTask() {
       /* Timer finished and data should have arrived already ( but not
        * necessarily saved ) */
       getIntegerParam(ADStatus, &adstatus);
+      received_acq = 0;
+      for (int module = 1; module <= pimega->max_num_modules; module++) {
+        if (received_acq == 0 ||
+            (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
+                received_acq) {
+          received_acq =
+              (int)pimega->acq_status_return.noOfAquisitions[module - 1];
+        }
+      }
       if (adstatus == ADStatusAborted) {
         UPDATESERVERSTATUS("Aborted");
-      } else if ((int)pimega->acq_status_return
-                     .noOfAquisitions[pimega->max_num_modules - 1] <
-                 (int)pimega->acquireParam.numCapture) {
+      } else if (received_acq < (int)pimega->acquireParam.numCapture) {
         UPDATESERVERSTATUS("Waiting for images");
 
       } else if (autoSave == 1 && (int)pimega->acq_status_return.savedFrameNum <
@@ -1056,8 +1050,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser,
 asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   int function = pasynUser->reason;
   int status = 0;
-  // static const char *functionName = "readInt32";
-  int scanStatus, i, acquireRunning, autoSave;
+  int scanStatus, i, acquireRunning, autoSave, received_acq;
   uint64_t temp = ULLONG_MAX;
   uint64_t temp_proc = ULLONG_MAX;
   uint64_t temp_saved = ULLONG_MAX;
@@ -1079,6 +1072,17 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
       error = 1;
     else
       error = 0;
+
+    received_acq = 0;
+    for (int module = 1; module <= pimega->max_num_modules; module++) {
+      if (received_acq == 0 ||
+          (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
+              received_acq) {
+        received_acq =
+            (int)pimega->acq_status_return.noOfAquisitions[module - 1];
+      }
+    }
+
     setParameter(PimegaReceiveError, error);
     setParameter(PimegaM1ReceiveError,
                  (int)pimega->acq_status_return.moduleError[0]);
@@ -1123,9 +1127,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
     setParameter(PimegaIndexError, (int)pimega->acq_status_return.indexError);
     setParameter(PimegaIndexCounter,
                  (int)pimega->acq_status_return.indexSentAquisitionNum);
-    setParameter(ADNumImagesCounter,
-                 (int)pimega->acq_status_return
-                     .noOfAquisitions[pimega->max_num_modules - 1]);
+    setParameter(ADNumImagesCounter, received_acq);
     setParameter(PimegaProcessedImageCounter,
                  (int)pimega->acq_status_return.processedImageNum);
     setParameter(NDFileNumCaptured,
@@ -1817,7 +1819,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   if (rc != PIMEGA_SUCCESS) return asynError;
 
   rc = (asynStatus)send_acqArgs_toBackend(pimega);
-  printf("\n\n\n\n\n\n rc = %d", rc);
+
   if (rc != PIMEGA_SUCCESS) {
     char error[100];
     decode_backend_error(pimega->ack.error, error);
