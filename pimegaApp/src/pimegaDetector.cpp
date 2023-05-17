@@ -761,9 +761,10 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       status |= getMedipixTemperatures();
       strcat(ok_str, "Sensor temperatures fetched");
     }
-  }
-
-  else {
+  } else if (function == PimegaMetadataOpMode) {
+    status |= metadataHandler(value);
+    strcat(ok_str, "Metadata OP mode performed");
+  } else {
     if (function < FIRST_PIMEGA_PARAM) {
       status = ADDriver::writeInt32(pasynUser, value);
       strcat(ok_str, paramName);
@@ -864,6 +865,14 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value,
     *nActual = maxChars;
     setParameter(function, value);
     strcat(ok_str, "Index ID set");
+  }  else if (function == PimegaMetadataField) {
+    *nActual = maxChars;
+    setParameter(function, value);
+    strcat(ok_str, "Metadata Field set");
+  } else if (function == PimegaMetadataValue){
+    *nActual = maxChars;
+    setParameter(function, value);
+    strcat(ok_str, "Metadata Value set");
   } else {
     /* If this parameter belongs to a base class call its method */
     if (function < FIRST_PIMEGA_PARAM) {
@@ -1593,6 +1602,9 @@ void pimegaDetector::createParameters(void) {
               &PimegaM4RdmaBufferUsage);
   createParam(pimegaBackendStatsString, asynParamInt32, &PimegaBackendStats);
   createParam(pimegaIndexErrorString, asynParamInt32, &PimegaIndexError);
+  createParam(pimegaMetadataFieldString, asynParamOctet, &PimegaMetadataField);
+  createParam(pimegaMetadataValueString, asynParamOctet, &PimegaMetadataValue);
+  createParam(pimegaMetadataOpModeString, asynParamOctet, &PimegaMetadataOpMode);
 
   /* Do callbacks so higher layers see any changes */
   callParamCallbacks();
@@ -2188,6 +2200,43 @@ asynStatus pimegaDetector::acqPeriod(float period_time_s) {
     setParameter(ADAcquirePeriod, period_time_s);
     return asynSuccess;
   }
+}
+
+asynStatus pimegaDetector::metadataHandler(int op_mode) { 
+  int rc = asynSuccess;
+  char field[MAX_METADATA_LENGTH] = "";
+  char value[MAX_METADATA_LENGTH] = "";
+  char result[PIMEGA_SIZE_RESULT] = "";
+  getParameter(PimegaMetadataField, sizeof(field), field);
+  getParameter(PimegaMetadataValue, sizeof(value), value);
+  switch(op_mode) {
+    case (SET_METHOD):
+      rc = set_collection_metadata(pimega, field, value);
+      break;
+    case (GET_METHOD):
+      rc = get_collection_metadata(pimega, field);
+      if (rc == PIMEGA_SUCCESS) {
+        sscanf(pimega->result[pimega->pimega_module - 1], "%s",
+             result); 
+      }
+      break;
+    case (DEL_METHOD):
+      rc = del_collection_metadata(pimega, field);
+      break;
+    case (CLEAR_METHOD):
+      rc = clear_collection_metadata(pimega);
+      break;
+    default:
+      error("Invalid metadata operation: %d\n", op_mode);
+  }
+  if (rc != PIMEGA_SUCCESS) {
+    error("Invalid value: %s\n", pimega_error_string(rc));
+    return asynError;
+  }
+  if (op_mode != SET_METHOD) {
+    setParameter(PimegaMetadataValue, result);
+  }
+  return asynSuccess;
 }
 
 asynStatus pimegaDetector::setExtBgIn(float voltage) {
