@@ -2210,20 +2210,20 @@ asynStatus pimegaDetector::metadataHandler(int op_mode) {
   getParameter(PimegaMetadataField, sizeof(field), field);
   getParameter(PimegaMetadataValue, sizeof(value), value);
   switch(op_mode) {
-    case (SET_METHOD):
+    case (kSetMethod):
       rc = set_collection_metadata(pimega, field, value);
       break;
-    case (GET_METHOD):
+    case (kGetMethod):
       rc = get_collection_metadata(pimega, field);
       if (rc == PIMEGA_SUCCESS) {
         sscanf(pimega->result[pimega->pimega_module - 1], "%s",
              result); 
       }
       break;
-    case (DEL_METHOD):
+    case (kDelMethod):
       rc = del_collection_metadata(pimega, field);
       break;
-    case (CLEAR_METHOD):
+    case (kClearMethod):
       rc = clear_collection_metadata(pimega);
       break;
     default:
@@ -2233,7 +2233,7 @@ asynStatus pimegaDetector::metadataHandler(int op_mode) {
     error("Invalid value: %s\n", pimega_error_string(rc));
     return asynError;
   }
-  if (op_mode != SET_METHOD) {
+  if (op_mode != kSetMethod) {
     setParameter(PimegaMetadataValue, result);
   }
   return asynSuccess;
