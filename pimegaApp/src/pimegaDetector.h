@@ -209,7 +209,7 @@ typedef enum ioc_trigger_mode_t {
 #define pimegaBackendStatsString "BACKEND_STATS"
 #define pimegaMetadataFieldString "METADATA_FIELD"
 #define pimegaMetadataValueString "METADATA_VALUE"
-#define pimegaMetadataOpModeString "METADATA_OP_MODE"
+#define pimegaMetadataOMString "METADATA_OM"
 
 class pimegaDetector : public ADDriver {
  public:
@@ -373,7 +373,7 @@ class pimegaDetector : public ADDriver {
   int PimegaBackendStats;
   int PimegaMetadataField;
   int PimegaMetadataValue;
-  int PimegaMetadataOpMode;
+  int PimegaMetadataOM;
   int PimegaIndexError;
   int PimegaLogFile;
 #define LAST_PIMEGA_PARAM PimegaLogFile

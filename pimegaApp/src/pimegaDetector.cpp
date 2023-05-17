@@ -761,7 +761,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       status |= getMedipixTemperatures();
       strcat(ok_str, "Sensor temperatures fetched");
     }
-  } else if (function == PimegaMetadataOpMode) {
+  } else if (function == PimegaMetadataOM) {
     status |= metadataHandler(value);
     strcat(ok_str, "Metadata OP mode performed");
   } else {
@@ -869,7 +869,7 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value,
     *nActual = maxChars;
     setParameter(function, value);
     strcat(ok_str, "Metadata Field set");
-  } else if (function == PimegaMetadataValue){
+  } else if (function == PimegaMetadataValue) {
     *nActual = maxChars;
     setParameter(function, value);
     strcat(ok_str, "Metadata Value set");
@@ -1604,7 +1604,7 @@ void pimegaDetector::createParameters(void) {
   createParam(pimegaIndexErrorString, asynParamInt32, &PimegaIndexError);
   createParam(pimegaMetadataFieldString, asynParamOctet, &PimegaMetadataField);
   createParam(pimegaMetadataValueString, asynParamOctet, &PimegaMetadataValue);
-  createParam(pimegaMetadataOpModeString, asynParamOctet, &PimegaMetadataOpMode);
+  createParam(pimegaMetadataOMString, asynParamOctet, &PimegaMetadataOM);
 
   /* Do callbacks so higher layers see any changes */
   callParamCallbacks();
