@@ -221,7 +221,7 @@ class pimegaDetector : public ADDriver {
                  const char *address_module10, int port, int maxSizeX,
                  int maxSizeY, int detectorModel, int maxBuffers,
                  size_t maxMemory, int priority, int stackSize, int simulate,
-                 int backendOn, int log);
+                 int backendOn, int log, unsigned short backend_port);
 
   virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -408,7 +408,7 @@ class pimegaDetector : public ADDriver {
   uint64_t recievedBackendCountOffset;
 
   void panic(const char *msg);
-  void connect(const char *address[4], unsigned short port);
+  void connect(const char *address[4], unsigned short port, unsigned short backend_port);
   void createParameters(void);
   void setParameter(int index, const char *value);
   void setParameter(int index, int value);
