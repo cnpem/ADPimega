@@ -1155,6 +1155,45 @@ record(bi, "$(P)$(R)Backend_LFSR_RBV") {
     field(SCAN, "I/O Intr")
 }
 
+record(waveform, "$(P)$(R)Metadata_Field") {
+	field(DTYP, "asynOctetWrite")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))METADATA_FIELD")
+	field(FTVL, "CHAR")
+	field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)Metadata_Value") {
+	field(DTYP, "asynOctetWrite")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))METADATA_VALUE")
+	field(FTVL, "CHAR")
+	field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)Metadata_Value_RBV") {
+	field(DTYP, "asynOctetRead")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))METADATA_VALUE")
+	field(FTVL, "CHAR")
+	field(NELM, "256")
+	field(SCAN, "I/O Intr")
+}
+
+# Metadata Operation mode
+record(mbbo,"$(P)$(R)Metadata_OM") {
+	#field(PINI, "YES")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))METADATA_OM")
+	field(DESC, "Metadata operation mode selection")
+	field(ZRVL,"0")
+	field(ONVL,"1")
+	field(TWVL,"2")
+	field(THVL,"3")
+	field(ZRST, "Set metadata")
+	field(ONST, "Get metadata")
+	field(TWST, "Delete metadata")
+	field(THST, "Clear metadata")
+	# field(VAL, "1")
+}
+
 record(mbbo,"$(P)$(R)Select_SendImage") {
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEL_SEND_IMAGE")
