@@ -35,16 +35,8 @@ epicsEnvSet("PIMEGA_MODULE07_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE08_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE09_IP", "127.0.0.1")
 epicsEnvSet("PIMEGA_MODULE10_IP", "127.0.0.1")
-epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.6")
-#epicsEnvSet("PIMEGA_MODULE02_IP", "223.255.255.3")
-#epicsEnvSet("PIMEGA_MODULE03_IP", "223.255.255.4")
-#epicsEnvSet("PIMEGA_MODULE04_IP", "223.255.255.5")
-#epicsEnvSet("PIMEGA_MODULE05_IP", "223.255.255.6")
-#epicsEnvSet("PIMEGA_MODULE06_IP", "223.255.255.7")
-#epicsEnvSet("PIMEGA_MODULE07_IP", "223.255.255.8")
-#epicsEnvSet("PIMEGA_MODULE08_IP", "223.255.255.9")
-#epicsEnvSet("PIMEGA_MODULE09_IP", "223.255.255.10")
-#epicsEnvSet("PIMEGA_MODULE10_IP", "223.255.255.11")
+epicsEnvSet("PIMEGA_MODULE01_IP", "10.255.255.2")
+
 # The IP port for the command socket
 epicsEnvSet("PIMEGA_PORT", "60000")
 # The search path for database files
