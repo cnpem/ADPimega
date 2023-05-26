@@ -207,6 +207,9 @@ typedef enum ioc_trigger_mode_t {
 #define pimegaM3RdmaBufferUsageString "M3_RDMA_BUFFER"
 #define pimegaM4RdmaBufferUsageString "M4_RDMA_BUFFER"
 #define pimegaBackendStatsString "BACKEND_STATS"
+#define pimegaMetadataFieldString "METADATA_FIELD"
+#define pimegaMetadataValueString "METADATA_VALUE"
+#define pimegaMetadataOMString "METADATA_OM"
 
 class pimegaDetector : public ADDriver {
  public:
@@ -218,7 +221,7 @@ class pimegaDetector : public ADDriver {
                  const char *address_module10, int port, int maxSizeX,
                  int maxSizeY, int detectorModel, int maxBuffers,
                  size_t maxMemory, int priority, int stackSize, int simulate,
-                 int backendOn, int log);
+                 int backendOn, int log, unsigned short backend_port);
 
   virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -368,6 +371,9 @@ class pimegaDetector : public ADDriver {
   int PimegaM3RdmaBufferUsage;
   int PimegaM4RdmaBufferUsage;
   int PimegaBackendStats;
+  int PimegaMetadataField;
+  int PimegaMetadataValue;
+  int PimegaMetadataOM;
   int PimegaIndexError;
   int PimegaLogFile;
 #define LAST_PIMEGA_PARAM PimegaLogFile
@@ -402,7 +408,7 @@ class pimegaDetector : public ADDriver {
   uint64_t recievedBackendCountOffset;
 
   void panic(const char *msg);
-  void connect(const char *address[4], unsigned short port);
+  void connect(const char *address[4], unsigned short port, unsigned short backend_port);
   void createParameters(void);
   void setParameter(int index, const char *value);
   void setParameter(int index, int value);
@@ -446,6 +452,7 @@ class pimegaDetector : public ADDriver {
   asynStatus getExtBgIn(void);
   asynStatus setThresholdEnergy(float energy);
   asynStatus getThresholdEnergy(void);
+  asynStatus metadataHandler(int op_mode);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
