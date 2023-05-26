@@ -15,21 +15,37 @@ static void acquisitionTaskC(void *drvPvt) {
 void pimegaDetector::generateImage(void) {
   NDArray *pImage;
   int backendCounter, itemp, arrayCallbacks;
-
+  printf("\n\n Flag 1.1 \n\n");
   getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-
+  printf("\n\n Flag 1.2 \n\n");
   if (arrayCallbacks) {
-    get_array_data(pimega);
+    printf("\n\n Flag 1.3 \n\n");
+    int rc = get_array_data(pimega);
+    printf("\n\n Flag 1.4 \n\n");
     // getParameter(ADNumImagesCounter, &backendCounter);
 
     getIntegerParam(ADMaxSizeX, &itemp);
+    printf("\n\n Flag 1.5 \n\n");
     dims[0] = itemp;
+    printf("\n\n Flag 1.6 \n\n");
     getIntegerParam(ADMaxSizeY, &itemp);
+    printf("\n\n Flag 1.7 \n\n");
     dims[1] = itemp;
-
-    pImage = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
-    memcpy(pImage->pData, pimega->sample_frame, pImage->dataSize);
-
+    printf("\n\n Flag 1.8 \n\n");
+    pImage = this->pNDArrayPool->alloc(2, dims, NDUInt16, pimega->frame_size * sizeof(uint16_t), pimega->sample_frame);
+    printf("\n\n Flag 1.9 \n\n");
+    //pImage->dataSize = sizeof(pimega->sample_frame);
+    printf("\n\n\n\nframe_size=%d\n\n\n\n", pimega->frame_size);
+    // pImage->dataSize) = 
+    for (int i=0; i <= 2000; i++) {
+      printf("\n sample_frame = %d\n", pimega->sample_frame[i]);
+    }
+    printf("\n\n\n\nsizeof(pimega->sample_frame=%d\n\n\n\n", sizeof(pimega->sample_frame));
+    // pImage->dataSize = dims[0] * dims[1] * sizeof(int32_t);
+    //memcpy(pImage->pData, pimega->sample_frame, pImage->dataSize);
+    // memmove(pImage->pData, pimega->sample_frame, pImage->dataSize);
+    // pImage->pData = pimega->sample_frame;
+    printf("\n\n Flag 1.10 \n\n");
     /* Put the frame number and time stamp into the buffer */
     pImage->uniqueId = backendCounter;
     // pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
@@ -383,7 +399,7 @@ void pimegaDetector::captureTask() {
 
       if (prevAcquisitionCount < recievedBackendCount) {
         prevAcquisitionCount = recievedBackendCount;
-        generateImage();
+      generateImage();
         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
                      "captureTask: New image received (%d) \n",
                      recievedBackendCount);
@@ -436,6 +452,7 @@ void pimegaDetector::captureTask() {
         UPDATEIOCSTATUS("Acquisition finished");
         UPDATESERVERSTATUS("Backend done");
         callParamCallbacks();
+        generateImage();
       }
     } else {
       UPDATESERVERSTATUS("Receiving images");
