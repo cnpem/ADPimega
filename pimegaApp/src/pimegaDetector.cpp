@@ -2169,14 +2169,19 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
     error("Invalid value: %s\n", pimega_error_string(rc));
     return asynError;
   }
-  if (send_mode == PIMEGA_ALL_MBS_ALL_FLEX_ALL_MODULES) {
-    /* Use that of Module 1 since all of them had the same thing written */
-    setParameter(PimegaSensorBias,
-                 pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MODULE1]);
-  } else {
-    setParameter(PimegaSensorBias,
+
+  getSensorBias(pimega, (pimega_send_mb_flex_t)send_mode);
+  
+  setParameter(PimegaSensorBias,
                  pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
-  }
+  // if (send_mode == PIMEGA_ALL_MBS_ALL_FLEX_ALL_MODULES) { 
+  //   /* Use that of Module 1 since all of them had the same thing written */
+  //   setParameter(PimegaSensorBias,
+  //                pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MODULE1]);
+  // } else {
+  //   setParameter(PimegaSensorBias,
+  //                pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
+  // }
 
   return asynSuccess;
 }
