@@ -99,6 +99,7 @@ void pimegaDetector::acqTask() {
       setIntegerParam(ADStatus, ADStatusAcquire);
       /* Backend status */
       getParameter(NDFileCapture, &backendStatus);
+
       status = startAcquire();
       if (status != asynSuccess) {
         PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
@@ -282,17 +283,20 @@ void pimegaDetector::acqTask() {
           }
           break;
 
-          // case IOC_TRIGGER_MODE_ALIGNMENT:
-          //   usleep(100000);
-          //   if (processedBackendCount >= alignmentImagesCounter) {
-          //     status = startAcquire();
-          //     acquireStatus = 0;
-          //     alignmentImagesCounter++;
-          //   }
-          //   UPDATEIOCSTATUS("Acquiring");
-          //   break;
+          case IOC_TRIGGER_MODE_ALIGNMENT:
+            UPDATEIOCSTATUS("Alignment acquiring");
+            if (acquireStatus == DONE_ACQ) {
+              PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
+                           "%s: Acquisition finished\n", functionName);
+              UPDATEIOCSTATUS("Acquisition finished");
+              acquire = 0;
+              setIntegerParam(ADAcquire, 0);
+              acquireStatus = 0;
+              setIntegerParam(ADStatus, ADStatusIdle);    
+            }        
+            break;
       }
-
+      printf("\n\nprocessedBackendCount: %ld \n\n", processedBackendCount);
       /* Errors reported by backend override previous messages. */
       if (moduleError != false) {
         UPDATEIOCSTATUS("Detector error");
@@ -345,6 +349,7 @@ void pimegaDetector::captureTask() {
       int counter = -1;
       while (counter != 0) {
         get_acqStatus_fromBackend(pimega);
+        printf("\nHere, counter: %d\n", counter);
         counter = (int)pimega->acq_status_return.savedFrameNum;
         usleep(1000);
       }
@@ -1349,7 +1354,7 @@ void pimegaDetector::connect(const char *address[10], unsigned short port) {
     rc = pimega_connect_backend(pimega, "127.0.0.1", 5413);
     puts("simulated Backend");
   } else
-    rc = pimega_connect_backend(pimega, "127.0.0.1", 5412);
+    rc = pimega_connect_backend(pimega, "127.0.0.1", 5414);
 
   if (rc != PIMEGA_SUCCESS) panic("Unable to connect with Backend. Aborting");
 
@@ -1767,6 +1772,7 @@ asynStatus pimegaDetector::startAcquire(void) {
   int rc = 0;
   pimega->pimegaParam.software_trigger = false;
   rc = execute_acquire(pimega);
+    printf("\n\nstartAcquire(rc:%d)\n", rc);
   // send_stopAcquire_toBackend(pimega);
   if (rc != PIMEGA_SUCCESS) return asynError;
   return asynSuccess;
@@ -1812,8 +1818,10 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
     externalTrigger = false;
   else
     externalTrigger = true;
-  getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
 
+  configure_alignment();
+
+  printf("\n\nConfigureBackend\n\n");
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
                                           pimega->acquireParam.numCapture);
   if (rc != PIMEGA_SUCCESS) return asynError;
@@ -1908,9 +1916,9 @@ asynStatus pimegaDetector::triggerMode(ioc_trigger_mode_t trigger) {
     case IOC_TRIGGER_MODE_EXTERNAL:
       rc = configure_trigger(pimega, TRIGGER_MODE_IN_EXTERNAL_OUT_ACQ);
       break;
-      // case IOC_TRIGGER_MODE_ALIGNMENT:
-      //   rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_ACQ);
-      //   break;
+    case IOC_TRIGGER_MODE_ALIGNMENT:
+      rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_ACQ);
+      break;
   }
 
   if (rc != PIMEGA_SUCCESS) {
@@ -2368,6 +2376,23 @@ asynStatus pimegaDetector::debug(const std::string &method,
     }
   }
   return asynSuccess;
+}
+
+asynStatus pimegaDetector::configure_alignment() {
+  int numcapture, numExposuresVar;
+  int max_num_capture = 2147483647;
+  int triggerMode;
+
+  getParameter(ADTriggerMode, &triggerMode);
+
+  if (triggerMode == IOC_TRIGGER_MODE_ALIGNMENT) {
+    set_numberExposures(pimega, max_num_capture);
+    pimega->acquireParam.numCapture = max_num_capture;
+  } else {
+    getIntegerParam(ADNumExposures, &numExposuresVar);
+    set_numberExposures(pimega, numExposuresVar);
+    getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+  }    
 }
 
 /* Code for iocsh registration */

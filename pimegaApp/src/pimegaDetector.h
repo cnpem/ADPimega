@@ -85,8 +85,8 @@ static const char *driverName = "pimegaDetector";
 
 typedef enum ioc_trigger_mode_t {
   IOC_TRIGGER_MODE_INTERNAL = 0,
-  IOC_TRIGGER_MODE_EXTERNAL = 1
-// IOC_TRIGGER_MODE_ALIGNMENT = 2
+  IOC_TRIGGER_MODE_EXTERNAL = 1,
+  IOC_TRIGGER_MODE_ALIGNMENT = 2
 } ioc_trigger_mode_t;
 
 #define pimegaMedipixModeString "MEDIPIX_MODE"
@@ -446,6 +446,7 @@ class pimegaDetector : public ADDriver {
   asynStatus getExtBgIn(void);
   asynStatus setThresholdEnergy(float energy);
   asynStatus getThresholdEnergy(void);
+  asynStatus configure_alignment(void);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
