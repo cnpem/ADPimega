@@ -19,7 +19,7 @@ epicsEnvSet("XSIZE",  "3072")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
 epicsEnvSet("YSIZE",  "3072")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "368640")
+epicsEnvSet("NELEMENTS", "9437184")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
