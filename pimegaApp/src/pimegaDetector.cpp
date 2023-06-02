@@ -1913,7 +1913,7 @@ asynStatus pimegaDetector::triggerMode(ioc_trigger_mode_t trigger) {
       rc = configure_trigger(pimega, TRIGGER_MODE_IN_EXTERNAL_OUT_ACQ);
       break;
     case IOC_TRIGGER_MODE_ALIGNMENT:
-      rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_ACQ);
+      rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_SHUTTER);
       break;
   }
 
