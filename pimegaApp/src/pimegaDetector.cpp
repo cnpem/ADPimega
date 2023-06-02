@@ -99,7 +99,6 @@ void pimegaDetector::acqTask() {
       setIntegerParam(ADStatus, ADStatusAcquire);
       /* Backend status */
       getParameter(NDFileCapture, &backendStatus);
-
       status = startAcquire();
       if (status != asynSuccess) {
         PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
@@ -209,6 +208,7 @@ void pimegaDetector::acqTask() {
         /* Internal Trigger : Acquire should go down after the number of images
          * configured to the detector is received  */
         case IOC_TRIGGER_MODE_INTERNAL:
+
           /* Acquire and IOC status message management. Acquire still will wait
              for the images to be saved (if necessary) to go to 0 or will wait
              for index to receive the images or both */
@@ -283,6 +283,7 @@ void pimegaDetector::acqTask() {
           break;
 
           case IOC_TRIGGER_MODE_ALIGNMENT:
+
             if (acquireStatus == DONE_ACQ) {
               configureAlignment(false);
               PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
@@ -295,6 +296,7 @@ void pimegaDetector::acqTask() {
             }        
             break;
       }
+
       /* Errors reported by backend override previous messages. */
       if (moduleError != false) {
         UPDATEIOCSTATUS("Detector error");
@@ -1814,7 +1816,6 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
     externalTrigger = false;
   else
     externalTrigger = true;
-
   configureAlignment(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
