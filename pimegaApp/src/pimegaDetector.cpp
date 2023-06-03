@@ -401,8 +401,8 @@ void pimegaDetector::captureTask() {
       }
     }
 
-    if (previousReceivedCount < (uint64_t)pimega->acq_status_return.processedImageNum) {
-      previousReceivedCount = (uint64_t)pimega->acq_status_return.processedImageNum;
+    if (previousReceivedCount < received_acq) {
+      previousReceivedCount = received_acq;
       generateImage();
     }
 
