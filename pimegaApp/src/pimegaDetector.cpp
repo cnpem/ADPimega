@@ -14,7 +14,7 @@ static void acquisitionTaskC(void *drvPvt) {
 
 void pimegaDetector::generateImage(void) {
   NDArray *pImage;
-  int backendCounter, itemp, arrayCallbacks;
+  int backendCounter, itemp, arrayCallbacks, rc;
   getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
   if (arrayCallbacks) {
     int rc = get_array_data(pimega);
@@ -310,6 +310,7 @@ void pimegaDetector::captureTask() {
   int capture = 0;
   int eventStatus = 0;
   uint64_t prevAcquisitionCount = 0;
+  static uint64_t previousReceivedCount = 0;
   uint64_t recievedBackendCount, processedBackendCount;
   while (1) {
     if (!capture) {
@@ -322,6 +323,7 @@ void pimegaDetector::captureTask() {
 
       prevAcquisitionCount = 0;
       recievedBackendCountOffset = 0;
+      previousReceivedCount = 0;
       capture = 1;
     }
 
@@ -362,30 +364,16 @@ void pimegaDetector::captureTask() {
       recievedBackendCount = UINT64_MAX;
       moduleError |= pimega->acq_status_return.moduleError[0];
       recievedBackendCount = 0;
-      uint64_t previousProcessedCount = 0;
       processedBackendCount = pimega->acq_status_return.processedImageNum;
       /*Anamoly detection. Upon incorrect configuration the detector, a number
         of images larger that what has been requested may arrive. In that case,
         to establish the end of the capture, an upper bound
         pimega->acquireParam.numCapture is set for recievedBackendCount*/
 
-      if (previousProcessedCount < (int)pimega->acq_status_return.processedImageNum) {
-        previousProcessedCount = (int)pimega->acq_status_return.processedImageNum;
-        generateImage();
-      }
-
       if (pimega->acquireParam.numCapture != 0 &&
           recievedBackendCount >
               (unsigned int)pimega->acquireParam.numCapture) {
         recievedBackendCount = (unsigned int)pimega->acquireParam.numCapture;
-      }
-
-      if (prevAcquisitionCount < recievedBackendCount) {
-        prevAcquisitionCount = recievedBackendCount;
-        generateImage();
-        PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
-                     "captureTask: New image received (%d) \n",
-                     recievedBackendCount);
       }
     }
     getParameter(NDAutoSave, &autoSave);
@@ -402,19 +390,26 @@ void pimegaDetector::captureTask() {
 
         backendStatus != 0 permits that the thread executes this snippet the
        last time when the NDFileCapture is set to 0 */
+
+    received_acq = 0;
+    for (int module = 1; module <= pimega->max_num_modules; module++) {
+      if (received_acq == 0 ||
+          (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
+              received_acq) {
+        received_acq =
+            (int)pimega->acq_status_return.noOfAquisitions[module - 1];
+      }
+    }
+
+    if (previousReceivedCount < (uint64_t)pimega->acq_status_return.processedImageNum) {
+      previousReceivedCount = (uint64_t)pimega->acq_status_return.processedImageNum;
+      generateImage();
+    }
+
     if (pimega->acquireParam.numCapture != 0 && capture) {
       /* Timer finished and data should have arrived already ( but not
        * necessarily saved ) */
       getIntegerParam(ADStatus, &adstatus);
-      received_acq = 0;
-      for (int module = 1; module <= pimega->max_num_modules; module++) {
-        if (received_acq == 0 ||
-            (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
-                received_acq) {
-          received_acq =
-              (int)pimega->acq_status_return.noOfAquisitions[module - 1];
-        }
-      }
       if (adstatus == ADStatusAborted) {
         UPDATESERVERSTATUS("Aborted");
       } else if (received_acq < (int)pimega->acquireParam.numCapture) {
