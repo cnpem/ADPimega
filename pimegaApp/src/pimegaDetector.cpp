@@ -535,6 +535,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         strncpy(pimega->error, "Cannot start", sizeof("Cannot start"));
       } else {
         strncpy(pimega->error, "Already stoped", sizeof("Already stoped"));
+        send_stopAcquire_toBackend(pimega);
       }
     }
   }
