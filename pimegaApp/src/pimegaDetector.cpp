@@ -285,15 +285,19 @@ void pimegaDetector::acqTask() {
           }
           break;
 
-          // case IOC_TRIGGER_MODE_ALIGNMENT:
-          //   usleep(100000);
-          //   if (processedBackendCount >= alignmentImagesCounter) {
-          //     status = startAcquire();
-          //     acquireStatus = 0;
-          //     alignmentImagesCounter++;
-          //   }
-          //   UPDATEIOCSTATUS("Acquiring");
-          //   break;
+          case IOC_TRIGGER_MODE_ALIGNMENT:
+
+            if (acquireStatus == DONE_ACQ) {
+              configureAlignment(false);
+              PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
+                           "%s: Alignment stopped\n", functionName);
+              UPDATEIOCSTATUS("Alignment stopped");
+              acquire = 0;
+              setIntegerParam(ADAcquire, 0);
+              acquireStatus = 0;
+              setIntegerParam(ADStatus, ADStatusIdle);    
+            }        
+            break;
       }
 
       /* Errors reported by backend override previous messages. */
@@ -1819,7 +1823,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
     externalTrigger = false;
   else
     externalTrigger = true;
-  getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+  configureAlignment(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
                                           pimega->acquireParam.numCapture);
@@ -1915,9 +1919,9 @@ asynStatus pimegaDetector::triggerMode(ioc_trigger_mode_t trigger) {
     case IOC_TRIGGER_MODE_EXTERNAL:
       rc = configure_trigger(pimega, TRIGGER_MODE_IN_EXTERNAL_OUT_ACQ);
       break;
-      // case IOC_TRIGGER_MODE_ALIGNMENT:
-      //   rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_ACQ);
-      //   break;
+    case IOC_TRIGGER_MODE_ALIGNMENT:
+      rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_SHUTTER);
+      break;
   }
 
   if (rc != PIMEGA_SUCCESS) {
@@ -2371,6 +2375,20 @@ asynStatus pimegaDetector::debug(const std::string &method,
     }
   }
   return asynSuccess;
+}
+
+asynStatus pimegaDetector::configureAlignment(bool alignment_mode) {
+  int numExposuresVar;
+  int max_num_capture = 2147483647;
+
+  if (alignment_mode) {
+    set_numberExposures(pimega, max_num_capture);
+    pimega->acquireParam.numCapture = max_num_capture;
+  } else {
+    getIntegerParam(ADNumExposures, &numExposuresVar);
+    set_numberExposures(pimega, numExposuresVar);
+    getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+  }
 }
 
 /* Code for iocsh registration */
