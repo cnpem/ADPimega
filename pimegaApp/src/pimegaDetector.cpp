@@ -153,10 +153,9 @@ void pimegaDetector::acqTask() {
       PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
                    "%s: Stop acquire request received in thread\n",
                    functionName);
-
       setShutter(0);
       setIntegerParam(ADAcquire, 0);
-      // acquire = 0;
+      acquire = 0;
       if (acquireStatusError == 1) {
         acquireStatusError = 0;
         setIntegerParam(ADStatus, ADStatusAborted);
@@ -352,7 +351,6 @@ void pimegaDetector::captureTask() {
         counter = (int)pimega->acq_status_return.savedFrameNum;
         usleep(1000);
       }
-
       if (status != 0) {
         PIMEGA_PRINT(pimega, TRACE_MASK_ERROR, "%s: Failed - %s\n",
                      "send_stopAcquire_toBackend", pimega->error);
