@@ -162,7 +162,10 @@ void pimegaDetector::acqTask() {
         UPDATEIOCSTATUS(pimega->error);
         pimega->error[0] = '\0';
       } else {
-        setIntegerParam(ADStatus, ADStatusAborted);
+        acquire = 0;
+        setIntegerParam(ADAcquire, 0);
+        acquireStatus = 0;
+        setIntegerParam(ADStatus, ADStatusIdle);
         UPDATEIOCSTATUS("Acquisition aborted by user");
       }
       callParamCallbacks();
@@ -533,8 +536,8 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       if (value) {
         strncpy(pimega->error, "Cannot start", sizeof("Cannot start"));
       } else {
-        epicsEventSignal(this->stopAcquireEventId_);
-        status = send_stopAcquire_toBackend(pimega);
+        strncpy(pimega->error, "Already stoped", sizeof("Already stoped"));
+        send_stopAcquire_toBackend(pimega);
       }
     }
   }
@@ -587,8 +590,12 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         epicsThreadSleep(.1);
         setDoubleParam(ADTimeRemaining, 0);
         strcat(ok_str, "Acquisition stopped");
+      } else {
+        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR, "%s: Backend already stopped. Sending asynError\n", functionName);
+        strncpy(pimega->error, "Backend already stopped", sizeof("Backend already stopped"));
+        strcat(ok_str, "Backend already stopped");
       }
-    }
+    } 
   } else if (acquireRunning == 1) {
     strncpy(pimega->error, "Stop current acquisition first",
             sizeof("Stop current acquisition first"));
@@ -2171,14 +2178,10 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
     error("Invalid value: %s\n", pimega_error_string(rc));
     return asynError;
   }
-  if (send_mode == PIMEGA_ALL_MBS_ALL_FLEX_ALL_MODULES) {
-    /* Use that of Module 1 since all of them had the same thing written */
-    setParameter(PimegaSensorBias,
-                 pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MODULE1]);
-  } else {
-    setParameter(PimegaSensorBias,
+
+  getSensorBias(pimega, (pimega_send_mb_flex_t)send_mode);
+  setParameter(PimegaSensorBias,
                  pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
-  }
 
   return asynSuccess;
 }
