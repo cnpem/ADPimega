@@ -2021,7 +2021,8 @@ asynStatus pimegaDetector::checkSensors(void) {
 }
 
 asynStatus pimegaDetector::reset(short action) {
-  int rc = 0;
+  int rc = PIMEGA_SUCCESS;
+  int return_rc = PIMEGA_SUCCESS;
   if (action < 0 || action > 1) {
     error("Invalid boolean value: %d\n", action);
     return asynError;
@@ -2029,30 +2030,30 @@ asynStatus pimegaDetector::reset(short action) {
 
   if (action == 0) {
     rc = pimega_reset(pimega);
-  }
-
-  else {
+  } else {
     char _file[256] = "";
     getStringParam(pimegaDacDefaults, sizeof(_file), _file);
     printf("reading file %s\n", _file);
     rc |= pimega_reset_and_init(pimega, _file);
   }
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  if (rc != PIMEGA_SUCCESS) return_rc=rc;
   /* Set some default parameters */
   rc = acqPeriod(0.0);
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  if (rc != PIMEGA_SUCCESS) return_rc=rc;
   rc = acqTime(1.0);
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  if (rc != PIMEGA_SUCCESS) return_rc=rc;
   rc = numExposures(1);
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  if (rc != PIMEGA_SUCCESS) return_rc=rc;
   setParameter(ADTriggerMode,
                pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL);
   rc = medipixMode(MODE_B12);
-
   if (rc != PIMEGA_SUCCESS) {
-    return asynError;
+    return_rc = rc;
   }
 
+  if (return_rc != PIMEGA_SUCCESS) {
+    return asynError;
+  }
   return asynSuccess;
 }
 
