@@ -14,33 +14,25 @@ static void acquisitionTaskC(void *drvPvt) {
 
 void pimegaDetector::generateImage(void) {
   NDArray *pImage;
-  int backendCounter, itemp, arrayCallbacks;
-
+  int backendCounter, itemp, arrayCallbacks, rc;
   getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-
   if (arrayCallbacks) {
-    get_array_data(pimega);
-    // getParameter(ADNumImagesCounter, &backendCounter);
-
-    getIntegerParam(ADMaxSizeX, &itemp);
-    dims[0] = itemp;
-    getIntegerParam(ADMaxSizeY, &itemp);
-    dims[1] = itemp;
-
-    pImage = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
-    memcpy(pImage->pData, pimega->sample_frame, pImage->dataSize);
-
-    /* Put the frame number and time stamp into the buffer */
-    pImage->uniqueId = backendCounter;
-    // pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
-    updateTimeStamp(&pImage->epicsTS);
-
-    this->getAttributes(pImage->pAttributeList);
-
-    PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
-                 "generateImage: Called the NDArray callback\n");
-    doCallbacksGenericPointer(pImage, NDArrayData, 0);
-    pImage->release();
+    int rc = get_array_data(pimega);
+    if (rc == PIMEGA_SUCCESS){
+      getIntegerParam(ADMaxSizeX, &itemp);
+      dims[0] = itemp;
+      getIntegerParam(ADMaxSizeY, &itemp);
+      dims[1] = itemp;
+      pImage = this->pNDArrayPool->alloc(2, dims, NDUInt16, 0, NULL);
+      memcpy(pImage->pData, pimega->sample_frame, pImage->dataSize);
+      pImage->uniqueId = backendCounter;
+      updateTimeStamp(&pImage->epicsTS);
+      this->getAttributes(pImage->pAttributeList);
+      PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
+                  "generateImage: Called the NDArray callback\n");
+      doCallbacksGenericPointer(pImage, NDArrayData, 0);
+      pImage->release();
+    }
   }
 }
 
@@ -325,6 +317,7 @@ void pimegaDetector::captureTask() {
   int capture = 0;
   int eventStatus = 0;
   uint64_t prevAcquisitionCount = 0;
+  static uint64_t previousReceivedCount = 0;
   uint64_t recievedBackendCount, processedBackendCount;
   while (1) {
     if (!capture) {
@@ -337,6 +330,7 @@ void pimegaDetector::captureTask() {
 
       prevAcquisitionCount = 0;
       recievedBackendCountOffset = 0;
+      previousReceivedCount = 0;
       capture = 1;
     }
 
@@ -382,18 +376,11 @@ void pimegaDetector::captureTask() {
         of images larger that what has been requested may arrive. In that case,
         to establish the end of the capture, an upper bound
         pimega->acquireParam.numCapture is set for recievedBackendCount*/
+
       if (pimega->acquireParam.numCapture != 0 &&
           recievedBackendCount >
               (unsigned int)pimega->acquireParam.numCapture) {
         recievedBackendCount = (unsigned int)pimega->acquireParam.numCapture;
-      }
-
-      if (prevAcquisitionCount < recievedBackendCount) {
-        prevAcquisitionCount = recievedBackendCount;
-        generateImage();
-        PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
-                     "captureTask: New image received (%d) \n",
-                     recievedBackendCount);
       }
     }
     getParameter(NDAutoSave, &autoSave);
@@ -410,19 +397,26 @@ void pimegaDetector::captureTask() {
 
         backendStatus != 0 permits that the thread executes this snippet the
        last time when the NDFileCapture is set to 0 */
+
+    received_acq = 0;
+    for (int module = 1; module <= pimega->max_num_modules; module++) {
+      if (received_acq == 0 ||
+          (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
+              received_acq) {
+        received_acq =
+            (int)pimega->acq_status_return.noOfAquisitions[module - 1];
+      }
+    }
+
+    if (previousReceivedCount < received_acq) {
+      previousReceivedCount = received_acq;
+      generateImage();
+    }
+
     if (pimega->acquireParam.numCapture != 0 && capture) {
       /* Timer finished and data should have arrived already ( but not
        * necessarily saved ) */
       getIntegerParam(ADStatus, &adstatus);
-      received_acq = 0;
-      for (int module = 1; module <= pimega->max_num_modules; module++) {
-        if (received_acq == 0 ||
-            (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
-                received_acq) {
-          received_acq =
-              (int)pimega->acq_status_return.noOfAquisitions[module - 1];
-        }
-      }
       if (adstatus == ADStatusAborted) {
         UPDATESERVERSTATUS("Aborted");
       } else if (received_acq < (int)pimega->acquireParam.numCapture) {
@@ -443,6 +437,7 @@ void pimegaDetector::captureTask() {
         UPDATEIOCSTATUS("Acquisition finished");
         UPDATESERVERSTATUS("Backend done");
         callParamCallbacks();
+        generateImage();
       }
     } else {
       UPDATESERVERSTATUS("Receiving images");
