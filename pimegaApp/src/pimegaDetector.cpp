@@ -155,10 +155,7 @@ void pimegaDetector::acqTask() {
         UPDATEIOCSTATUS(pimega->error);
         pimega->error[0] = '\0';
       } else {
-        acquire = 0;
-        setIntegerParam(ADAcquire, 0);
-        acquireStatus = 0;
-        setIntegerParam(ADStatus, ADStatusIdle);
+        setIntegerParam(ADStatus, ADStatusAborted);
         UPDATEIOCSTATUS("Acquisition aborted by user");
       }
       callParamCallbacks();
@@ -534,7 +531,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         strncpy(pimega->error, "Cannot start", sizeof("Cannot start"));
       } else {
         strncpy(pimega->error, "Already stoped", sizeof("Already stoped"));
-        send_stopAcquire_toBackend(pimega);
       }
     }
   }
