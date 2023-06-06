@@ -156,7 +156,8 @@ void pimegaDetector::acqTask() {
         pimega->error[0] = '\0';
       } else {
         setIntegerParam(ADStatus, ADStatusAborted);
-        UPDATEIOCSTATUS("Acquisition aborted by user");
+        send_stopAcquire_toBackend(pimega);
+        UPDATEIOCSTATUS("Stop send to the backend");
       }
       callParamCallbacks();
       continue;
@@ -204,11 +205,11 @@ void pimegaDetector::acqTask() {
           /* Acquire and IOC status message management. Acquire still will wait
              for the images to be saved (if necessary) to go to 0 or will wait
              for index to receive the images or both */
-          if (acquireImageCount < numExposuresVar) {
+          if (pimega->acq_status_return.done != DONE_ACQ) {
             UPDATEIOCSTATUS("Not all images received. Waiting");
 
           } else if (autoSave == 1 &&
-                     acquireImageSavedCount < numExposuresVar) {
+                     pimega->acq_status_return.done != DONE_ACQ) {
             UPDATEIOCSTATUS("Saving images..");
 
           } else if (indexEnableBool == true &&
@@ -398,7 +399,7 @@ void pimegaDetector::captureTask() {
     received_acq = 0;
     for (int module = 1; module <= pimega->max_num_modules; module++) {
       if (received_acq == 0 ||
-          (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
+          (int)pimega->acq_status_return.noOfAquisitions[module - 1] >
               received_acq) {
         received_acq =
             (int)pimega->acq_status_return.noOfAquisitions[module - 1];
@@ -419,8 +420,8 @@ void pimegaDetector::captureTask() {
       } else if (received_acq < (int)pimega->acquireParam.numCapture) {
         UPDATESERVERSTATUS("Waiting for images");
 
-      } else if (autoSave == 1 && (int)pimega->acq_status_return.savedFrameNum <
-                                      (int)pimega->acquireParam.numCapture) {
+      } else if (autoSave == 1 &&
+                     pimega->acq_status_return.done != DONE_ACQ) {
         UPDATESERVERSTATUS("Saving");
       } else if ((int)pimega->acq_status_return.processedImageNum <
                  (int)pimega->acquireParam.numCapture) {
@@ -1078,7 +1079,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
     received_acq = 0;
     for (int module = 1; module <= pimega->max_num_modules; module++) {
       if (received_acq == 0 ||
-          (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
+          (int)pimega->acq_status_return.noOfAquisitions[module - 1] >
               received_acq) {
         received_acq =
             (int)pimega->acq_status_return.noOfAquisitions[module - 1];
@@ -2134,6 +2135,9 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s) {
     return asynError;
   }
   setParameter(ADAcquireTime, acquire_time_s);
+  get_acquire_period(pimega);
+  float acq_period_rbv = pimega->acquireParam.acquirePeriod;
+  setParameter(ADAcquirePeriod, acq_period_rbv);
   return asynSuccess;
 }
 
