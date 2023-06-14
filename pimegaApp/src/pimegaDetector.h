@@ -1,8 +1,5 @@
 /*
  * pimegaDetector.h
- *
- *  Created on: 11 Dec 2018
- *      Author: Douglas Araujo
  */
 
 // Standard includes
@@ -85,8 +82,8 @@ static const char *driverName = "pimegaDetector";
 
 typedef enum ioc_trigger_mode_t {
   IOC_TRIGGER_MODE_INTERNAL = 0,
-  IOC_TRIGGER_MODE_EXTERNAL = 1
-// IOC_TRIGGER_MODE_ALIGNMENT = 2
+  IOC_TRIGGER_MODE_EXTERNAL = 1,
+  IOC_TRIGGER_MODE_ALIGNMENT = 2
 } ioc_trigger_mode_t;
 
 #define pimegaMedipixModeString "MEDIPIX_MODE"
@@ -371,9 +368,6 @@ class pimegaDetector : public ADDriver {
   int PimegaM3RdmaBufferUsage;
   int PimegaM4RdmaBufferUsage;
   int PimegaBackendStats;
-  int PimegaMetadataField;
-  int PimegaMetadataValue;
-  int PimegaMetadataOM;
   int PimegaIndexError;
   int PimegaLogFile;
 #define LAST_PIMEGA_PARAM PimegaLogFile
@@ -453,6 +447,7 @@ class pimegaDetector : public ADDriver {
   asynStatus setThresholdEnergy(float energy);
   asynStatus getThresholdEnergy(void);
   asynStatus metadataHandler(int op_mode);
+  asynStatus configureAlignment(bool alignment_mode);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)

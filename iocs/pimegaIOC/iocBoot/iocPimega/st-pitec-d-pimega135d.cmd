@@ -15,11 +15,11 @@ epicsEnvSet("DMODEL", "3");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
-epicsEnvSet("XSIZE",  "512")
+epicsEnvSet("XSIZE",  "1536")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
 epicsEnvSet("YSIZE",  "1536")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "786432")
+epicsEnvSet("NELEMENTS", "2359296")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
@@ -63,6 +63,7 @@ epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "99999999")
 pimegaDetectorConfig("$(PORT)",$(PIMEGA_MODULE01_IP),$(PIMEGA_MODULE02_IP),$(PIMEGA_MODULE03_IP),$(PIMEGA_MODULE04_IP),$(PIMEGA_MODULE05_IP),$(PIMEGA_MODULE06_IP),$(PIMEGA_MODULE07_IP),$(PIMEGA_MODULE08_IP),$(PIMEGA_MODULE09_IP),$(PIMEGA_MODULE10_IP),$(PIMEGA_PORT), $(XSIZE), $(YSIZE), $(DMODEL), 0, 0, 0, 0, 0, 1, 1, 5412)
 
 dbLoadRecords("$(ADPIMEGA)/db/pimega.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(ADPIMEGA)/db/NDFile.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 # Load asynRecord record
 dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn1,PORT=$(PORT),ADDR=0,OMAX=256,IMAX=256")
