@@ -168,7 +168,7 @@ void pimegaDetector::acqTask() {
      * on full speed. */
     usleep(10000);
 
-    // printf("Index error = %d\n", pimega->acq_status_return.indexError);
+    // printf("Index error = %d\n", pimega->acq_status_return.STATUS_INDEXERROR);
     /* Will enter here only one time when the acqusition time is over. The
       current configuration assumes that when time is up, the thread goes to
       sleep, but perhaps we should consider changing this to only after
@@ -186,9 +186,9 @@ void pimegaDetector::acqTask() {
          single acquire needs to be tracked */
       // acquireImageCount = recievedBackendCount - recievedBackendCountOffset;
       acquireImageCount =
-          pimega->acq_status_return.noOfFrames[pimega->pimega_module - 1];
+          pimega->acq_status_return.STATUS_NOOFFRAMES[pimega->pimega_module - 1];
       acquireImageSavedCount =
-          pimega->acq_status_return.savedFrameNum - recievedBackendCountOffset;
+          pimega->acq_status_return.STATUS_SAVEDFRAMENUM - recievedBackendCountOffset;
 
       /* Index enable */
       getIntegerParam(PimegaIndexEnable, &indexEnable);
@@ -214,7 +214,7 @@ void pimegaDetector::acqTask() {
             UPDATEIOCSTATUS("Saving images..");
 
           } else if (indexEnableBool == true &&
-                     pimega->acq_status_return.indexSentAquisitionNum <
+                     pimega->acq_status_return.STATUS_INDEXSENTACQUISITIONNUM <
                          (unsigned int)pimega->acquireParam.numCapture) {
             UPDATEIOCSTATUS("Sending frames to Index");
 
@@ -251,11 +251,11 @@ void pimegaDetector::acqTask() {
 
             } else if (autoSave == 1 &&
                        processedBackendCount <
-                           pimega->acq_status_return.savedFrameNum) {
+                           pimega->acq_status_return.STATUS_SAVEDFRAMENUM) {
               UPDATEIOCSTATUS("Saving images..");
 
             } else if (indexEnableBool == true &&
-                       pimega->acq_status_return.indexSentAquisitionNum <
+                       pimega->acq_status_return.STATUS_INDEXSENTACQUISITIONNUM <
                            (unsigned int)pimega->acquireParam.numCapture) {
               UPDATEIOCSTATUS("Sending frames to Index");
 
@@ -295,7 +295,7 @@ void pimegaDetector::acqTask() {
       if (moduleError != false) {
         UPDATEIOCSTATUS("Detector error");
         setIntegerParam(ADStatus, ADStatusError);
-      } else if (pimega->acq_status_return.indexError != false) {
+      } else if (pimega->acq_status_return.STATUS_INDEXERROR != false) {
         UPDATEIOCSTATUS("Index error");
         setIntegerParam(ADStatus, ADStatusError);
       }
@@ -345,7 +345,7 @@ void pimegaDetector::captureTask() {
       int counter = -1;
       while (counter != 0) {
         get_acqStatus_from_backend(pimega);
-        counter = (int)pimega->acq_status_return.savedFrameNum;
+        counter = (int)pimega->acq_status_return.STATUS_SAVEDFRAMENUM;
         usleep(1000);
       }
 
@@ -368,7 +368,7 @@ void pimegaDetector::captureTask() {
       get_acqStatus_from_backend(pimega);
       moduleError = false;
       recievedBackendCount = UINT64_MAX;
-      moduleError |= pimega->acq_status_return.moduleError[0];
+      moduleError |= pimega->acq_status_return.STATUS_MODULEERROR[0];
       recievedBackendCount = 0;
       processedBackendCount = pimega->acq_status_return.processedImageNum;
       /*Anamoly detection. Upon incorrect configuration the detector, a number
@@ -399,10 +399,10 @@ void pimegaDetector::captureTask() {
     received_acq = 0;
     for (int module = 1; module <= pimega->max_num_modules; module++) {
       if (received_acq == 0 ||
-          (int)pimega->acq_status_return.noOfAquisitions[module - 1] >
+          (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module - 1] >
               received_acq) {
         received_acq =
-            (int)pimega->acq_status_return.noOfAquisitions[module - 1];
+            (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module - 1];
       }
     }
 
@@ -443,7 +443,7 @@ void pimegaDetector::captureTask() {
     /* Errors reported by backend override previous messages. */
     if (moduleError != false) {
       UPDATESERVERSTATUS("Detector dropped frames");
-    } else if (pimega->acq_status_return.indexError != false) {
+    } else if (pimega->acq_status_return.STATUS_INDEXERROR != false) {
       UPDATESERVERSTATUS("Index not responding");
     }
   }
@@ -1030,7 +1030,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser,
   getParameter(ADAcquire, &acquireRunning);
 
   if (function == PimegaBackBuffer) {
-    *value = pimega->acq_status_return.bufferUsed[0] * 100;
+    *value = pimega->acq_status_return.STATUS_BUFFERUSED[0] * 100;
   }
 
   else if (function == PimegaDacOutSense) {
@@ -1077,10 +1077,10 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   getParameter(NDAutoSave, &autoSave);
 
   if (function == PimegaBackendStats) {
-    if (pimega->acq_status_return.moduleError[0] == 1 ||
-        pimega->acq_status_return.moduleError[1] == 1 ||
-        pimega->acq_status_return.moduleError[2] == 1 ||
-        pimega->acq_status_return.moduleError[3] == 1)
+    if (pimega->acq_status_return.STATUS_MODULEERROR[0] == 1 ||
+        pimega->acq_status_return.STATUS_MODULEERROR[1] == 1 ||
+        pimega->acq_status_return.STATUS_MODULEERROR[2] == 1 ||
+        pimega->acq_status_return.STATUS_MODULEERROR[3] == 1)
       error = 1;
     else
       error = 0;
@@ -1088,62 +1088,62 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
     received_acq = 0;
     for (int module = 1; module <= pimega->max_num_modules; module++) {
       if (received_acq == 0 ||
-          (int)pimega->acq_status_return.noOfAquisitions[module - 1] >
+          (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module - 1] >
               received_acq) {
         received_acq =
-            (int)pimega->acq_status_return.noOfAquisitions[module - 1];
+            (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module - 1];
       }
     }
 
     setParameter(PimegaReceiveError, error);
     setParameter(PimegaM1ReceiveError,
-                 (int)pimega->acq_status_return.moduleError[0]);
+                 (int)pimega->acq_status_return.STATUS_MODULEERROR[0]);
     setParameter(PimegaM2ReceiveError,
-                 (int)pimega->acq_status_return.moduleError[1]);
+                 (int)pimega->acq_status_return.STATUS_MODULEERROR[1]);
     setParameter(PimegaM3ReceiveError,
-                 (int)pimega->acq_status_return.moduleError[2]);
+                 (int)pimega->acq_status_return.STATUS_MODULEERROR[2]);
     setParameter(PimegaM4ReceiveError,
-                 (int)pimega->acq_status_return.moduleError[3]);
+                 (int)pimega->acq_status_return.STATUS_MODULEERROR[3]);
     setParameter(PimegaM1LostFrameCount,
-                 (int)pimega->acq_status_return.lostFrameCnt[0]);
+                 (int)pimega->acq_status_return.STATUS_LOSTFRAMECNT[0]);
     setParameter(PimegaM2LostFrameCount,
-                 (int)pimega->acq_status_return.lostFrameCnt[1]);
+                 (int)pimega->acq_status_return.STATUS_LOSTFRAMECNT[1]);
     setParameter(PimegaM3LostFrameCount,
-                 (int)pimega->acq_status_return.lostFrameCnt[2]);
+                 (int)pimega->acq_status_return.STATUS_LOSTFRAMECNT[2]);
     setParameter(PimegaM4LostFrameCount,
-                 (int)pimega->acq_status_return.lostFrameCnt[3]);
+                 (int)pimega->acq_status_return.STATUS_LOSTFRAMECNT[3]);
     setParameter(PimegaM1RxFrameCount,
-                 (int)pimega->acq_status_return.noOfFrames[0]);
+                 (int)pimega->acq_status_return.STATUS_NOOFFRAMES[0]);
     setParameter(PimegaM2RxFrameCount,
-                 (int)pimega->acq_status_return.noOfFrames[1]);
+                 (int)pimega->acq_status_return.STATUS_NOOFFRAMES[1]);
     setParameter(PimegaM3RxFrameCount,
-                 (int)pimega->acq_status_return.noOfFrames[2]);
+                 (int)pimega->acq_status_return.STATUS_NOOFFRAMES[2]);
     setParameter(PimegaM4RxFrameCount,
-                 (int)pimega->acq_status_return.noOfFrames[3]);
+                 (int)pimega->acq_status_return.STATUS_NOOFFRAMES[3]);
     setParameter(PimegaM1AquisitionCount,
-                 (int)pimega->acq_status_return.noOfAquisitions[0]);
+                 (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[0]);
     setParameter(PimegaM2AquisitionCount,
-                 (int)pimega->acq_status_return.noOfAquisitions[1]);
+                 (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[1]);
     setParameter(PimegaM3AquisitionCount,
-                 (int)pimega->acq_status_return.noOfAquisitions[2]);
+                 (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[2]);
     setParameter(PimegaM4AquisitionCount,
-                 (int)pimega->acq_status_return.noOfAquisitions[3]);
+                 (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[3]);
     setParameter(PimegaM1RdmaBufferUsage,
-                 (double)pimega->acq_status_return.bufferUsed[0] * 100);
+                 (double)pimega->acq_status_return.STATUS_BUFFERUSED[0] * 100);
     setParameter(PimegaM2RdmaBufferUsage,
-                 (double)pimega->acq_status_return.bufferUsed[1] * 100);
+                 (double)pimega->acq_status_return.STATUS_BUFFERUSED[1] * 100);
     setParameter(PimegaM3RdmaBufferUsage,
-                 (double)pimega->acq_status_return.bufferUsed[2] * 100);
+                 (double)pimega->acq_status_return.STATUS_BUFFERUSED[2] * 100);
     setParameter(PimegaM4RdmaBufferUsage,
-                 (double)pimega->acq_status_return.bufferUsed[3] * 100);
-    setParameter(PimegaIndexError, (int)pimega->acq_status_return.indexError);
+                 (double)pimega->acq_status_return.STATUS_BUFFERUSED[3] * 100);
+    setParameter(PimegaIndexError, (int)pimega->acq_status_return.STATUS_INDEXERROR);
     setParameter(PimegaIndexCounter,
-                 (int)pimega->acq_status_return.indexSentAquisitionNum);
+                 (int)pimega->acq_status_return.STATUS_INDEXSENTACQUISITIONNUM);
     setParameter(ADNumImagesCounter, received_acq);
     setParameter(PimegaProcessedImageCounter,
                  (int)pimega->acq_status_return.processedImageNum);
     setParameter(NDFileNumCaptured,
-                 (int)pimega->acq_status_return.savedFrameNum);
+                 (int)pimega->acq_status_return.STATUS_SAVEDFRAMENUM);
     callParamCallbacks();
 
   } else if (function == PimegaModule) {
