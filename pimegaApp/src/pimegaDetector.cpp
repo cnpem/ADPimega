@@ -1830,7 +1830,8 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
-                                          pimega->acquireParam.numCapture);
+                                          pimega->acquireParam.numCapture,
+                                          pimega->acq_args.frameProcessMode);
   if (rc != PIMEGA_SUCCESS) return asynError;
 
   rc = (asynStatus)send_acqArgs_to_backend(pimega);

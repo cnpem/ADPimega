@@ -368,6 +368,9 @@ class pimegaDetector : public ADDriver {
   int PimegaM3RdmaBufferUsage;
   int PimegaM4RdmaBufferUsage;
   int PimegaBackendStats;
+  int PimegaMetadataField;
+  int PimegaMetadataValue;
+  int PimegaMetadataOM;
   int PimegaIndexError;
   int PimegaLogFile;
 #define LAST_PIMEGA_PARAM PimegaLogFile
