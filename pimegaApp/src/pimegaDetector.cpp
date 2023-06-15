@@ -286,8 +286,8 @@ void pimegaDetector::acqTask() {
               acquire = 0;
               setIntegerParam(ADAcquire, 0);
               acquireStatus = 0;
-              setIntegerParam(ADStatus, ADStatusIdle);    
-            }        
+              setIntegerParam(ADStatus, ADStatusIdle);
+            }
             break;
       }
 
