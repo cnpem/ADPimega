@@ -14,33 +14,25 @@ static void acquisitionTaskC(void *drvPvt) {
 
 void pimegaDetector::generateImage(void) {
   NDArray *pImage;
-  int backendCounter, itemp, arrayCallbacks;
-
+  int backendCounter, itemp, arrayCallbacks, rc;
   getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-
   if (arrayCallbacks) {
-    get_array_data(pimega);
-    // getParameter(ADNumImagesCounter, &backendCounter);
-
-    getIntegerParam(ADMaxSizeX, &itemp);
-    dims[0] = itemp;
-    getIntegerParam(ADMaxSizeY, &itemp);
-    dims[1] = itemp;
-
-    pImage = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
-    memcpy(pImage->pData, pimega->sample_frame, pImage->dataSize);
-
-    /* Put the frame number and time stamp into the buffer */
-    pImage->uniqueId = backendCounter;
-    // pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
-    updateTimeStamp(&pImage->epicsTS);
-
-    this->getAttributes(pImage->pAttributeList);
-
-    PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
-                 "generateImage: Called the NDArray callback\n");
-    doCallbacksGenericPointer(pImage, NDArrayData, 0);
-    pImage->release();
+    int rc = get_array_data(pimega);
+    if (rc == PIMEGA_SUCCESS){
+      getIntegerParam(ADMaxSizeX, &itemp);
+      dims[0] = itemp;
+      getIntegerParam(ADMaxSizeY, &itemp);
+      dims[1] = itemp;
+      pImage = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, NULL);
+      memcpy(pImage->pData, pimega->sample_frame, pImage->dataSize);
+      pImage->uniqueId = backendCounter;
+      updateTimeStamp(&pImage->epicsTS);
+      this->getAttributes(pImage->pAttributeList);
+      PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
+                  "generateImage: Called the NDArray callback\n");
+      doCallbacksGenericPointer(pImage, NDArrayData, 0);
+      pImage->release();
+    }
   }
 }
 
@@ -164,7 +156,8 @@ void pimegaDetector::acqTask() {
         pimega->error[0] = '\0';
       } else {
         setIntegerParam(ADStatus, ADStatusAborted);
-        UPDATEIOCSTATUS("Acquisition aborted by user");
+        send_stopAcquire_toBackend(pimega);
+        UPDATEIOCSTATUS("Stop send to the backend");
       }
       callParamCallbacks();
       continue;
@@ -212,11 +205,11 @@ void pimegaDetector::acqTask() {
           /* Acquire and IOC status message management. Acquire still will wait
              for the images to be saved (if necessary) to go to 0 or will wait
              for index to receive the images or both */
-          if (acquireImageCount < numExposuresVar) {
+          if (pimega->acq_status_return.done != DONE_ACQ) {
             UPDATEIOCSTATUS("Not all images received. Waiting");
 
           } else if (autoSave == 1 &&
-                     acquireImageSavedCount < numExposuresVar) {
+                     pimega->acq_status_return.done != DONE_ACQ) {
             UPDATEIOCSTATUS("Saving images..");
 
           } else if (indexEnableBool == true &&
@@ -282,15 +275,19 @@ void pimegaDetector::acqTask() {
           }
           break;
 
-          // case IOC_TRIGGER_MODE_ALIGNMENT:
-          //   usleep(100000);
-          //   if (processedBackendCount >= alignmentImagesCounter) {
-          //     status = startAcquire();
-          //     acquireStatus = 0;
-          //     alignmentImagesCounter++;
-          //   }
-          //   UPDATEIOCSTATUS("Acquiring");
-          //   break;
+          case IOC_TRIGGER_MODE_ALIGNMENT:
+
+            if (acquireStatus == DONE_ACQ) {
+              configureAlignment(false);
+              PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
+                           "%s: Alignment stopped\n", functionName);
+              UPDATEIOCSTATUS("Alignment stopped");
+              acquire = 0;
+              setIntegerParam(ADAcquire, 0);
+              acquireStatus = 0;
+              setIntegerParam(ADStatus, ADStatusIdle);    
+            }        
+            break;
       }
 
       /* Errors reported by backend override previous messages. */
@@ -318,6 +315,7 @@ void pimegaDetector::captureTask() {
   int capture = 0;
   int eventStatus = 0;
   uint64_t prevAcquisitionCount = 0;
+  static uint64_t previousReceivedCount = 0;
   uint64_t recievedBackendCount, processedBackendCount;
   while (1) {
     if (!capture) {
@@ -330,6 +328,7 @@ void pimegaDetector::captureTask() {
 
       prevAcquisitionCount = 0;
       recievedBackendCountOffset = 0;
+      previousReceivedCount = 0;
       capture = 1;
     }
 
@@ -375,18 +374,11 @@ void pimegaDetector::captureTask() {
         of images larger that what has been requested may arrive. In that case,
         to establish the end of the capture, an upper bound
         pimega->acquireParam.numCapture is set for recievedBackendCount*/
+
       if (pimega->acquireParam.numCapture != 0 &&
           recievedBackendCount >
               (unsigned int)pimega->acquireParam.numCapture) {
         recievedBackendCount = (unsigned int)pimega->acquireParam.numCapture;
-      }
-
-      if (prevAcquisitionCount < recievedBackendCount) {
-        prevAcquisitionCount = recievedBackendCount;
-        generateImage();
-        PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
-                     "captureTask: New image received (%d) \n",
-                     recievedBackendCount);
       }
     }
     getParameter(NDAutoSave, &autoSave);
@@ -403,26 +395,33 @@ void pimegaDetector::captureTask() {
 
         backendStatus != 0 permits that the thread executes this snippet the
        last time when the NDFileCapture is set to 0 */
+
+    received_acq = 0;
+    for (int module = 1; module <= pimega->max_num_modules; module++) {
+      if (received_acq == 0 ||
+          (int)pimega->acq_status_return.noOfAquisitions[module - 1] >
+              received_acq) {
+        received_acq =
+            (int)pimega->acq_status_return.noOfAquisitions[module - 1];
+      }
+    }
+
+    if (previousReceivedCount < received_acq) {
+      previousReceivedCount = received_acq;
+      generateImage();
+    }
+
     if (pimega->acquireParam.numCapture != 0 && capture) {
       /* Timer finished and data should have arrived already ( but not
        * necessarily saved ) */
       getIntegerParam(ADStatus, &adstatus);
-      received_acq = 0;
-      for (int module = 1; module <= pimega->max_num_modules; module++) {
-        if (received_acq == 0 ||
-            (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
-                received_acq) {
-          received_acq =
-              (int)pimega->acq_status_return.noOfAquisitions[module - 1];
-        }
-      }
       if (adstatus == ADStatusAborted) {
         UPDATESERVERSTATUS("Aborted");
       } else if (received_acq < (int)pimega->acquireParam.numCapture) {
         UPDATESERVERSTATUS("Waiting for images");
 
-      } else if (autoSave == 1 && (int)pimega->acq_status_return.savedFrameNum <
-                                      (int)pimega->acquireParam.numCapture) {
+      } else if (autoSave == 1 &&
+                     pimega->acq_status_return.done != DONE_ACQ) {
         UPDATESERVERSTATUS("Saving");
       } else if ((int)pimega->acq_status_return.processedImageNum <
                  (int)pimega->acquireParam.numCapture) {
@@ -436,6 +435,7 @@ void pimegaDetector::captureTask() {
         UPDATEIOCSTATUS("Acquisition finished");
         UPDATESERVERSTATUS("Backend done");
         callParamCallbacks();
+        generateImage();
       }
     } else {
       UPDATESERVERSTATUS("Receiving images");
@@ -531,8 +531,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       if (value) {
         strncpy(pimega->error, "Cannot start", sizeof("Cannot start"));
       } else {
-        epicsEventSignal(this->stopAcquireEventId_);
-        status = send_stopAcquire_toBackend(pimega);
+        strncpy(pimega->error, "Already stoped", sizeof("Already stoped"));
       }
     }
   }
@@ -585,8 +584,12 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         epicsThreadSleep(.1);
         setDoubleParam(ADTimeRemaining, 0);
         strcat(ok_str, "Acquisition stopped");
+      } else {
+        PIMEGA_PRINT(pimega, TRACE_MASK_ERROR, "%s: Backend already stopped. Sending asynError\n", functionName);
+        strncpy(pimega->error, "Backend already stopped", sizeof("Backend already stopped"));
+        strcat(ok_str, "Backend already stopped");
       }
-    }
+    } 
   } else if (acquireRunning == 1) {
     strncpy(pimega->error, "Stop current acquisition first",
             sizeof("Stop current acquisition first"));
@@ -1076,7 +1079,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
     received_acq = 0;
     for (int module = 1; module <= pimega->max_num_modules; module++) {
       if (received_acq == 0 ||
-          (int)pimega->acq_status_return.noOfAquisitions[module - 1] <
+          (int)pimega->acq_status_return.noOfAquisitions[module - 1] >
               received_acq) {
         received_acq =
             (int)pimega->acq_status_return.noOfAquisitions[module - 1];
@@ -1812,7 +1815,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
     externalTrigger = false;
   else
     externalTrigger = true;
-  getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+  configureAlignment(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
                                           pimega->acquireParam.numCapture);
@@ -1908,9 +1911,9 @@ asynStatus pimegaDetector::triggerMode(ioc_trigger_mode_t trigger) {
     case IOC_TRIGGER_MODE_EXTERNAL:
       rc = configure_trigger(pimega, TRIGGER_MODE_IN_EXTERNAL_OUT_ACQ);
       break;
-      // case IOC_TRIGGER_MODE_ALIGNMENT:
-      //   rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_ACQ);
-      //   break;
+    case IOC_TRIGGER_MODE_ALIGNMENT:
+      rc = configure_trigger(pimega, TRIGGER_MODE_IN_INTERNAL_OUT_SHUTTER);
+      break;
   }
 
   if (rc != PIMEGA_SUCCESS) {
@@ -2015,7 +2018,8 @@ asynStatus pimegaDetector::checkSensors(void) {
 }
 
 asynStatus pimegaDetector::reset(short action) {
-  int rc = 0;
+  int rc = PIMEGA_SUCCESS;
+  int return_rc = PIMEGA_SUCCESS;
   if (action < 0 || action > 1) {
     error("Invalid boolean value: %d\n", action);
     return asynError;
@@ -2023,30 +2027,30 @@ asynStatus pimegaDetector::reset(short action) {
 
   if (action == 0) {
     rc = pimega_reset(pimega);
-  }
-
-  else {
+  } else {
     char _file[256] = "";
     getStringParam(pimegaDacDefaults, sizeof(_file), _file);
     printf("reading file %s\n", _file);
     rc |= pimega_reset_and_init(pimega, _file);
   }
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  if (rc != PIMEGA_SUCCESS) return_rc=rc;
   /* Set some default parameters */
   rc = acqPeriod(0.0);
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  if (rc != PIMEGA_SUCCESS) return_rc=rc;
   rc = acqTime(1.0);
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  if (rc != PIMEGA_SUCCESS) return_rc=rc;
   rc = numExposures(1);
-  if (rc != PIMEGA_SUCCESS) return asynError;
+  if (rc != PIMEGA_SUCCESS) return_rc=rc;
   setParameter(ADTriggerMode,
                pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL);
   rc = medipixMode(MODE_B12);
-
   if (rc != PIMEGA_SUCCESS) {
-    return asynError;
+    return_rc = rc;
   }
 
+  if (return_rc != PIMEGA_SUCCESS) {
+    return asynError;
+  }
   return asynSuccess;
 }
 
@@ -2131,6 +2135,9 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s) {
     return asynError;
   }
   setParameter(ADAcquireTime, acquire_time_s);
+  get_acquire_period(pimega);
+  float acq_period_rbv = pimega->acquireParam.acquirePeriod;
+  setParameter(ADAcquirePeriod, acq_period_rbv);
   return asynSuccess;
 }
 
@@ -2169,14 +2176,10 @@ asynStatus pimegaDetector::sensorBias(float voltage) {
     error("Invalid value: %s\n", pimega_error_string(rc));
     return asynError;
   }
-  if (send_mode == PIMEGA_ALL_MBS_ALL_FLEX_ALL_MODULES) {
-    /* Use that of Module 1 since all of them had the same thing written */
-    setParameter(PimegaSensorBias,
-                 pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MODULE1]);
-  } else {
-    setParameter(PimegaSensorBias,
+
+  getSensorBias(pimega, (pimega_send_mb_flex_t)send_mode);
+  setParameter(PimegaSensorBias,
                  pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
-  }
 
   return asynSuccess;
 }
@@ -2368,6 +2371,20 @@ asynStatus pimegaDetector::debug(const std::string &method,
     }
   }
   return asynSuccess;
+}
+
+asynStatus pimegaDetector::configureAlignment(bool alignment_mode) {
+  int numExposuresVar;
+  int max_num_capture = 2147483647;
+
+  if (alignment_mode) {
+    set_numberExposures(pimega, max_num_capture);
+    pimega->acquireParam.numCapture = max_num_capture;
+  } else {
+    getIntegerParam(ADNumExposures, &numExposuresVar);
+    set_numberExposures(pimega, numExposuresVar);
+    getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
+  }
 }
 
 /* Code for iocsh registration */
