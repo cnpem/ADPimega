@@ -455,6 +455,7 @@ class pimegaDetector : public ADDriver {
   asynStatus setThresholdEnergy(float energy);
   asynStatus getThresholdEnergy(void);
   asynStatus metadataHandler(int op_mode);
+  asynStatus setTempMonitor(int enable);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
