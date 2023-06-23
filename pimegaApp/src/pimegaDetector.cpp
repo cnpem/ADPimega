@@ -13,7 +13,6 @@ static void acquisitionTaskC(void *drvPvt) {
 }
 
 void pimegaDetector::generateImage(void) {
-  NDArray *pImage;
   int backendCounter, itemp, arrayCallbacks, rc;
   getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
 
@@ -24,15 +23,15 @@ void pimegaDetector::generateImage(void) {
       dims[0] = itemp;
       getIntegerParam(ADMaxSizeY, &itemp);
       dims[1] = itemp;
-      pImage = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, NULL);
-      memcpy(pImage->pData, pimega->sample_frame, pImage->dataSize);
-      pImage->uniqueId = backendCounter;
-      updateTimeStamp(&pImage->epicsTS);
-      this->getAttributes(pImage->pAttributeList);
+      PimegaNDArray = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
+      memcpy(PimegaNDArray->pData, pimega->sample_frame, PimegaNDArray->dataSize);
+      PimegaNDArray->uniqueId = backendCounter;
+      updateTimeStamp(&PimegaNDArray->epicsTS);
+      this->getAttributes(PimegaNDArray->pAttributeList);
       PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
                   "generateImage: Called the NDArray callback\n");
-      doCallbacksGenericPointer(pImage, NDArrayData, 0);
-      pImage->release();
+      doCallbacksGenericPointer(PimegaNDArray, NDArrayData, 0);
+      PimegaNDArray->release();
     }
   }
 }
@@ -51,7 +50,6 @@ void pimegaDetector::acqTask() {
   int autoSave;
   int triggerMode;
 
-  // NDArray *pImage;
   double acquireTime, acquirePeriod, remainingTime, elapsedTime;
   int acquireStatus = 0;
   epicsTimeStamp startTime, endTime;

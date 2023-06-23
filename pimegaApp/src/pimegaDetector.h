@@ -373,6 +373,7 @@ class pimegaDetector : public ADDriver {
   int PimegaMetadataOM;
   int PimegaIndexError;
   int PimegaLogFile;
+  NDArray *PimegaNDArray = NULL;
 #define LAST_PIMEGA_PARAM PimegaLogFile
 
  private:
