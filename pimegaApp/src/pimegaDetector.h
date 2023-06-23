@@ -143,6 +143,7 @@ typedef enum ioc_trigger_mode_t {
 #define pimegaExtBgInString "EXT_BGIN"
 #define pimegaExtBgSelString "EXT_BGSEL"
 #define pimegaReadMBTemperatureString "READ_MB_TEMPERATURE"
+#define pimegaTempMonitorEnableString "TEMP_MONITOR_ENABLE"
 #define pimegaMbM1TempString "MB_TEMPERATURE_M1"
 #define pimegaMbM2TempString "MB_TEMPERATURE_M2"
 #define pimegaMbM3TempString "MB_TEMPERATURE_M3"
@@ -304,6 +305,7 @@ class pimegaDetector : public ADDriver {
   int PimegaExtBgIn;
   int PimegaExtBgSel;
   int PimegaReadMBTemperature;
+  int PimegaTempMonitorEnable;
   int PimegaMBTemperatureM1;
   int PimegaMBTemperatureM2;
   int PimegaMBTemperatureM3;

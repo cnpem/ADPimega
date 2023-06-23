@@ -591,6 +591,22 @@ record(ai,"$(P)$(R)M4:Medipix_AvgTemperature_RBV") {
 	field(EGU, "°C")
 }
 
+record(bo,"$(P)$(R)TemperatureMonitor_Enable") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_MONITOR_ENABLE")
+    field(DESC, "Enable Temperature Monitor")
+    field(ZNAM, "Disable")
+    field(ONAM, "Enable")
+}
+
+record(bi,"$(P)$(R)TemperatureMonitor_Enable_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_MONITOR_ENABLE")
+    field(DESC, "Enable Temperature Monitor")
+    field(ZNAM, "Disable")
+    field(ONAM, "Enable")
+    field(SCAN, "I/O Intr")
+}
 
 record(bo,"$(P)$(R)ContinuousRW") {
     #field(PINI, "YES")
