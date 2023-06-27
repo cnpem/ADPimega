@@ -12,6 +12,7 @@ include $(TOP)/configure/CONFIG
 # databases, templates, substitutions like this
 
 DB += pimega.template
+DB += NDFile.template
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

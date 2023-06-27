@@ -16,7 +16,6 @@
 ##  gdatag, template, pimega, $(PORT)_pimega, pimega detector
 
 include "ADBase.template"
-include "NDFile.template"
 
 ##########################################################################
 # Disable records from ADBase etc. that we do not use for pimega
@@ -1457,15 +1456,26 @@ record(longin, "$(P)$(R)ProcessedAcquisitionCounter_RBV") {
 
 record(ao, "$(P)$(R)Distance")
 {
-	field(DTYP, "asynInt32")
-	field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISTANCE")
-	field(DESC, "Sample distance from detector")
-	field(VAL, "5000")
-	field(PINI, "YES")
-	field(DRVL, "0")
+        field(DTYP, "asynFloat64")
+        field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISTANCE")
+        field(DESC, "Sample distance from detector")
+        field(VAL, "22000")
+        field(PREC, "2")
+        field(PINI, "YES")
+        field(DRVL, "0")
+        field(DRVH, "30000")
+        field(EGU, "mm")
 
 }
 
+record(ai, "$(P)$(R)Distance_RBV")
+{
+        field(DTYP, "asynFloat64")
+        field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DISTANCE")
+        field(DESC, "Sample distance from detector RBV")
+        field(SCAN,  "I/O Intr")
+        field(PREC, "2")
+}
 record(waveform, "$(P)$(R)logFile")
 {
     field(DTYP, "asynOctetRead")
