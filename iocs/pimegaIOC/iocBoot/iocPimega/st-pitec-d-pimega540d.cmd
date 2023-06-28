@@ -19,7 +19,7 @@ epicsEnvSet("XSIZE",  "3072")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
 epicsEnvSet("YSIZE",  "3072")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "368640")
+epicsEnvSet("NELEMENTS", "9437184")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
@@ -84,14 +84,13 @@ set_requestfile_path("$(ADPIMEGA)/pimegaApp/Db")
 
 iocInit()
 
-dbpf(${PREFIX}cam1:FilePath,"/home/pimega/pimega-pss/database/acquisitions")
+dbpf(${PREFIX}cam1:FilePath,"/tmp")
 dbpf(${PREFIX}cam1:FileName,"test")
 dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
-dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-7/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega540d-1.ini")
+#dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-7/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega540d.ini")
 dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
 dbpf(${PREFIX}image1:EnableCallbacks, 1)
 dbpf(${PREFIX}cam1:LoadEqualization, (1,2,3,4))
 # save things every thirty seconds
 #create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
-
 

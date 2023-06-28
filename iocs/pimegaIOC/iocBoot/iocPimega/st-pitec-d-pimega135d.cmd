@@ -15,11 +15,11 @@ epicsEnvSet("DMODEL", "3");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
-epicsEnvSet("XSIZE",  "512")
+epicsEnvSet("XSIZE",  "1536")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
 epicsEnvSet("YSIZE",  "1536")
 # Number of Elements
-epicsEnvSet("NELEMENTS", "786432")
+epicsEnvSet("NELEMENTS", "2359296")
 # The maximum number of time seried points in the NDPluginStats plugin
 epicsEnvSet("NCHANS", "2048")
 # The maximum number of frames buffered in the NDPluginCircularBuff plugin
@@ -84,7 +84,7 @@ iocInit()
 dbpf(${PREFIX}cam1:FilePath,"/home/pimega/pimega-pss/database/acquisitions")
 dbpf(${PREFIX}cam1:FileName,"test")
 dbpf(${PREFIX}cam1:FileTemplate,"%s%s_%3.3d.hdf5")
-dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-7/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega135d-2.ini")
+dbpf(${PREFIX}cam1:dac_defaults_files,"/usr/local/epics/synApps/support/areaDetector-R3-7/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega/config/pimega135d.ini")
 dbpf(${PREFIX}cam1:ImgChipNumberID, 1)
 dbpf(${PREFIX}image1:EnableCallbacks, 1)
 #dbpf(${PREFIX}Stats2:EnableCallbacks, 1)
