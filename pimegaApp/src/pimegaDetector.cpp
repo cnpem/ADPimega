@@ -733,6 +733,9 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       status |= getMbTemperature();
       strcat(ok_str, "MB temperatures fetched");
     }
+  } else if (function == PimegaTempMonitorEnable) {
+    status |= setTempMonitor(value);
+    strcat(ok_str, "Temperature Monitor enable set");
   } else if (function == PimegaReadSensorTemperature) {
     if (!value) {
       UPDATEIOCSTATUS("Reading sensors temperatures");
@@ -1496,6 +1499,8 @@ void pimegaDetector::createParameters(void) {
   createParam(pimegaCheckSensorsString, asynParamInt32, &PimegaCheckSensors);
   createParam(pimegaReadMBTemperatureString, asynParamInt32,
               &PimegaReadMBTemperature);
+  createParam(pimegaTempMonitorEnableString, asynParamInt32,
+              &PimegaTempMonitorEnable);      
   createParam(pimegaDisabledSensorsM1String, asynParamInt32Array,
               &PimegaDisabledSensorsM1);
   createParam(pimegaDisabledSensorsM2String, asynParamInt32Array,
@@ -2310,6 +2315,17 @@ asynStatus pimegaDetector::getMbTemperature(void) {
     idxAvg++;
   }
 
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::setTempMonitor(int enable) {
+  int rc;
+  rc = set_temp_monitor_enable(pimega, enable, PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
+  if (rc != PIMEGA_SUCCESS) {
+    UPDATEIOCSTATUS("Temperature Monitor enable failed");
+    return asynError;
+  }
+  setParameter(PimegaTempMonitorEnable, enable);
   return asynSuccess;
 }
 
