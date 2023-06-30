@@ -16,7 +16,7 @@ void pimegaDetector::generateImage(void) {
   int backendCounter, itemp, arrayCallbacks, rc;
   getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
 
-  if (arrayCallbacks) {
+  if (false) {
     int rc = get_array_data(pimega);
     if (rc == PIMEGA_SUCCESS){
       getIntegerParam(ADMaxSizeX, &itemp);
