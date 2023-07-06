@@ -1492,6 +1492,36 @@ record(ai, "$(P)$(R)Distance_RBV")
         field(SCAN,  "I/O Intr")
         field(PREC, "2")
 }
+
+record(mbbo,"$(P)$(R)FrameProcessMode") {
+   	field(DTYP, "asynInt32")
+   	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_PROCESS_MODE")
+    field(DESC, "Frame process mode")
+    field(ZRVL, "0")
+    field(ZRST, "None")
+    field(ONVL, "1")
+    field(ONST, "Flatfield")
+    field(TWVL, "2")
+    field(TWST, "Geometric restoration")
+    field(THVL, "3")
+    field(THST, "Flatfield + Geometric")
+}
+
+record(mbbi,"$(P)$(R)FrameProcessMode_RBV") {
+   	field(DTYP, "asynInt32")
+   	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_PROCESS_MODE")
+    field(DESC, "Frame process mode")
+    field(ZRVL, "0")
+    field(ZRST, "None")
+    field(ONVL, "1")
+    field(ONST, "Flatfield")
+    field(TWVL, "2")
+    field(TWST, "Geometric restoration")
+    field(THVL, "3")
+    field(THST, "Flatfield + Geometric")
+   	field(SCAN, "I/O Intr")
+}
+
 record(waveform, "$(P)$(R)logFile")
 {
     field(DTYP, "asynOctetRead")
