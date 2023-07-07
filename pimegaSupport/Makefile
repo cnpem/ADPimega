@@ -25,6 +25,7 @@ INC += lib/sd_card.h
 INC += lib/system.h
 INC += lib/test_pulse.h
 INC += lib/trigger.h
+INC += lib/pimega_thread.h
 INC += driver/US_acquisition.h
 INC += driver/US_dac.h
 INC += driver/US_debug.h
