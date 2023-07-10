@@ -745,6 +745,9 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PimegaMetadataOM) {
     status |= metadataHandler(value);
     strcat(ok_str, "Metadata OP mode performed");
+  } else if (function == PimegaFrameProcessMode) {
+    setParameter(function, value);
+    strcat(ok_str, "Frame process mode set");
   } else {
     if (function < FIRST_PIMEGA_PARAM) {
       status = ADDriver::writeInt32(pasynUser, value);
@@ -1583,7 +1586,7 @@ void pimegaDetector::createParameters(void) {
   createParam(pimegaMetadataFieldString, asynParamOctet, &PimegaMetadataField);
   createParam(pimegaMetadataValueString, asynParamOctet, &PimegaMetadataValue);
   createParam(pimegaMetadataOMString, asynParamOctet, &PimegaMetadataOM);
-
+  createParam(pimegaFrameProcessModeString, asynParamInt32, &PimegaFrameProcessMode);
   /* Do callbacks so higher layers see any changes */
   callParamCallbacks();
 }
@@ -1674,6 +1677,7 @@ asynStatus pimegaDetector::setDefaults(void) {
   setParameter(PimegaMPAvgTSensorM3, 0.0);
   setParameter(PimegaMPAvgTSensorM4, 0.0);
   setParameter(NDFileNumCaptured, 0);
+  setParameter(PimegaFrameProcessMode, 0);
 
   setParameter(PimegaModule, 10);
   setParameter(PimegaMedipixBoard, 2);
@@ -1792,6 +1796,7 @@ asynStatus pimegaDetector::startAcquire(void) {
 asynStatus pimegaDetector::startCaptureBackend(void) {
   int rc = 0;
   int acqMode, autoSave, lfsr, bulkProcessingEnum;
+  int frameProcessMode;
   char fullFileName[PIMEGA_MAX_FILENAME_LEN];
   bool bulkProcessingBool;
   double acquirePeriod, acquireTime;
@@ -1818,6 +1823,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(ADAcquirePeriod, &acquirePeriod);
   getParameter(ADAcquireTime, &acquireTime);
   getParameter(ADTriggerMode, &triggerMode);
+  getParameter(PimegaFrameProcessMode, &frameProcessMode);
 
   getStringParam(PimegaIndexID, sizeof(IndexID), IndexID);
   getParameter(PimegaIndexEnable, &indexEnable);
@@ -1834,7 +1840,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
                                           pimega->acquireParam.numCapture,
-                                          pimega->acq_args.frameProcessMode);
+                                          frameProcessMode);
   if (rc != PIMEGA_SUCCESS) return asynError;
 
   rc = (asynStatus)send_acqArgs_to_backend(pimega);
