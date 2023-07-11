@@ -43,6 +43,7 @@
 #include <lib/debug.h>
 #include <lib/generic.h>
 #include <lib/load.h>
+#include <lib/pimega_thread.h>
 #include <lib/monitoring.h>
 #include <lib/omr.h>
 #include <lib/scan.h>
@@ -66,9 +67,8 @@
 #define N_DACS_OUTS 31
 static const char *driverName = "pimegaDetector";
 
-#define error(fmt, ...)                                                        \
-  asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%d " fmt, __FILE__, __LINE__, \
-            __VA_ARGS__)
+#define error(fmt, ...) \
+  asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%d " fmt, __FILE__, __LINE__, __VA_ARGS__)
 
 #define UPDATEIOCSTATUS(x)         \
   do {                             \
@@ -141,6 +141,14 @@ typedef enum ioc_trigger_mode_t {
 #define pimegaExtBgSelString "EXT_BGSEL"
 #define pimegaReadMBTemperatureString "READ_MB_TEMPERATURE"
 #define pimegaTempMonitorEnableString "TEMP_MONITOR_ENABLE"
+#define pimegaM1TempStatusString "TEMP_STATUS_M1"
+#define pimegaM2TempStatusString "TEMP_STATUS_M2"
+#define pimegaM3TempStatusString "TEMP_STATUS_M3"
+#define pimegaM4TempStatusString "TEMP_STATUS_M4"
+#define pimegaM1TempHighestString "TEMP_HIGHEST_M1"
+#define pimegaM2TempHighestString "TEMP_HIGHEST_M2"
+#define pimegaM3TempHighestString "TEMP_HIGHEST_M3"
+#define pimegaM4TempHighestString "TEMP_HIGHEST_M4"
 #define pimegaMbM1TempString "MB_TEMPERATURE_M1"
 #define pimegaMbM2TempString "MB_TEMPERATURE_M2"
 #define pimegaMbM3TempString "MB_TEMPERATURE_M3"
@@ -212,27 +220,25 @@ typedef enum ioc_trigger_mode_t {
 
 class pimegaDetector : public ADDriver {
  public:
-  pimegaDetector(const char *portName, const char *address_module01,
-                 const char *address_module02, const char *address_module03,
-                 const char *address_module04, const char *address_module05,
-                 const char *address_module06, const char *address_module07,
-                 const char *address_module08, const char *address_module09, 
-                 const char *address_module10, int port, int maxSizeX,
-                 int maxSizeY, int detectorModel, int maxBuffers,
-                 size_t maxMemory, int priority, int stackSize, int simulate,
-                 int backendOn, int log, unsigned short backend_port);
+  pimegaDetector(const char *portName, const char *address_module01, const char *address_module02,
+                 const char *address_module03, const char *address_module04,
+                 const char *address_module05, const char *address_module06,
+                 const char *address_module07, const char *address_module08,
+                 const char *address_module09, const char *address_module10, int port, int maxSizeX,
+                 int maxSizeY, int detectorModel, int maxBuffers, size_t maxMemory, int priority,
+                 int stackSize, int simulate, int backendOn, int log, unsigned short backend_port);
 
   virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
   virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
-  virtual asynStatus readFloat32Array(asynUser *pasynUser, epicsFloat32 *value,
-                                      size_t nElements, size_t *nIn);
-  virtual asynStatus writeOctet(asynUser *pasynUser, const char *value,
-                                size_t maxChars, size_t *nActual);
-  virtual asynStatus writeInt32Array(asynUser *pasynUser, epicsInt32 *value,
-                                     size_t nElements);
+  virtual asynStatus readFloat32Array(asynUser *pasynUser, epicsFloat32 *value, size_t nElements,
+                                      size_t *nIn);
+  virtual asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t maxChars,
+                                size_t *nActual);
+  virtual asynStatus writeInt32Array(asynUser *pasynUser, epicsInt32 *value, size_t nElements);
   virtual void report(FILE *fp, int details);
+  virtual void alarmTask(void);
   virtual void acqTask(void);
   virtual void captureTask(void);
   virtual void generateImage(void);
@@ -243,12 +249,9 @@ class pimegaDetector : public ADDriver {
   asynStatus initDebugger(int initDebug);
   asynStatus debugLevel(const std::string &method, int onOff);
   asynStatus debug(const std::string &method, const std::string &msg);
-  asynStatus debug(const std::string &method, const std::string &msg,
-                   int value);
-  asynStatus debug(const std::string &method, const std::string &msg,
-                   double value);
-  asynStatus debug(const std::string &method, const std::string &msg,
-                   const std::string &value);
+  asynStatus debug(const std::string &method, const std::string &msg, int value);
+  asynStatus debug(const std::string &method, const std::string &msg, double value);
+  asynStatus debug(const std::string &method, const std::string &msg, const std::string &value);
 
  protected:
   int PimegaReset;
@@ -304,6 +307,14 @@ class pimegaDetector : public ADDriver {
   int PimegaExtBgSel;
   int PimegaReadMBTemperature;
   int PimegaTempMonitorEnable;
+  int PimegaTemperatureStatusM1;
+  int PimegaTemperatureStatusM2;
+  int PimegaTemperatureStatusM3;
+  int PimegaTemperatureStatusM4;
+  int PimegaTemperatureHighestM1;
+  int PimegaTemperatureHighestM2;
+  int PimegaTemperatureHighestM3;
+  int PimegaTemperatureHighestM4;
   int PimegaMBTemperatureM1;
   int PimegaMBTemperatureM2;
   int PimegaMBTemperatureM3;
@@ -456,6 +467,8 @@ class pimegaDetector : public ADDriver {
   asynStatus getThresholdEnergy(void);
   asynStatus metadataHandler(int op_mode);
   asynStatus setTempMonitor(int enable);
+  asynStatus getTemperatureStatus(void);
+  asynStatus getTemperatureHighest(void);
   asynStatus configureAlignment(bool alignment_mode);
 };
 

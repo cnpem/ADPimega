@@ -590,6 +590,7 @@ record(ai,"$(P)$(R)M4:Medipix_AvgTemperature_RBV") {
 	field(EGU, "°C")
 }
 
+#Temperature Alarm
 record(bo,"$(P)$(R)TemperatureMonitor_Enable") {
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_MONITOR_ENABLE")
@@ -605,6 +606,94 @@ record(bi,"$(P)$(R)TemperatureMonitor_Enable_RBV") {
     field(ZNAM, "Disable")
     field(ONAM, "Enable")
     field(SCAN, "I/O Intr")
+}
+
+#Module 1
+record(mbbi,"$(P)$(R)M1:Temperature_Status") {
+    field(DESC, "Medipix Board Temperature Status Mod 1")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_STATUS_M1")
+    field(ZRST, "No Support")        			  field(ZRVL, "0")
+    field(ONST, "Normal")	                      field(ONVL, "1")
+    field(TWST, "Warning")   	                  field(TWVL, "2")
+    field(THST, "Critical")         		      field(THVL, "3")
+	field(PREC, "0")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)M1:Highest_Temperature") {
+    field(DESC, "Medipix Board Highest Temperature Mod 1")
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_HIGHEST_M1")
+    field(SCAN, "I/O Intr")
+    field(PREC, "2")
+    field(EGU, "°C")
+}
+
+#Module 2
+record(mbbi,"$(P)$(R)M2:Temperature_Status") {
+    field(DESC, "Medipix Board Temperature Status Mod 2")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_STATUS_M2")
+    field(ZRST, "No Support")        			  field(ZRVL, "0")
+    field(ONST, "Normal")	                      field(ONVL, "1")
+    field(TWST, "Warning")   	                  field(TWVL, "2")
+    field(THST, "Critical")         		      field(THVL, "3")
+	field(PREC, "0")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)M2:Highest_Temperature") {
+    field(DESC, "Medipix Board Highest Temperature Mod 2")
+	field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_HIGHEST_M2")
+    field(SCAN, "I/O Intr")
+    field(PREC, "2")
+    field(EGU, "°C")
+}
+
+#Module 3
+record(ai,"$(P)$(R)M3:Temperature_Status") {
+    field(DESC, "Medipix Board Temperature Status Mod 3")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_STATUS_M3")
+    field(ZRST, "No Support")        			  field(ZRVL, "0")
+    field(ONST, "Normal")	                      field(ONVL, "1")
+    field(TWST, "Warning")   	                  field(TWVL, "2")
+    field(THST, "Critical")         		      field(THVL, "3")
+	field(PREC, "0")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)M3:Highest_Temperature") {
+    field(DESC, "Medipix Board Highest Temperature Mod 3")
+	field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_HIGHEST_M3")
+    field(SCAN, "I/O Intr")
+    field(PREC, "2")
+    field(EGU, "°C")
+}
+
+#Module 4
+record(ai,"$(P)$(R)M4:Temperature_Status") {
+    field(DESC, "Medipix Board Temperature Status Mod 4")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_STATUS_M4")
+    field(ZRST, "No Support")        			  field(ZRVL, "0")
+    field(ONST, "Normal")	                      field(ONVL, "1")
+    field(TWST, "Warning")   	                  field(TWVL, "2")
+    field(THST, "Critical")         		      field(THVL, "3")
+	field(PREC, "0")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)M4:Highest_Temperature") {
+    field(DESC, "Medipix Board Highest Temperature Mod 4")
+	field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEMP_HIGHEST_M4")
+    field(SCAN, "I/O Intr")
+    field(PREC, "2")
+    field(EGU, "°C")
 }
 
 record(bo,"$(P)$(R)ContinuousRW") {
