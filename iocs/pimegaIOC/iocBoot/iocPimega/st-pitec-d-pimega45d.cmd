@@ -15,9 +15,9 @@ epicsEnvSet("DMODEL", "1");
 # The queue size for all plugins
 epicsEnvSet("QSIZE",  "20")
 # The maximim image width; used for row profiles in the NDPluginStats plugin
-epicsEnvSet("XSIZE",  "512")
+epicsEnvSet("XSIZE",  "1536")
 # The maximim image height; used for column profiles in the NDPluginStats plugin
-epicsEnvSet("YSIZE",  "1536")
+epicsEnvSet("YSIZE",  "512")
 # Number of Elements
 epicsEnvSet("NELEMENTS", "786432")
 # The maximum number of time seried points in the NDPluginStats plugin

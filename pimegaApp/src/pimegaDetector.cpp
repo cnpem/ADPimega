@@ -23,7 +23,7 @@ void pimegaDetector::generateImage(void) {
       dims[0] = itemp;
       getIntegerParam(ADMaxSizeY, &itemp);
       dims[1] = itemp;
-      PimegaNDArray = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
+      PimegaNDArray = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, NULL);
       memcpy(PimegaNDArray->pData, pimega->sample_frame, PimegaNDArray->dataSize);
       PimegaNDArray->uniqueId = backendCounter;
       updateTimeStamp(&PimegaNDArray->epicsTS);
