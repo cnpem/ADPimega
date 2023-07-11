@@ -40,7 +40,7 @@ void pimegaDetector::generateImage(void) {
       dims[0] = itemp;
       getIntegerParam(ADMaxSizeY, &itemp);
       dims[1] = itemp;
-      PimegaNDArray = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, 0);
+      PimegaNDArray = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, NULL);
       memcpy(PimegaNDArray->pData, pimega->sample_frame, PimegaNDArray->dataSize);
       PimegaNDArray->uniqueId = backendCounter;
       updateTimeStamp(&PimegaNDArray->epicsTS);
@@ -500,14 +500,17 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       epicsThreadSleep(.1);
       strcat(ok_str, "Stopping acquisition");
     } else {
-      PIMEGA_PRINT(pimega, TRACE_MASK_ERROR, "%s: value=%d, adstatus=%s(%d), backendStatus=%d\n",
-                   functionName, value,
-                   adstatus == ADStatusIdle      ? "ADStatusIdle"
-                   : adstatus == ADStatusError   ? "ADStatusError"
-                   : adstatus == ADStatusAborted ? "ADStatusAborted"
-                   : adstatus == ADStatusAcquire ? "ADStatusAcquire"
-                                                 : "adstatus not known",
-                   adstatus, backendStatus);
+      PIMEGA_PRINT(
+          pimega, TRACE_MASK_ERROR, "%s: value=%d, adstatus=%s(%d), backendStatus=%d\n",
+          functionName, value,
+          adstatus == ADStatusIdle
+              ? "ADStatusIdle"
+              : adstatus == ADStatusError
+                    ? "ADStatusError"
+                    : adstatus == ADStatusAborted
+                          ? "ADStatusAborted"
+                          : adstatus == ADStatusAcquire ? "ADStatusAcquire" : "adstatus not known",
+          adstatus, backendStatus);
       status = asynError;
       if (value) {
         strncpy(pimega->error, "Cannot start", sizeof(pimega->error));
@@ -1297,7 +1300,7 @@ void pimegaDetector::connect(const char *address[10], unsigned short port,
         ports[8] = ports[9] = port;
 
   // Connect to backend
-  rc = pimega_connect_backend(pimega, "127.0.0.1", 5414);
+  rc = pimega_connect_backend(pimega, "127.0.0.1", backend_port);
 
   if (rc != PIMEGA_SUCCESS) panic("Unable to connect with Backend. Aborting");
 
@@ -1568,10 +1571,10 @@ asynStatus pimegaDetector::setDefaults(void) {
   setParameter(PimegaIndexError, 0);
   setParameter(PimegaIndexCounter, 0);
   setParameter(PimegaProcessedImageCounter, 0);
-  // setParameter(PimegaTemperatureHighestM1, 0.0);
-  // setParameter(PimegaTemperatureHighestM2, 0.0);
-  // setParameter(PimegaTemperatureHighestM3, 0.0);
-  // setParameter(PimegaTemperatureHighestM4, 0.0);
+  setParameter(PimegaTemperatureHighestM1, 0.0);
+  setParameter(PimegaTemperatureHighestM2, 0.0);
+  setParameter(PimegaTemperatureHighestM3, 0.0);
+  setParameter(PimegaTemperatureHighestM4, 0.0);
   setParameter(PimegaMPAvgTSensorM1, 0.0);
   setParameter(PimegaMPAvgTSensorM2, 0.0);
   setParameter(PimegaMPAvgTSensorM3, 0.0);
@@ -1721,8 +1724,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
-                                          pimega->acquireParam.numCapture,
-                                          frameProcessMode);
+                                          pimega->acquireParam.numCapture, frameProcessMode);
   if (rc != PIMEGA_SUCCESS) return asynError;
 
   rc = (asynStatus)send_acqArgs_to_backend(pimega);
