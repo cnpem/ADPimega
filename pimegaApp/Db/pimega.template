@@ -616,7 +616,7 @@ record(mbbi,"$(P)$(R)M1:Temperature_Status") {
     field(ZRST, "No Support")        			  field(ZRVL, "0")
     field(ONST, "Normal")	                      field(ONVL, "1")
     field(TWST, "Warning")   	                  field(TWVL, "2")
-    field(THST, "Critical")         		      field(THVL, "3")
+    field(FRST, "Critical")         		      field(FRVL, "4")
 	field(PREC, "0")
     field(SCAN, "I/O Intr")
 }
