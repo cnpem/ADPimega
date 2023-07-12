@@ -14,7 +14,6 @@ static void alarmTaskC(void *drvPvt) {
 
 void pimegaDetector::alarmTask() {
   /* Loop forever */
-  thread_manager(pimega);
   while (true) {
     if (pimega->temperature.alarm_enable) {
       pimegaDetector::getTemperatureHighest();
