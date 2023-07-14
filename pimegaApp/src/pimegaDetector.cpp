@@ -1301,9 +1301,8 @@ void pimegaDetector::connect(const char *address[10], unsigned short port,
 
   // Connect to backend
   rc = pimega_connect_backend(pimega, "127.0.0.1", backend_port);
-
   if (rc != PIMEGA_SUCCESS) panic("Unable to connect with Backend. Aborting");
-
+  receive_initArgs_from_backend(pimega);
   // Connect to detector
   rc |= pimega_connect(pimega, address, ports);
   if (rc != PIMEGA_SUCCESS) panic("Unable to connect with detector. Aborting");
