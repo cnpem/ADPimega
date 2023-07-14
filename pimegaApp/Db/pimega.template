@@ -609,6 +609,7 @@ record(bi,"$(P)$(R)TemperatureMonitor_Enable_RBV") {
 }
 
 #Module 1
+#each status controls a bit, thus using values 0, 1, 2, 4
 record(mbbi,"$(P)$(R)M1:Temperature_Status") {
     field(DESC, "Medipix Board Temperature Status Mod 1")
     field(DTYP, "asynInt32")
@@ -631,6 +632,7 @@ record(ai, "$(P)$(R)M1:Highest_Temperature") {
 }
 
 #Module 2
+#each status controls a bit, thus using values 0, 1, 2, 4
 record(mbbi,"$(P)$(R)M2:Temperature_Status") {
     field(DESC, "Medipix Board Temperature Status Mod 2")
     field(DTYP, "asynInt32")
@@ -638,7 +640,7 @@ record(mbbi,"$(P)$(R)M2:Temperature_Status") {
     field(ZRST, "No Support")        			  field(ZRVL, "0")
     field(ONST, "Normal")	                      field(ONVL, "1")
     field(TWST, "Warning")   	                  field(TWVL, "2")
-    field(THST, "Critical")         		      field(THVL, "3")
+    field(FRST, "Critical")         		      field(FRVL, "4")
 	field(PREC, "0")
     field(SCAN, "I/O Intr")
 }
@@ -653,6 +655,7 @@ record(ai, "$(P)$(R)M2:Highest_Temperature") {
 }
 
 #Module 3
+#each status controls a bit, thus using values 0, 1, 2, 4
 record(ai,"$(P)$(R)M3:Temperature_Status") {
     field(DESC, "Medipix Board Temperature Status Mod 3")
     field(DTYP, "asynInt32")
@@ -660,7 +663,7 @@ record(ai,"$(P)$(R)M3:Temperature_Status") {
     field(ZRST, "No Support")        			  field(ZRVL, "0")
     field(ONST, "Normal")	                      field(ONVL, "1")
     field(TWST, "Warning")   	                  field(TWVL, "2")
-    field(THST, "Critical")         		      field(THVL, "3")
+    field(FRST, "Critical")         		      field(FRVL, "4")
 	field(PREC, "0")
     field(SCAN, "I/O Intr")
 }
@@ -675,6 +678,7 @@ record(ai, "$(P)$(R)M3:Highest_Temperature") {
 }
 
 #Module 4
+#each status controls a bit, thus using values 0, 1, 2, 4
 record(ai,"$(P)$(R)M4:Temperature_Status") {
     field(DESC, "Medipix Board Temperature Status Mod 4")
     field(DTYP, "asynInt32")
@@ -682,7 +686,7 @@ record(ai,"$(P)$(R)M4:Temperature_Status") {
     field(ZRST, "No Support")        			  field(ZRVL, "0")
     field(ONST, "Normal")	                      field(ONVL, "1")
     field(TWST, "Warning")   	                  field(TWVL, "2")
-    field(THST, "Critical")         		      field(THVL, "3")
+    field(FRST, "Critical")         		      field(FRVL, "4")
 	field(PREC, "0")
     field(SCAN, "I/O Intr")
 }
