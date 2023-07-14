@@ -1904,6 +1904,9 @@ asynStatus pimegaDetector::checkSensors(void) {
 asynStatus pimegaDetector::reset(short action) {
   int rc = PIMEGA_SUCCESS;
   int rc_aux = PIMEGA_SUCCESS;
+  int send_mode;
+  getParameter(PimegaMBSendMode, &send_mode);
+
   if (action < 0 || action > 1) {
     error("Invalid boolean value: %d\n", action);
     return asynError;
@@ -1927,9 +1930,14 @@ asynStatus pimegaDetector::reset(short action) {
   if (rc != PIMEGA_SUCCESS) rc_aux = rc;
   setParameter(ADTriggerMode, pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL);
   rc = medipixMode(MODE_B12);
-  if (rc != PIMEGA_SUCCESS) {
-    rc_aux = rc;
-  }
+  if (rc != PIMEGA_SUCCESS) rc_aux = rc;
+ 
+  /* Get some parameters */
+  rc = getDacsValues();
+  if (rc != PIMEGA_SUCCESS) rc_aux = rc;
+  rc = getSensorBias(pimega, (pimega_send_mb_flex_t)send_mode);
+  if (rc != PIMEGA_SUCCESS) rc_aux = rc;
+  setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
 
   if (rc_aux != PIMEGA_SUCCESS) {
     return asynError;
