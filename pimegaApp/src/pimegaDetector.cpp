@@ -173,7 +173,7 @@ void pimegaDetector::acqTask() {
 
     /* Added this delay for the thread not to hog the processor. No need to run
      * on full speed. */
-    usleep(10000);
+    usleep(1000);
 
     // printf("Index error = %d\n", pimega->acq_status_return.STATUS_INDEXERROR);
     /* Will enter here only one time when the acqusition time is over. The
@@ -355,7 +355,7 @@ void pimegaDetector::captureTask() {
     }
 
     /* Added this delay for the thread not to hog the processor. */
-    usleep(10000);
+    usleep(1000);
 
     if (capture) {
       get_acqStatus_from_backend(pimega);
@@ -1300,9 +1300,8 @@ void pimegaDetector::connect(const char *address[10], unsigned short port,
 
   // Connect to backend
   rc = pimega_connect_backend(pimega, "127.0.0.1", backend_port);
-
   if (rc != PIMEGA_SUCCESS) panic("Unable to connect with Backend. Aborting");
-
+  receive_initArgs_from_backend(pimega);
   // Connect to detector
   rc |= pimega_connect(pimega, address, ports);
   if (rc != PIMEGA_SUCCESS) panic("Unable to connect with detector. Aborting");
@@ -1685,7 +1684,6 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   bool bulkProcessingBool;
   double acquirePeriod, acquireTime;
   int triggerMode;
-  bool externalTrigger;
   char IndexID[30] = "";
   int indexEnable, ShmemEnable;
   int indexSendMode;  // enum IndexSendMode
@@ -1714,13 +1712,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(PimegaAcqShmemEnable, &ShmemEnable);
   getParameter(PimegaIndexSendMode, &indexSendMode);
 
-  /* Evaluate trigger if external or internal */
-  if (triggerMode != pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL)
-    externalTrigger = false;
-  else
-    externalTrigger = true;
   configureAlignment(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
-  getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
                                           pimega->acquireParam.numCapture, frameProcessMode);
@@ -2324,7 +2316,6 @@ asynStatus pimegaDetector::debug(const std::string &method, const std::string &m
 asynStatus pimegaDetector::configureAlignment(bool alignment_mode) {
   int numExposuresVar;
   int max_num_capture = 2147483647;
-
   if (alignment_mode) {
     set_numberExposures(pimega, max_num_capture);
     pimega->acquireParam.numCapture = max_num_capture;
