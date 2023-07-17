@@ -393,6 +393,9 @@ void pimegaDetector::captureTask() {
       if (received_acq == 0 ||
           (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module - 1] > received_acq) {
         received_acq = (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module - 1];
+        if (received_acq < (int)pimega->acq_status_return.processedImageNum) {
+          received_acq = (int)pimega->acq_status_return.processedImageNum;
+        }
       }
     }
 
@@ -1059,6 +1062,9 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
       if (received_acq == 0 ||
           (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module - 1] > received_acq) {
         received_acq = (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module - 1];
+        if (received_acq < (int)pimega->acq_status_return.processedImageNum) {
+          received_acq = (int)pimega->acq_status_return.processedImageNum;
+        }
       }
     }
 
