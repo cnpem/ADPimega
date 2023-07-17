@@ -1725,6 +1725,8 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   if (rc != PIMEGA_SUCCESS) return asynError;
 
   rc = (asynStatus)send_acqArgs_to_backend(pimega);
+  get_acquire_period(pimega);
+  setParameter(ADAcquirePeriod, pimega->acquireParam.acquirePeriod);
   if (rc != PIMEGA_SUCCESS) {
     char error[100];
     decode_backend_error(pimega->ack.error, error);
@@ -2031,8 +2033,8 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s) {
   }
   setParameter(ADAcquireTime, acquire_time_s);
   get_acquire_period(pimega);
-  float acq_period_rbv = pimega->acquireParam.acquirePeriod;
-  setParameter(ADAcquirePeriod, acq_period_rbv);
+  float acq_period_s_rbv = pimega->acquireParam.acquirePeriod;
+  setParameter(ADAcquirePeriod, acq_period_s_rbv);
   return asynSuccess;
 }
 
