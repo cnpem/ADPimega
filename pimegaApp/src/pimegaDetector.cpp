@@ -1935,8 +1935,6 @@ asynStatus pimegaDetector::reset(short action) {
   /* Get some parameters */
   rc = getDacsValues();
   if (rc != PIMEGA_SUCCESS) rc_aux = rc;
-  rc = getSensorBias(pimega, (pimega_send_mb_flex_t)send_mode);
-  if (rc != PIMEGA_SUCCESS) rc_aux = rc;
   setParameter(PimegaSensorBias, pimega->pimegaParam.bias_voltage[PIMEGA_THREAD_MAIN]);
 
   if (rc_aux != PIMEGA_SUCCESS) {
