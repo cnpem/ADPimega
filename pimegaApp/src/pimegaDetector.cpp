@@ -2023,9 +2023,10 @@ asynStatus pimegaDetector::numExposures(unsigned number) {
   return asynSuccess;
 }
 
-asynStatus pimegaDetector::acqTime(float acquire_time_s) {
+asynStatus pimegaDetector::acqTime(double acquire_time_s) {
   int rc = 0;
-  uint64_t acquire_time_us = (uint64_t)(acquire_time_s * 1e6);
+  uint64_t acquire_time_us = (uint64_t)(acquire_time_s * 1.0e6);
+  
   rc = set_acquireTime(pimega, acquire_time_us);
   if (rc != PIMEGA_SUCCESS) {
     error("Invalid acquire time: %s\n", pimega_error_string(rc));
@@ -2033,12 +2034,12 @@ asynStatus pimegaDetector::acqTime(float acquire_time_s) {
   }
   setParameter(ADAcquireTime, acquire_time_s);
   get_acquire_period(pimega);
-  float acq_period_s_rbv = pimega->acquireParam.acquirePeriod;
+  double acq_period_s_rbv = pimega->acquireParam.acquirePeriod;
   setParameter(ADAcquirePeriod, acq_period_s_rbv);
   return asynSuccess;
 }
 
-asynStatus pimegaDetector::acqPeriod(float period_time_s) {
+asynStatus pimegaDetector::acqPeriod(double period_time_s) {
   int rc = 0;
   uint64_t period_time_us = (uint64_t)(period_time_s * 1e6);
   rc = set_periodTime(pimega, period_time_us);
