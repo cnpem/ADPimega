@@ -20,3 +20,18 @@ make envPaths
 cd iocs/pimegaIOC/iocBoot/iocPimega
 ./<Choose detector command file>.cmd
 ```
+
+## Test
+To execute tests, first you need the requirements listed on `requirements-dev.txt`. Create a Python virtual environment and install those requirements.
+
+When installed, just call `pytest` with the virtual environment active.
+To enable verbose output, call `pytest -s`.
+
+```bash
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip3 install -r requirements-dev.txt
+$ pytest -s .  # -> Run this to start the test
+```
+
+__Important__: use the file `test/pytest.ini` to set custom EPICS and pytest configuration, if necessary.
