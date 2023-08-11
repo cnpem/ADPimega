@@ -2025,7 +2025,7 @@ asynStatus pimegaDetector::numExposures(unsigned number) {
 
 asynStatus pimegaDetector::acqTime(double acquire_time_s) {
   int rc = 0;
-  uint64_t acquire_time_us = (uint64_t)(acquire_time_s * 1.0e6);
+  uint64_t acquire_time_us = (uint64_t)(acquire_time_s * 1e6);
   
   rc = set_acquireTime(pimega, acquire_time_us);
   if (rc != PIMEGA_SUCCESS) {
