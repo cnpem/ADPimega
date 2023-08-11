@@ -16,7 +16,7 @@ def pytest_configure(config):
     epics_addr_list = os.getenv("EPICS_CA_ADDR_LIST")
     if not epics_addr_list:
         print("EPICS_CA_ADDR_LIST not found. May be missing from .bashrc")
-        # pytest.exit(ExitCode.INTERNAL_ERROR)
+        pytest.exit(ExitCode.INTERNAL_ERROR)
 
     print(f"EPICS_CA_ADDR_LIST: {epics_addr_list}")
 
