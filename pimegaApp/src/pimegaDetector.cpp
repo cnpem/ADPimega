@@ -4,6 +4,13 @@
  */
 
 #include "pimegaDetector.h"
+#include <bits/stdint-uintn.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <lib/zmq_message_broker.hpp>
+
+const NDDataType_t vis_ndarray_dtype = NDUInt32;
 
 static pimega_t *pimega_global;
 
@@ -28,27 +35,23 @@ static void acquisitionTaskC(void *drvPvt) {
   pPvt->acqTask();
 }
 
-void pimegaDetector::generateImage(void) {
-  int backendCounter, itemp, arrayCallbacks, rc;
-  getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+void pimegaDetector::updateEpicsFrame(vis_dtype* data) {
 
-  if (arrayCallbacks) {
-    int rc = get_array_data(pimega);
-    if (rc == PIMEGA_SUCCESS) {
-      getIntegerParam(ADMaxSizeX, &itemp);
-      dims[0] = itemp;
-      getIntegerParam(ADMaxSizeY, &itemp);
-      dims[1] = itemp;
-      PimegaNDArray = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, NULL);
-      memcpy(PimegaNDArray->pData, pimega->sample_frame, PimegaNDArray->dataSize);
-      PimegaNDArray->uniqueId = backendCounter;
-      updateTimeStamp(&PimegaNDArray->epicsTS);
-      this->getAttributes(PimegaNDArray->pAttributeList);
-      PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "generateImage: Called the NDArray callback\n");
-      doCallbacksGenericPointer(PimegaNDArray, NDArrayData, 0);
-      PimegaNDArray->release();
-    }
-  }
+  int sizex, sizey;
+  getIntegerParam(ADMaxSizeX, &sizex);
+  getIntegerParam(ADMaxSizeY, &sizey);
+
+  PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "updateEpicsFrame: %d\n", data[sizex * sizey - 1]);
+
+  size_t array_dims[2] = { sizex, sizey };
+
+  PimegaNDArray = this->pNDArrayPool->alloc(2, array_dims, vis_ndarray_dtype, 0, NULL);
+  memcpy(PimegaNDArray->pData, data, PimegaNDArray->dataSize);
+  updateTimeStamp(&PimegaNDArray->epicsTS);
+  this->getAttributes(PimegaNDArray->pAttributeList);
+  doCallbacksGenericPointer(PimegaNDArray, NDArrayData, 0);
+  PimegaNDArray->release();
+
 }
 
 /** This thread controls acquisition, reads image files to get the image data,
@@ -309,7 +312,7 @@ void pimegaDetector::captureTask() {
   int capture = 0;
   int eventStatus = 0;
   uint64_t prevAcquisitionCount = 0;
-  static uint64_t previousReceivedCount = 0;
+  uint64_t previousReceivedCount = 0;
   uint64_t recievedBackendCount, processedBackendCount;
   /* Loop forever */
   while (true) {
@@ -399,11 +402,6 @@ void pimegaDetector::captureTask() {
       }
     }
 
-    if (previousReceivedCount < received_acq) {
-      previousReceivedCount = received_acq;
-      generateImage();
-    }
-
     if (pimega->acquireParam.numCapture != 0 && capture) {
       /* Timer finished and data should have arrived already ( but not
        * necessarily saved ) */
@@ -425,7 +423,6 @@ void pimegaDetector::captureTask() {
         UPDATEIOCSTATUS("Acquisition finished");
         UPDATESERVERSTATUS("Backend done");
         callParamCallbacks();
-        generateImage();
       }
     } else {
       UPDATESERVERSTATUS("Receiving images");
@@ -1133,12 +1130,13 @@ extern "C" int pimegaDetectorConfig(const char *portName, const char *address_mo
                                     const char *address_module10, int port, int maxSizeX,
                                     int maxSizeY, int detectorModel, int maxBuffers,
                                     size_t maxMemory, int priority, int stackSize, int simulate,
-                                    int backendOn, int log, unsigned short backend_port) {
+                                    int backendOn, int log, unsigned short backend_port,
+                                    unsigned short vis_frame_port) {
   new pimegaDetector(portName, address_module01, address_module02, address_module03,
                      address_module04, address_module05, address_module06, address_module07,
                      address_module08, address_module09, address_module10, port, maxSizeX, maxSizeY,
                      detectorModel, maxBuffers, maxMemory, priority, stackSize, simulate, backendOn,
-                     log, backend_port);
+                     log, backend_port, vis_frame_port);
 
   return (asynSuccess);
 }
@@ -1169,7 +1167,7 @@ pimegaDetector::pimegaDetector(const char *portName, const char *address_module0
                                const char *address_module10, int port, int SizeX, int SizeY,
                                int detectorModel, int maxBuffers, size_t maxMemory, int priority,
                                int stackSize, int simulate, int backendOn, int log,
-                               unsigned short backend_port)
+                               unsigned short backend_port, unsigned short vis_frame_port)
 
     : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask |
@@ -1248,7 +1246,7 @@ pimegaDetector::pimegaDetector(const char *portName, const char *address_module0
   if (pimega) PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "pimegaDetector: Pimega struct created\n");
 
   pimega->simulate = simulate;
-  connect(ips, port, backend_port);
+  connect(ips, port, backend_port, vis_frame_port);
   status = prepare_pimega(pimega);
   if (status != PIMEGA_SUCCESS) panic("Unable to prepare pimega. Aborting");
   // pimega->debug_out = fopen("log.txt", "w+");
@@ -1296,7 +1294,7 @@ void pimegaDetector::panic(const char *msg) {
 }
 
 void pimegaDetector::connect(const char *address[10], unsigned short port,
-                             unsigned short backend_port) {
+                             unsigned short backend_port, unsigned short vis_frame_port) {
   int rc = 0;
   unsigned short ports[10] = {10000, 10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008, 10010};
 
@@ -1304,10 +1302,23 @@ void pimegaDetector::connect(const char *address[10], unsigned short port,
     ports[0] = ports[1] = ports[2] = ports[3] = ports[4] = ports[5] = ports[6] = ports[7] =
         ports[8] = ports[9] = port;
 
-  // Connect to backend
+  char connection_address[1024];
+  sprintf(connection_address, "tcp://127.0.0.1:%d", vis_frame_port);
+  const std::string visualizer_topic = "pimega_frame_visualizer";
+  const size_t max_frame_size = maxSizeX * maxSizeY * sizeof(vis_dtype);
+  message_consumer = new ZmqMessageConsumer(
+          connection_address,
+          visualizer_topic,
+          max_frame_size);
+
+  message_consumer->subscribe("ioc_frame_visualizer_callback", [this](void* data) {
+      this->updateEpicsFrame(reinterpret_cast<vis_dtype*>(data));
+  });
+
   rc = pimega_connect_backend(pimega, "127.0.0.1", backend_port);
   if (rc != PIMEGA_SUCCESS) panic("Unable to connect with Backend. Aborting");
-  receive_initArgs_from_backend(pimega);
+    receive_initArgs_from_backend(pimega);
+
   // Connect to detector
   rc |= pimega_connect(pimega, address, ports);
   if (rc != PIMEGA_SUCCESS) panic("Unable to connect with detector. Aborting");
@@ -2364,6 +2375,7 @@ static const iocshArg pimegaDetectorConfigArg19 = {"simulate", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg20 = {"backendOn", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg21 = {"log", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg22 = {"backend_port", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg23 = {"vis_frame_port", iocshArgInt};
 static const iocshArg *const pimegaDetectorConfigArgs[] = {
     &pimegaDetectorConfigArg0,  &pimegaDetectorConfigArg1,  &pimegaDetectorConfigArg2,
     &pimegaDetectorConfigArg3,  &pimegaDetectorConfigArg4,  &pimegaDetectorConfigArg5,
@@ -2372,8 +2384,8 @@ static const iocshArg *const pimegaDetectorConfigArgs[] = {
     &pimegaDetectorConfigArg12, &pimegaDetectorConfigArg13, &pimegaDetectorConfigArg14,
     &pimegaDetectorConfigArg15, &pimegaDetectorConfigArg16, &pimegaDetectorConfigArg17,
     &pimegaDetectorConfigArg18, &pimegaDetectorConfigArg19, &pimegaDetectorConfigArg20,
-    &pimegaDetectorConfigArg21, &pimegaDetectorConfigArg22};
-static const iocshFuncDef configpimegaDetector = {"pimegaDetectorConfig", 23,
+    &pimegaDetectorConfigArg21, &pimegaDetectorConfigArg22, &pimegaDetectorConfigArg23};
+static const iocshFuncDef configpimegaDetector = {"pimegaDetectorConfig", 24,
                                                   pimegaDetectorConfigArgs};
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args) {
@@ -2381,7 +2393,7 @@ static void configpimegaDetectorCallFunc(const iocshArgBuf *args) {
                        args[5].sval, args[6].sval, args[7].sval, args[8].sval, args[9].sval,
                        args[10].sval, args[11].ival, args[12].ival, args[13].ival, args[14].ival,
                        args[15].ival, args[16].ival, args[17].ival, args[18].ival, args[19].ival,
-                       args[20].ival, args[21].ival, args[22].ival);
+                       args[20].ival, args[21].ival, args[22].ival, args[23].ival);
 }
 
 static void pimegaDetectorRegister(void) {
