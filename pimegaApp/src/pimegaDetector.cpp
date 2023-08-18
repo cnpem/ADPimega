@@ -41,7 +41,7 @@ void pimegaDetector::updateEpicsFrame(vis_dtype* data) {
   getIntegerParam(ADMaxSizeX, &sizex);
   getIntegerParam(ADMaxSizeY, &sizey);
 
-  PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "updateEpicsFrame: %d\n", data[sizex * sizey - 1]);
+  PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "updateEpicsFrame\n");
 
   size_t array_dims[2] = { sizex, sizey };
 
