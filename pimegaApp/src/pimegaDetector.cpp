@@ -167,7 +167,7 @@ void pimegaDetector::acqTask() {
         pimega->error[0] = '\0';
       } else {
         setIntegerParam(ADStatus, ADStatusAborted);
-        send_stopAcquire_to_backend(pimega);
+        abort_save(pimega);
         UPDATEIOCSTATUS("Stop send to the backend");
       }
       callParamCallbacks();
