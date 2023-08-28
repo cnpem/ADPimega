@@ -11,6 +11,7 @@
 #include <lib/zmq_message_broker.hpp>
 
 const NDDataType_t vis_ndarray_dtype = NDUInt32;
+bool Acq_reset_RDMA = false;
 
 static pimega_t *pimega_global;
 
@@ -1131,12 +1132,12 @@ extern "C" int pimegaDetectorConfig(const char *portName, const char *address_mo
                                     int maxSizeY, int detectorModel, int maxBuffers,
                                     size_t maxMemory, int priority, int stackSize, int simulate,
                                     int backendOn, int log, unsigned short backend_port,
-                                    unsigned short vis_frame_port) {
+                                    unsigned short vis_frame_port, bool AcqResetRDMA) {
   new pimegaDetector(portName, address_module01, address_module02, address_module03,
                      address_module04, address_module05, address_module06, address_module07,
                      address_module08, address_module09, address_module10, port, maxSizeX, maxSizeY,
                      detectorModel, maxBuffers, maxMemory, priority, stackSize, simulate, backendOn,
-                     log, backend_port, vis_frame_port);
+                     log, backend_port, vis_frame_port, AcqResetRDMA);
 
   return (asynSuccess);
 }
@@ -1167,7 +1168,8 @@ pimegaDetector::pimegaDetector(const char *portName, const char *address_module0
                                const char *address_module10, int port, int SizeX, int SizeY,
                                int detectorModel, int maxBuffers, size_t maxMemory, int priority,
                                int stackSize, int simulate, int backendOn, int log,
-                               unsigned short backend_port, unsigned short vis_frame_port)
+                               unsigned short backend_port, unsigned short vis_frame_port,
+                               bool AcqResetRDMA)
 
     : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask |
@@ -1181,6 +1183,7 @@ pimegaDetector::pimegaDetector(const char *portName, const char *address_module0
       forceCallback_(1)
 
 {
+  Acq_reset_RDMA = AcqResetRDMA;
   int status = asynSuccess;
   const char *functionName = "pimegaDetector::pimegaDetector";
   const char *ips[] = {address_module01, address_module02, address_module03, address_module04,
@@ -2377,6 +2380,7 @@ static const iocshArg pimegaDetectorConfigArg20 = {"backendOn", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg21 = {"log", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg22 = {"backend_port", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg23 = {"vis_frame_port", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg24 = {"AcqResetRDMA", iocshArgInt};
 static const iocshArg *const pimegaDetectorConfigArgs[] = {
     &pimegaDetectorConfigArg0,  &pimegaDetectorConfigArg1,  &pimegaDetectorConfigArg2,
     &pimegaDetectorConfigArg3,  &pimegaDetectorConfigArg4,  &pimegaDetectorConfigArg5,
@@ -2385,8 +2389,9 @@ static const iocshArg *const pimegaDetectorConfigArgs[] = {
     &pimegaDetectorConfigArg12, &pimegaDetectorConfigArg13, &pimegaDetectorConfigArg14,
     &pimegaDetectorConfigArg15, &pimegaDetectorConfigArg16, &pimegaDetectorConfigArg17,
     &pimegaDetectorConfigArg18, &pimegaDetectorConfigArg19, &pimegaDetectorConfigArg20,
-    &pimegaDetectorConfigArg21, &pimegaDetectorConfigArg22, &pimegaDetectorConfigArg23};
-static const iocshFuncDef configpimegaDetector = {"pimegaDetectorConfig", 24,
+    &pimegaDetectorConfigArg21, &pimegaDetectorConfigArg22, &pimegaDetectorConfigArg23,
+    &pimegaDetectorConfigArg24};
+static const iocshFuncDef configpimegaDetector = {"pimegaDetectorConfig", 25,
                                                   pimegaDetectorConfigArgs};
 
 static void configpimegaDetectorCallFunc(const iocshArgBuf *args) {
@@ -2394,7 +2399,7 @@ static void configpimegaDetectorCallFunc(const iocshArgBuf *args) {
                        args[5].sval, args[6].sval, args[7].sval, args[8].sval, args[9].sval,
                        args[10].sval, args[11].ival, args[12].ival, args[13].ival, args[14].ival,
                        args[15].ival, args[16].ival, args[17].ival, args[18].ival, args[19].ival,
-                       args[20].ival, args[21].ival, args[22].ival, args[23].ival);
+                       args[20].ival, args[21].ival, args[22].ival, args[23].ival, args[24].ival);
 }
 
 static void pimegaDetectorRegister(void) {
