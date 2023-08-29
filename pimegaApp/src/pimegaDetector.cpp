@@ -1132,7 +1132,7 @@ extern "C" int pimegaDetectorConfig(const char *portName, const char *address_mo
                                     int maxSizeY, int detectorModel, int maxBuffers,
                                     size_t maxMemory, int priority, int stackSize, int simulate,
                                     int backendOn, int log, unsigned short backend_port,
-                                    unsigned short vis_frame_port, bool AcqResetRDMA) {
+                                    unsigned short vis_frame_port, int AcqResetRDMA) {
   new pimegaDetector(portName, address_module01, address_module02, address_module03,
                      address_module04, address_module05, address_module06, address_module07,
                      address_module08, address_module09, address_module10, port, maxSizeX, maxSizeY,
@@ -1169,7 +1169,7 @@ pimegaDetector::pimegaDetector(const char *portName, const char *address_module0
                                int detectorModel, int maxBuffers, size_t maxMemory, int priority,
                                int stackSize, int simulate, int backendOn, int log,
                                unsigned short backend_port, unsigned short vis_frame_port,
-                               bool AcqResetRDMA)
+                               int AcqResetRDMA)
 
     : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask |
@@ -1183,7 +1183,7 @@ pimegaDetector::pimegaDetector(const char *portName, const char *address_module0
       forceCallback_(1)
 
 {
-  Acq_reset_RDMA = AcqResetRDMA;
+  Acq_reset_RDMA = (bool)AcqResetRDMA;
   int status = asynSuccess;
   const char *functionName = "pimegaDetector::pimegaDetector";
   const char *ips[] = {address_module01, address_module02, address_module03, address_module04,
