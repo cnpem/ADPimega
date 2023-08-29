@@ -1131,12 +1131,12 @@ extern "C" int pimegaDetectorConfig(const char *portName, const char *address_mo
                                     int maxSizeY, int detectorModel, int maxBuffers,
                                     size_t maxMemory, int priority, int stackSize, int simulate,
                                     int backendOn, int log, unsigned short backend_port,
-                                    unsigned short vis_frame_port, int AcqResetRDMA) {
+                                    unsigned short vis_frame_port, int IntAcqResetRDMA) {
   new pimegaDetector(portName, address_module01, address_module02, address_module03,
                      address_module04, address_module05, address_module06, address_module07,
                      address_module08, address_module09, address_module10, port, maxSizeX, maxSizeY,
                      detectorModel, maxBuffers, maxMemory, priority, stackSize, simulate, backendOn,
-                     log, backend_port, vis_frame_port, AcqResetRDMA);
+                     log, backend_port, vis_frame_port, IntAcqResetRDMA);
 
   return (asynSuccess);
 }
@@ -1168,7 +1168,7 @@ pimegaDetector::pimegaDetector(const char *portName, const char *address_module0
                                int detectorModel, int maxBuffers, size_t maxMemory, int priority,
                                int stackSize, int simulate, int backendOn, int log,
                                unsigned short backend_port, unsigned short vis_frame_port,
-                               int AcqResetRDMA)
+                               int IntAcqResetRDMA)
 
     : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                asynInt32ArrayMask | asynFloat64ArrayMask | asynFloat32ArrayMask |
@@ -1182,7 +1182,7 @@ pimegaDetector::pimegaDetector(const char *portName, const char *address_module0
       forceCallback_(1)
 
 {
-  Acq_reset_RDMA = (bool)AcqResetRDMA;
+  BoolAcqResetRDMA = (bool)IntAcqResetRDMA;
   int status = asynSuccess;
   const char *functionName = "pimegaDetector::pimegaDetector";
   const char *ips[] = {address_module01, address_module02, address_module03, address_module04,
@@ -1689,7 +1689,7 @@ void pimegaDetector::report(FILE *fp, int details) {
 asynStatus pimegaDetector::startAcquire(void) {
   int rc = 0;
   pimega->pimegaParam.software_trigger = false;
-  if (Acq_reset_RDMA) {
+  if (BoolAcqResetRDMA) {
     send_allinitArgs_allModules(pimega);
   }
   rc = execute_acquire(pimega);
@@ -1736,7 +1736,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
 
   configureAlignment(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
 
-  rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, Acq_reset_RDMA,
+  rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, BoolAcqResetRDMA,
                                           pimega->acquireParam.numCapture, frameProcessMode);
   if (rc != PIMEGA_SUCCESS) return asynError;
 
@@ -2382,7 +2382,7 @@ static const iocshArg pimegaDetectorConfigArg20 = {"backendOn", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg21 = {"log", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg22 = {"backend_port", iocshArgInt};
 static const iocshArg pimegaDetectorConfigArg23 = {"vis_frame_port", iocshArgInt};
-static const iocshArg pimegaDetectorConfigArg24 = {"AcqResetRDMA", iocshArgInt};
+static const iocshArg pimegaDetectorConfigArg24 = {"IntAcqResetRDMA", iocshArgInt};
 static const iocshArg *const pimegaDetectorConfigArgs[] = {
     &pimegaDetectorConfigArg0,  &pimegaDetectorConfigArg1,  &pimegaDetectorConfigArg2,
     &pimegaDetectorConfigArg3,  &pimegaDetectorConfigArg4,  &pimegaDetectorConfigArg5,
