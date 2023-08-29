@@ -230,7 +230,7 @@ class pimegaDetector : public ADDriver {
                  const char *address_module09, const char *address_module10, int port, int maxSizeX,
                  int maxSizeY, int detectorModel, int maxBuffers, size_t maxMemory, int priority,
                  int stackSize, int simulate, int backendOn, int log, unsigned short backend_port,
-                 unsigned short vis_frame_port);
+                 unsigned short vis_frame_port, int IntAcqResetRDMA);
 
   virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -393,6 +393,7 @@ class pimegaDetector : public ADDriver {
   int PimegaFrameProcessMode;
   NDArray *PimegaNDArray = NULL;
   int PimegaLogFile;
+  bool BoolAcqResetRDMA = false;
   IMessageConsumer* message_consumer = nullptr;
 #define LAST_PIMEGA_PARAM PimegaLogFile
 
