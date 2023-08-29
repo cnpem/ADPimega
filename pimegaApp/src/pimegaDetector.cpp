@@ -1690,6 +1690,9 @@ void pimegaDetector::report(FILE *fp, int details) {
 asynStatus pimegaDetector::startAcquire(void) {
   int rc = 0;
   pimega->pimegaParam.software_trigger = false;
+  if (Acq_reset_RDMA) {
+    send_allinitArgs_allModules(pimega);
+  }
   rc = execute_acquire(pimega);
   // send_stopAcquire_to_backend(pimega);
   if (rc != PIMEGA_SUCCESS) return asynError;
@@ -1734,7 +1737,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
 
   configureAlignment(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
 
-  rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, false,
+  rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, Acq_reset_RDMA,
                                           pimega->acquireParam.numCapture, frameProcessMode);
   if (rc != PIMEGA_SUCCESS) return asynError;
 
