@@ -393,6 +393,7 @@ class pimegaDetector : public ADDriver {
   int PimegaFrameProcessMode;
   NDArray *PimegaNDArray = NULL;
   int PimegaLogFile;
+  bool Acq_reset_RDMA = false;
   IMessageConsumer* message_consumer = nullptr;
 #define LAST_PIMEGA_PARAM PimegaLogFile
 

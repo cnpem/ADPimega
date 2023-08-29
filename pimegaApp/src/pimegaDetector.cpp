@@ -11,7 +11,6 @@
 #include <lib/zmq_message_broker.hpp>
 
 const NDDataType_t vis_ndarray_dtype = NDUInt32;
-bool Acq_reset_RDMA = false;
 
 static pimega_t *pimega_global;
 
