@@ -20,3 +20,4 @@ external/
 .vscode
 core
 envPaths*
+__pycache__

@@ -51,6 +51,7 @@
 #include <lib/system.h>
 #include <lib/test_pulse.h>
 #include <lib/trigger.h>
+#include <lib/zmq_message_broker.hpp>
 #include <pimega.h>
 
 #define PIMEGA_MAX_FILENAME_LEN 300
@@ -66,6 +67,8 @@
 
 #define N_DACS_OUTS 31
 static const char *driverName = "pimegaDetector";
+
+using vis_dtype = uint32_t;
 
 #define error(fmt, ...) \
   asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%d " fmt, __FILE__, __LINE__, __VA_ARGS__)
@@ -226,7 +229,8 @@ class pimegaDetector : public ADDriver {
                  const char *address_module07, const char *address_module08,
                  const char *address_module09, const char *address_module10, int port, int maxSizeX,
                  int maxSizeY, int detectorModel, int maxBuffers, size_t maxMemory, int priority,
-                 int stackSize, int simulate, int backendOn, int log, unsigned short backend_port);
+                 int stackSize, int simulate, int backendOn, int log, unsigned short backend_port,
+                 unsigned short vis_frame_port, int IntAcqResetRDMA);
 
   virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -241,7 +245,7 @@ class pimegaDetector : public ADDriver {
   virtual void alarmTask(void);
   virtual void acqTask(void);
   virtual void captureTask(void);
-  virtual void generateImage(void);
+  virtual void updateEpicsFrame(vis_dtype* data);
   void updateIOCStatus(const char *message, int size);
   void updateServerStatus(const char *message, int size);
   void newImageTask();
@@ -389,6 +393,8 @@ class pimegaDetector : public ADDriver {
   int PimegaFrameProcessMode;
   NDArray *PimegaNDArray = NULL;
   int PimegaLogFile;
+  bool BoolAcqResetRDMA = false;
+  IMessageConsumer* message_consumer = nullptr;
 #define LAST_PIMEGA_PARAM PimegaLogFile
 
  private:
@@ -421,7 +427,8 @@ class pimegaDetector : public ADDriver {
   uint64_t recievedBackendCountOffset;
 
   void panic(const char *msg);
-  void connect(const char *address[4], unsigned short port, unsigned short backend_port);
+  void connect(const char *address[4], unsigned short port,
+          unsigned short backend_port, unsigned short vis_frame_port);
   void createParameters(void);
   void setParameter(int index, const char *value);
   void setParameter(int index, int value);
