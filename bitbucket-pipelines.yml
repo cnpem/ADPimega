@@ -1,0 +1,21 @@
+image: python:3.8
+
+pipelines:
+  default:
+    - parallel:
+        - step:
+            name: CI Static Analysis
+            caches:
+              - pip
+            script:
+              - pip install pre-commit
+              - pip install lizard
+              - pre-commit run /test
+              - lizard ./test/ -V
+            after-script:
+              - echo "Finalized CI pipeline!"
+        - step:
+            name: Unit Tests
+            script:
+              - pip install tox
+              - tox
