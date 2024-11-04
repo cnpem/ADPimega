@@ -6,9 +6,8 @@ include $(TOP)/configure/CONFIG
 # Build an Support Module
 # -------------------------------
 
-USR_INCLUDES += -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
-
-#INC += pimegaDetector.h
+USR_INCLUDES += $(addprefix -I, $(GLIB_INCLUDE))
+USR_INCLUDES += $(addprefix -I, $(PIMEGA_INCLUDE))
 
 LIBRARY_IOC_Linux += pimegaDetector
 
