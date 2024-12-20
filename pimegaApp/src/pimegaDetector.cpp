@@ -12,8 +12,6 @@
 #include <cstring>
 #include <lib/zmq_message_broker.hpp>
 
-const NDDataType_t vis_ndarray_dtype = NDUInt32;
-
 static pimega_t *pimega_global;
 
 static void alarmTaskC(void *drvPvt) {
@@ -37,7 +35,7 @@ static void acquisitionTaskC(void *drvPvt) {
   pPvt->acqTask();
 }
 
-void pimegaDetector::updateEpicsFrame(vis_dtype *data) {
+void pimegaDetector::updateEpicsFrame(void *data, NDDataType_t ndarray_dtype) {
   int sizex, sizey;
   getIntegerParam(ADMaxSizeX, &sizex);
   getIntegerParam(ADMaxSizeY, &sizey);
@@ -45,9 +43,8 @@ void pimegaDetector::updateEpicsFrame(vis_dtype *data) {
   PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "updateEpicsFrame\n");
 
   size_t array_dims[2] = {sizex, sizey};
-
   NDArray *PimegaNDArray =
-      this->pNDArrayPool->alloc(2, array_dims, vis_ndarray_dtype, 0, NULL);
+      this->pNDArrayPool->alloc(2, array_dims, ndarray_dtype, 0, NULL);
   memcpy(PimegaNDArray->pData, data, PimegaNDArray->dataSize);
   updateTimeStamp(&PimegaNDArray->epicsTS);
   this->getAttributes(PimegaNDArray->pAttributeList);
@@ -1444,14 +1441,16 @@ void pimegaDetector::connect(const char *address[10], unsigned short port,
 
   char connection_address[1024];
   sprintf(connection_address, "tcp://127.0.0.1:%d", vis_frame_port);
-  const std::string visualizer_topic = "pimega_frame_visualizer";
-  const size_t max_frame_size = maxSizeX * maxSizeY * sizeof(vis_dtype);
+  const std::string visualizer_topic = "pimega_high_perf";
+  const size_t max_frame_size = maxSizeX * maxSizeY * sizeof(uint32_t);
   message_consumer = new ZmqMessageConsumer(connection_address,
                                             visualizer_topic, max_frame_size);
 
   message_consumer->subscribe(
       "ioc_frame_visualizer_callback", [this](void *data) {
-        this->updateEpicsFrame(reinterpret_cast<vis_dtype *>(data));
+        int counter_depth;
+        getParameter(PimegaCounterDepth, &counter_depth);
+        this->updateEpicsFrame(data, counter_depth == 3 ? NDUInt32 : NDUInt16);
       });
 
   rc =
