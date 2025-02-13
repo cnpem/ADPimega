@@ -13,6 +13,8 @@ LIBRARY_IOC_Linux += pimegaDetector
 
 LIB_SRCS += pimegaDetector.cpp
 
+pimegaDetector_CXXFLAGS += '-DADPIMEGA_VERSION="$(shell git describe --tags)"'
+
 # ------------------------
 # Build the Area Detector Derived Library
 # ------------------------
