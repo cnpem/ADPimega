@@ -2705,6 +2705,7 @@ asynStatus pimegaDetector::configureAlignment(bool alignment_mode) {
     set_numberExposures(pimega, numExposuresVar);
     getParameter(NDFileNumCapture, &numCaptureVar);
   }
+  return asynSuccess;
 }
 
 asynStatus pimegaDetector::diagnostic() {
