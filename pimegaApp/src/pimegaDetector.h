@@ -421,7 +421,6 @@ class pimegaDetector : public ADDriver {
   int PimegaDacCountScanStep;
   int PimegaDacCountScanData;
   NDArray *PimegaDacCountScanResult = NULL;
-  NDArray *PimegaNDArray = NULL;
   int PimegaLogFile;
   bool BoolAcqResetRDMA = false;
   IMessageConsumer *message_consumer = nullptr;

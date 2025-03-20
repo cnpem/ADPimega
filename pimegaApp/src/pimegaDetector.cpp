@@ -46,7 +46,7 @@ void pimegaDetector::updateEpicsFrame(vis_dtype *data) {
 
   size_t array_dims[2] = {sizex, sizey};
 
-  PimegaNDArray =
+  NDArray *PimegaNDArray =
       this->pNDArrayPool->alloc(2, array_dims, vis_ndarray_dtype, 0, NULL);
   memcpy(PimegaNDArray->pData, data, PimegaNDArray->dataSize);
   updateTimeStamp(&PimegaNDArray->epicsTS);
