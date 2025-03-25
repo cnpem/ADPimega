@@ -2701,7 +2701,11 @@ asynStatus pimegaDetector::configureAlignment(bool alignment_mode) {
   } else {
     getIntegerParam(ADNumExposures, &numExposuresVar);
   }
-  set_numberExposures(pimega, numExposuresVar);
+  int rc = set_numberExposures(pimega, numExposuresVar);
+  if (rc != PIMEGA_SUCCESS) {
+    error("Invalid number of exposures: %s\n", pimega_error_string(rc));
+    return asynError;
+  }
   return asynSuccess;
 }
 
