@@ -2693,15 +2693,15 @@ asynStatus pimegaDetector::debug(const std::string &method,
 }
 
 asynStatus pimegaDetector::configureAlignment(bool alignment_mode) {
+  const int max_num_capture = 2147483647;
   int numExposuresVar;
-  int max_num_capture = 2147483647;
   if (alignment_mode) {
-    set_numberExposures(pimega, max_num_capture);
+    numExposuresVar = max_num_capture;
     SetAcqParamCameraNumCapture(pimega, max_num_capture);
   } else {
     getIntegerParam(ADNumExposures, &numExposuresVar);
-    set_numberExposures(pimega, numExposuresVar);
   }
+  set_numberExposures(pimega, numExposuresVar);
   return asynSuccess;
 }
 
