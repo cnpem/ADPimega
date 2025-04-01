@@ -76,16 +76,6 @@ using vis_dtype = uint32_t;
   asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%d " fmt, __FILE__, __LINE__, \
             __VA_ARGS__)
 
-#define UPDATEIOCSTATUS(x)         \
-  do {                             \
-    updateIOCStatus(x, sizeof(x)); \
-  } while (0)
-
-#define UPDATESERVERSTATUS(x)         \
-  do {                                \
-    updateServerStatus(x, sizeof(x)); \
-  } while (0)
-
 typedef enum ioc_trigger_mode_t {
   IOC_TRIGGER_MODE_INTERNAL = 0,
   IOC_TRIGGER_MODE_EXTERNAL = 1,
@@ -263,8 +253,8 @@ class pimegaDetector : public ADDriver {
   virtual void acqTask(void);
   virtual void captureTask(void);
   virtual void updateEpicsFrame(void *data, NDDataType_t ndarray_dtype);
-  void updateIOCStatus(const char *message, int size);
-  void updateServerStatus(const char *message, int size);
+  void updateIOCStatus(const std::string_view message);
+  void updateServerStatus(const std::string_view message);
   void newImageTask();
   void finishAcq(int trigger, int *acquire, int *acquireStatus,
                  uint64_t *recievedBackendCountOffset, int numExposuresVar);

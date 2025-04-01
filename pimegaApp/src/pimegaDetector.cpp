@@ -106,7 +106,7 @@ void pimegaDetector::acqTask() {
       this->lock();
       /* Open the shutter */
       setShutter(ADShutterOpen);
-      UPDATEIOCSTATUS("Acquiring");
+      updateIOCStatus("Acquiring");
       setIntegerParam(ADStatus, ADStatusAcquire);
       /* Backend status */
       getParameter(NDFileCapture, &backendStatus);
@@ -138,7 +138,7 @@ void pimegaDetector::acqTask() {
       (acquireStatus != DONE_ACQ) or when Elapsed time is chosen
       (!pimega->trigger_in_enum.PIMEGA_TRIGGER_IN_INTERNAL) */
     if (acquireStatus == PERMISSION_DENIED) {
-      UPDATEIOCSTATUS("Permission Denied, press stop");
+      updateIOCStatus("Permission Denied, press stop");
     }
     if (acquire &&
         (acquireStatus != DONE_ACQ || acquireStatus != PERMISSION_DENIED ||
@@ -174,11 +174,11 @@ void pimegaDetector::acqTask() {
       setIntegerParam(ADStatus, ADStatusAborted);
       if (acquireStatusError == 1) {
         acquireStatusError = 0;
-        UPDATEIOCSTATUS(this->error_str);
+        updateIOCStatus(this->error_str);
         this->error_str[0] = '\0';
       } else {
         abort_save(pimega);
-        UPDATEIOCSTATUS("Stop send to the backend");
+        updateIOCStatus("Stop send to the backend");
       }
       callParamCallbacks();
       continue;
@@ -229,19 +229,19 @@ void pimegaDetector::acqTask() {
              for the images to be saved (if necessary) to go to 0 or will wait
              for index to receive the images or both */
           if (GetAcqStatusDone(pimega) != DONE_ACQ) {
-            UPDATEIOCSTATUS("Not all images received. Waiting");
+            updateIOCStatus("Not all images received. Waiting");
           } else if (indexEnableBool == true &&
                      GetAcqStatusSentAcquisitionsCount(pimega) <
                          (unsigned int)GetAcqParamCameraNumCapture(pimega)) {
-            UPDATEIOCSTATUS("Sending frames to Index");
+            updateIOCStatus("Sending frames to Index");
           } else if (processedBackendCount <
                      (unsigned int)GetAcqParamCameraNumCapture(pimega)) {
-            UPDATEIOCSTATUS("Images received, processing");
+            updateIOCStatus("Images received, processing");
           } else if (acquireStatus == DONE_ACQ) {
             finishAcq(triggerMode, &acquire, &acquireStatus,
                       &recievedBackendCountOffset, numExposuresVar);
           } else {
-            UPDATEIOCSTATUS("Waiting Acquire Period");
+            updateIOCStatus("Waiting Acquire Period");
           }
 
           break;
@@ -256,23 +256,23 @@ void pimegaDetector::acqTask() {
           if (GetAcqParamCameraNumCapture(pimega) != 0) {
             if (GetAcqStatusProcessedImageNum(pimega) <
                 (unsigned int)GetAcqParamCameraNumCapture(pimega)) {
-              UPDATEIOCSTATUS("Waiting for trigger");
+              updateIOCStatus("Waiting for trigger");
             } else if (autoSave == 1 &&
                        processedBackendCount <
                            GetAcqStatusSavedFramesCount(pimega)) {
-              UPDATEIOCSTATUS("Saving images..");
+              updateIOCStatus("Saving images..");
             } else if (indexEnableBool == true &&
                        GetAcqStatusSentAcquisitionsCount(pimega) <
                            (unsigned int)GetAcqParamCameraNumCapture(pimega)) {
-              UPDATEIOCSTATUS("Sending frames to Index");
+              updateIOCStatus("Sending frames to Index");
             } else if (acquireStatus == DONE_ACQ) {
               finishAcq(triggerMode, &acquire, &acquireStatus,
                         &recievedBackendCountOffset, numExposuresVar);
             } else {
-              UPDATEIOCSTATUS("Waiting Acquire Period");
+              updateIOCStatus("Waiting Acquire Period");
             }
           } else {
-            UPDATEIOCSTATUS("Receiving images");
+            updateIOCStatus("Receiving images");
           }
           break;
 
@@ -287,10 +287,10 @@ void pimegaDetector::acqTask() {
 
       /* Errors reported by backend override previous messages. */
       if (moduleError != false) {
-        UPDATEIOCSTATUS("Detector error");
+        updateIOCStatus("Detector error");
         setIntegerParam(ADStatus, ADStatusError);
       } else if (GetAcqStatusIndexError(pimega) != false) {
-        UPDATEIOCSTATUS("Index error");
+        updateIOCStatus("Index error");
         setIntegerParam(ADStatus, ADStatusError);
       }
     }
@@ -307,13 +307,13 @@ void pimegaDetector::finishAcq(int trigger, int *acquire, int *acquireStatus,
       configureAlignment(false);
       PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Alignment stopped\n",
                    __func__);
-      UPDATEIOCSTATUS("Alignment stopped");
+      updateIOCStatus("Alignment stopped");
       break;
 
     default:
       PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Acquisition finished\n",
                    __func__);
-      UPDATEIOCSTATUS("Acquisition finished");
+      updateIOCStatus("Acquisition finished");
       *recievedBackendCountOffset += numExposuresVar;
 
       *acquire = 0;
@@ -379,11 +379,11 @@ void pimegaDetector::captureTask() {
       if (status != 0) {
         PIMEGA_PRINT(pimega, TRACE_MASK_ERROR, "%s: Failed - %s\n",
                      "send_stopAcquire_to_backend", this->error_str);
-        UPDATESERVERSTATUS(this->error_str);
+        updateServerStatus(this->error_str);
         this->error_str[0] = '\0';
       } else {
         capture = 0;
-        UPDATESERVERSTATUS("Backend stopped");
+        updateServerStatus("Backend stopped");
         continue;
       }
     }
@@ -413,7 +413,7 @@ void pimegaDetector::captureTask() {
     getParameter(NDAutoSave, &autoSave);
     getIntegerParam(PimegaIndexEnable, &indexEnable);
     indexEnableBool = (bool)indexEnable;
-    /* Capture and server status message management ( UPDATESERVERSTATUS &&
+    /* Capture and server status message management ( updateServerStatus &&
        NDFileCapture handling )
         - The number of the frontend images may or may not be the same as the
        number configured to the backend.
@@ -442,44 +442,44 @@ void pimegaDetector::captureTask() {
        * necessarily saved ) */
       getIntegerParam(ADStatus, &adstatus);
       if (adstatus == ADStatusAborted) {
-        UPDATESERVERSTATUS("Aborted");
+        updateServerStatus("Aborted");
       } else if (received_acq < (int)GetAcqParamCameraNumCapture(pimega)) {
-        UPDATESERVERSTATUS("Waiting for images");
+        updateServerStatus("Waiting for images");
       } else if (autoSave == 1 && GetAcqStatusDone(pimega) != DONE_ACQ) {
-        UPDATESERVERSTATUS("Saving");
+        updateServerStatus("Saving");
       } else if (GetAcqStatusProcessedImageNum(pimega) <
                  (int)GetAcqParamCameraNumCapture(pimega)) {
-        UPDATESERVERSTATUS("Processing images");
+        updateServerStatus("Processing images");
       } else {
         setParameter(NDFileCapture, 0);
         capture = 0;
         setDoubleParam(ADTimeRemaining, 0);
         PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Backend finished\n",
                      __func__);
-        UPDATEIOCSTATUS("Acquisition finished");
-        UPDATESERVERSTATUS("Backend done");
+        updateIOCStatus("Acquisition finished");
+        updateServerStatus("Backend done");
         callParamCallbacks();
       }
     } else {
-      UPDATESERVERSTATUS("Receiving images");
+      updateServerStatus("Receiving images");
     }
     /* Errors reported by backend override previous messages. */
     if (moduleError != false) {
-      UPDATESERVERSTATUS("Detector dropped frames");
+      updateServerStatus("Detector dropped frames");
     } else if (GetAcqStatusIndexError(pimega) != false) {
-      UPDATESERVERSTATUS("Index not responding");
+      updateServerStatus("Index not responding");
     }
   }
 }
 
-void pimegaDetector::updateIOCStatus(const char *message, int size) {
-  epicsInt8 *array = (epicsInt8 *)message;
-  doCallbacksInt8Array(array, size, PimegaIOCStatusMessage, 0);
+void pimegaDetector::updateIOCStatus(const std::string_view message) {
+  epicsInt8 *array = (epicsInt8 *)message.data();
+  doCallbacksInt8Array(array, message.length(), PimegaIOCStatusMessage, 0);
 }
 
-void pimegaDetector::updateServerStatus(const char *message, int size) {
-  epicsInt8 *array = (epicsInt8 *)message;
-  doCallbacksInt8Array(array, size, PimegaServerStatusMessage, 0);
+void pimegaDetector::updateServerStatus(const std::string_view message) {
+  epicsInt8 *array = (epicsInt8 *)message.data();
+  doCallbacksInt8Array(array, message.length(), PimegaServerStatusMessage, 0);
 }
 
 asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
@@ -620,15 +620,15 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             strlen(this->error_str));
     status = asynError;
   } else if (function == PimegaSendImage) {
-    UPDATEIOCSTATUS("Sending Images");
+    updateIOCStatus("Sending Images");
     if (value) status |= sendImage();
     strcat(ok_str, "Sending image done");
   } else if (function == PimegaLoadEqStart) {
-    UPDATEIOCSTATUS("Equalizing. Please Wait");
+    updateIOCStatus("Equalizing. Please Wait");
     if (value) status |= loadEqualization();
     strcat(ok_str, "Equalization Finished");
   } else if (function == PimegaCheckSensors) {
-    UPDATEIOCSTATUS("Checking sensors. Please Wait");
+    updateIOCStatus("Checking sensors. Please Wait");
     if (value) status |= checkSensors();
     strcat(ok_str, "Sensors checked");
   } else if (function == PimegaOmrOPMode) {
@@ -638,7 +638,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= numExposures(value);
     strcat(ok_str, "Exposures # set");
   } else if (function == PimegaReset) {
-    UPDATEIOCSTATUS("Reseting. Please wait");
+    updateIOCStatus("Reseting. Please wait");
     status |= reset(value);
     strcat(ok_str, "Reset done");
   } else if (function == PimegaMedipixMode) {
@@ -651,7 +651,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= triggerMode((enum ioc_trigger_mode_t)value);
     strcat(ok_str, "Trigger mode set");
   } else if (function == PimegaConfigDiscL) {
-    UPDATEIOCSTATUS("Setting ConfigDiscL value");
+    updateIOCStatus("Setting ConfigDiscL value");
     status |= configDiscL(value);
     strcat(ok_str, "ConfigDiscL set");
   } else if (function == PimegaMedipixBoard) {
@@ -769,7 +769,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     strcat(ok_str, "DAC TPRefB set");
   } else if (function == PimegaReadMBTemperature) {
     if (!value) {
-      UPDATEIOCSTATUS("Reading MB temperatures");
+      updateIOCStatus("Reading MB temperatures");
       status |= getMbTemperature();
       strcat(ok_str, "MB temperatures fetched");
     }
@@ -778,7 +778,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     strcat(ok_str, "Temperature Monitor enable set");
   } else if (function == PimegaReadSensorTemperature) {
     if (!value) {
-      UPDATEIOCSTATUS("Reading sensors temperatures");
+      updateIOCStatus("Reading sensors temperatures");
       status |= getMedipixTemperatures();
       strcat(ok_str, "Sensor temperatures fetched");
     }
@@ -789,11 +789,11 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setParameter(function, value);
     strcat(ok_str, "Frame process mode set");
   } else if (function == PimegaDacCountScan) {
-    UPDATEIOCSTATUS("Running DAC Count Scan");
+    updateIOCStatus("Running DAC Count Scan");
     status |= dacCountScan();
     strcat(ok_str, "DAC Count Scan done");
   } else if (function == PimegaDiagnostic) {
-    UPDATEIOCSTATUS("Performing diagnostic");
+    updateIOCStatus("Performing diagnostic");
     status |= diagnostic();
     strcat(ok_str, "Diagnostic performed");
   } else {
@@ -808,7 +808,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
                  "%s: Failed - status=%d function=%s(%d), value=%d - %s\n",
                  __func__, status, paramName, function, value, this->error_str);
-    UPDATEIOCSTATUS(this->error_str);
+    updateIOCStatus(this->error_str);
     this->error_str[0] = '\0';
   } else {
     /* Set the parameter and readback in the parameter library.  This may be
@@ -818,7 +818,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     PIMEGA_PRINT(pimega, TRACE_MASK_FLOW,
                  "%s: Success - status=%d function=%s(%d), value=%d\n",
                  functionName, status, paramName, function, value);
-    UPDATEIOCSTATUS(ok_str);
+    updateIOCStatus(ok_str);
   }
   return (asynStatus)status;
 }
@@ -863,7 +863,7 @@ asynStatus pimegaDetector::writeInt32Array(asynUser *pasynUser,
   if (status) {
     char err[100] = "Error setting ";
     strcat(err, paramName);
-    UPDATEIOCSTATUS(err);
+    updateIOCStatus(err);
     PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
                  "%s: Failed - status=%d function=%s(%d), nElements=%d, value=",
                  "writeInt32Array", status, paramName, function, nElements);
@@ -871,7 +871,7 @@ asynStatus pimegaDetector::writeInt32Array(asynUser *pasynUser,
     printf("]\n");
   } else {
     doCallbacksInt32Array(value, nElements, function, 0);
-    UPDATEIOCSTATUS(ok_str);
+    updateIOCStatus(ok_str);
     PIMEGA_PRINT(
         pimega, TRACE_MASK_FLOW,
         "%s: Success - status=%d function=%s(%d), nElements=%d, value=[ ",
@@ -901,7 +901,7 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value,
     status = asynError;
   } else if (function == pimegaDacDefaults) {
     *nActual = maxChars;
-    UPDATEIOCSTATUS("Setting DACs");
+    updateIOCStatus("Setting DACs");
     status = dacDefaults(value);
     strcat(ok_str, "Setting DACs done");
   } else if (function == PimegaIndexID) {
@@ -937,7 +937,7 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value,
     PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
                  "%s: Failed - status=%d function=%s(%d), value=%s - %s\n",
                  __func__, status, paramName, function, value, this->error_str);
-    UPDATEIOCSTATUS(this->error_str);
+    updateIOCStatus(this->error_str);
     this->error_str[0] = '\0';
   } else {
     /* Do callbacks so higher layers see any changes */
@@ -946,7 +946,7 @@ asynStatus pimegaDetector::writeOctet(asynUser *pasynUser, const char *value,
                  "%s: Success - status=%d function=%s(%d), value=%s\n",
                  "writeOctet", status, paramName, function, value);
 
-    UPDATEIOCSTATUS(ok_str);
+    updateIOCStatus(ok_str);
   }
 
   return ((asynStatus)status);
@@ -984,7 +984,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser,
     status |= acqTime(value);
     strcat(ok_str, "Exposure time set");
   } else if (function == PimegaDistance) {
-    UPDATEIOCSTATUS("Adjusting sample distance");
+    updateIOCStatus("Adjusting sample distance");
     setParameter(PimegaDistance, value);
     strcat(ok_str, "Distance set");
   } else if (function == ADAcquirePeriod) {
@@ -993,15 +993,15 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser,
   }
 
   else if (function == PimegaSensorBias) {
-    UPDATEIOCSTATUS("Adjusting sensor bias");
+    updateIOCStatus("Adjusting sensor bias");
     status |= sensorBias(value);
     strcat(ok_str, "Sensor bias set");
   } else if (function == PimegaExtBgIn) {
-    UPDATEIOCSTATUS("Adjusting bandgap");
+    updateIOCStatus("Adjusting bandgap");
     status |= setExtBgIn(value);
     strcat(ok_str, "Bandgap set");
   } else if (function == PimegaEnergy) {
-    UPDATEIOCSTATUS("Setting Energy");
+    updateIOCStatus("Setting Energy");
     status |= setThresholdEnergy(value);
     strcat(ok_str, "Energy set");
   } else {
@@ -1018,7 +1018,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser,
                  "%s: Failed - status=%d function=%s(%d), value=%f - %s\n",
                  functionName, status, paramName, function, value,
                  this->error_str);
-    UPDATEIOCSTATUS(this->error_str);
+    updateIOCStatus(this->error_str);
     this->error_str[0] = '\0';
   } else {
     /* Do callbacks so higher layers see any changes */
@@ -1027,7 +1027,7 @@ asynStatus pimegaDetector::writeFloat64(asynUser *pasynUser,
                  "%s: Success - status=%d function=%s(%d), value=%f\n",
                  functionName, status, paramName, function, value);
 
-    UPDATEIOCSTATUS(ok_str);
+    updateIOCStatus(ok_str);
   }
 
   return ((asynStatus)status);
@@ -1050,7 +1050,7 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser,
   /*if (acquireRunning == 1)
   {
       strncpy(this->error_str, "Stop current acquisition first", sizeof("Stop
-  current acquisition first")); UPDATEIOCSTATUS(this->error_str);
+  current acquisition first")); updateIOCStatus(this->error_str);
   this->error_str[0] = '\0'; return asynError;
   }
   else */
@@ -1073,7 +1073,7 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser,
     PIMEGA_PRINT(pimega, TRACE_MASK_ERROR,
                  "%s: Failed - status=%d function=%s(%d), value=%f\n",
                  functionName, status, paramName, function, value);
-    UPDATEIOCSTATUS(this->error_str);
+    updateIOCStatus(this->error_str);
     this->error_str[0] = '\0';
     return asynError;
   }
@@ -1943,8 +1943,8 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   char IndexID[30] = "";
   int indexEnable, ShmemEnable;
   int indexSendMode;  // enum IndexSendMode
-  UPDATEIOCSTATUS("Starting acquisition");
-  UPDATESERVERSTATUS("Configuring");
+  updateIOCStatus("Starting acquisition");
+  updateServerStatus("Configuring");
 
   /* Clean up */
   reset_acq_status_return(pimega);
@@ -1981,13 +1981,13 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   if (rc != PIMEGA_SUCCESS) {
     char error[100];
     decode_backend_error(pimega->ack.error, error);
-    UPDATESERVERSTATUS(error);
+    updateServerStatus(error);
     strncpy(this->error_str, "Error configuring backend",
             strlen(this->error_str));
     return asynError;
   }
 
-  UPDATESERVERSTATUS("Backend Ready");
+  updateServerStatus("Backend Ready");
 
   return asynSuccess;
 }
@@ -2553,7 +2553,7 @@ asynStatus pimegaDetector::setTempMonitor(int enable) {
   rc = set_temp_monitor_enable(pimega, enable,
                                PIMEGA_SEND_ALL_CHIPS_ALL_MODULES);
   if (rc != PIMEGA_SUCCESS) {
-    UPDATEIOCSTATUS("Temperature Monitor enable failed");
+    updateIOCStatus("Temperature Monitor enable failed");
     return asynError;
   }
   setParameter(PimegaTempMonitorEnable, enable);
