@@ -439,7 +439,6 @@ class pimegaDetector : public ADDriver {
   int maxSizeY;
   int numModulesX_;
   int numModulesY_;
-  char *error_str;
   trigger_in_available *trigger_input_cfg;
 
   int arrayCallbacks;
