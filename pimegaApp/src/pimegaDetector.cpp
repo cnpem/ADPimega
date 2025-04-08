@@ -1039,21 +1039,12 @@ asynStatus pimegaDetector::readFloat32Array(asynUser *pasynUser,
   int function = pasynUser->reason;
   int addr, status;
   const char *paramName;
-  int numPoints = 0, acquireRunning;
+  int numPoints = 0;
   epicsFloat32 *inPtr;
-  // const char *paramName;
   static const char *functionName = "readFloat32Array";
   getParamName(function, &paramName);
   this->getAddress(pasynUser, &addr);
 
-  getParameter(ADAcquire, &acquireRunning);
-  /*if (acquireRunning == 1)
-  {
-      strncpy(this->error_str, "Stop current acquisition first", sizeof("Stop
-  current acquisition first")); updateIOCStatus(this->error_str);
-  this->error_str[0] = '\0'; return asynError;
-  }
-  else */
   if (function == PimegaDacsOutSense) {
     inPtr = PimegaDacsOutSense_;
     numPoints = N_DACS_OUTS;
