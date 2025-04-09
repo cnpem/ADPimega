@@ -35,7 +35,50 @@ static void acquisitionTaskC(void *drvPvt) {
   pPvt->acqTask();
 }
 
-void pimegaDetector::updateEpicsFrame(void *data, NDDataType_t ndarray_dtype) {
+Codec_t pimegaDetector::getCodec() {
+  auto comp_codec = GetCompressionCodec(pimega);
+  auto comp_compressor = GetCompressionCompressor(pimega);
+  auto comp_shuffle = GetCompressionShuffle(pimega);
+  int comp_level = GetCompressionLevel(pimega);
+
+  Codec_t codec{};
+
+  switch (comp_codec) {
+    case COMP_CODEC_BLOSC:
+      codec.name = codecName[NDCODEC_BLOSC];
+      break;
+    default:
+      codec.name = codecName[NDCODEC_NONE];
+      break;
+  }
+
+  switch (comp_compressor) {
+    case COMP_COMPRESSOR_BLOSCLZ:
+      codec.compressor = BLOSC_BLOSCLZ;
+      break;
+    case COMP_COMPRESSOR_LZ4:
+      codec.compressor = BLOSC_LZ4;
+      break;
+  }
+
+  switch (comp_shuffle) {
+    case COMP_SHUF_BIT:
+      codec.shuffle = BLOSC_BITSHUFFLE;
+      break;
+    case COMP_SHUF_BYTE:
+      codec.shuffle = BLOSC_SHUFFLE;
+      break;
+    case COMP_SHUF_NONE:
+      codec.shuffle = BLOSC_NOSHUFFLE;
+      break;
+  }
+
+  codec.level = comp_level;
+
+  return codec;
+}
+
+void pimegaDetector::updateEpicsFrame(void *data, size_t size, NDDataType_t ndarray_dtype) {
   int sizex, sizey;
   getIntegerParam(ADMaxSizeX, &sizex);
   getIntegerParam(ADMaxSizeY, &sizey);
@@ -43,9 +86,16 @@ void pimegaDetector::updateEpicsFrame(void *data, NDDataType_t ndarray_dtype) {
   PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "updateEpicsFrame\n");
 
   size_t array_dims[2] = {sizex, sizey};
-  NDArray *PimegaNDArray =
-      this->pNDArrayPool->alloc(2, array_dims, ndarray_dtype, 0, NULL);
-  memcpy(PimegaNDArray->pData, data, PimegaNDArray->dataSize);
+
+  NDArray *PimegaNDArray = this->pNDArrayPool->alloc(
+      2, array_dims, ndarray_dtype, size, NULL);
+  memcpy(PimegaNDArray->pData, data, size);
+
+  if (GetCompressionEnabled(pimega)) {
+    PimegaNDArray->codec = getCodec();
+    PimegaNDArray->compressedSize = size;
+  }
+
   updateTimeStamp(&PimegaNDArray->epicsTS);
   this->getAttributes(PimegaNDArray->pAttributeList);
   doCallbacksGenericPointer(PimegaNDArray, NDArrayData, 0);
@@ -1424,10 +1474,10 @@ void pimegaDetector::connect(const char *address[10], unsigned short port,
                                             visualizer_topic, max_frame_size);
 
   message_consumer->subscribe(
-      "ioc_frame_visualizer_callback", [this](void *data) {
+      "ioc_frame_visualizer_callback", [this](void *data, size_t size) {
         int counter_depth;
         getParameter(PimegaCounterDepth, &counter_depth);
-        this->updateEpicsFrame(data, counter_depth == 3 ? NDUInt32 : NDUInt16);
+        this->updateEpicsFrame(data, size, counter_depth == 3 ? NDUInt32 : NDUInt16);
       });
 
   rc =
