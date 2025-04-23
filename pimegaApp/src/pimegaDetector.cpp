@@ -1343,10 +1343,6 @@ pimegaDetector::pimegaDetector(
                    "pimegaDetector: Disabling logging\n");
       exit(0);
       EnableLog(pimega, 0);
-    } else {
-      log_file_path = (char *)malloc(sizeof(char) * 50);
-      memset(log_file_path, ' ', 50);
-      GetLogFilePath(pimega, log_file_path);
     }
   }
 
@@ -1816,7 +1812,7 @@ asynStatus pimegaDetector::setDefaults(void) {
   setParameter(PimegaSensorBias,
                GetModuleBiasVoltage(pimega, PIMEGA_THREAD_MAIN));
 
-  setParameter(PimegaLogFile, this->log_file_path);
+  setParameter(PimegaLogFile, pimega->logFileName);
 
   SetAcqParamCameraNumCapture(pimega, 1);
 

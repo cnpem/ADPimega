@@ -434,7 +434,6 @@ class pimegaDetector : public ADDriver {
   epicsEventId stopCaptureEventId_;
 
   pimega_t *pimega;
-  char *log_file_path;
   int maxSizeX;
   int maxSizeY;
   int numModulesX_;
