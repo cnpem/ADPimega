@@ -627,6 +627,78 @@ The ADPimega driver instance is created using the ``pimegaDetectorConfig`` comma
     unsigned short backend_port, unsigned short vis_frame_port,
     int IntAcqResetRDMA, int numModulesX, int numModulesY);
 
+Performance measurements
+------------------------
+
+The following measurements were done to demonstrate the performance that can be obtained with the ADPimega driver. All tests were conducted with an image resolution of 1536x512 pixels (1.5 MB, 16 bits per pixel) in servers with the following configuration:
+
+- CPU: Intel(R) Xeon(R) Gold 6534 @ 3.9GHz
+- RAM: 128 GB
+- OS: Ubuntu 24.04 LTS
+
+Test 1: NDPluginPva with pvAccess
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For this setup we connected two servers through a 100G optical fiber link. One server was running ADPimega IOC with ``NDPluginPva`` and the other server was running ``pvaDriver`` IOC. Compression was performed by ``detector_backend`` using the ``blosc`` codec.
+
+.. cssclass:: table-bordered table-striped table-hover
+.. list-table::
+    :header-rows: 1
+    :widths: 20 20
+
+    * - Compression
+      - Frame Rate
+    * - Enabled
+      - ~650 fps
+    * - Disabled
+      - ~300 fps
+
+At higher frame rates, frame drops were observed, indicating a bottleneck in the data pipeline.
+
+Test 2: Compression using NDPluginCodec
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pipeline: `compressed stream --> ADPimega --> NDPluginCodec --> NDPluginHDF5`
+
+We configured the ``NDPluginCodec`` to use the ``blosc/lz4`` codec with a compression level of 1 and 8 threads. To avoid frame drop, we set the ``NDPluginCodec`` queue size to 10000 frames.
+
+.. cssclass:: table-bordered table-striped table-hover
+.. list-table::
+  :widths: 40 60
+
+  * - Number of images acquired
+    - 10000
+  * - Frame rate
+    - 2000 fps
+  * - Compression throughput
+    - ~1500 fps
+  * - HDF5 I/O throughput
+    - ~975 MB/s
+
+Test 3: Backend Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pipeline: `compressed stream --> ADPimega --> NDPluginHDF5`
+
+.. cssclass:: table-bordered table-striped table-hover
+.. list-table::
+  :widths: 40 60
+
+  * - Number of images acquired
+    - 10000
+  * - Frame rate
+    - 2000 fps
+  * - Receive throughput
+    - 2000 fps
+  * - HDF5 I/O throughput
+    - 1200 MB/s
+
+Observations
+~~~~~~~~~~~~
+
+- Backend compression allows the system to sustain the detector's maximum frame rate of 2000 fps without frame drops.
+- Backend compression is optional and provides flexibility for workflows requiring either raw or compressed frames.
+
 Restrictions
 ------------
 
