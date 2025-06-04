@@ -709,3 +709,9 @@ Restrictions
 * Currently, the ZeroMQ stream does not stream at high frame rates. It is useful
   for a visualization tool, where not all frames are needed. Only the
   ``detector_backend`` can save images at high frame rates for now.
+
+* When the ``detector_backend`` is configured to stream compressed frames and
+  the ``NDPluginStdArrays`` is enabled, the IOC driver will crash due to a
+  `buffer overflow bug <https://github.com/areaDetector/ADCore/issues/531>`_ in
+  this plugin. As a workaround, enable the ``NDPluginCodec`` in decompression
+  mode before the ``NDPluginStdArrays``.
