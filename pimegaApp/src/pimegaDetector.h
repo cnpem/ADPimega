@@ -33,6 +33,9 @@
 
 // areaDetector includes
 #include "ADDriver.h"
+#include "Codec.h"
+
+#include <blosc.h>
 
 // pimega lib includes
 #include <lib/acquisition.h>
@@ -252,7 +255,7 @@ class pimegaDetector : public ADDriver {
   virtual void alarmTask(void);
   virtual void acqTask(void);
   virtual void captureTask(void);
-  virtual void updateEpicsFrame(void *data, NDDataType_t ndarray_dtype);
+  virtual void updateEpicsFrame(void *data, size_t size, NDDataType_t ndarray_dtype);
   void updateIOCStatus(const std::string_view message);
   void updateServerStatus(const std::string_view message);
   void newImageTask();
@@ -507,6 +510,8 @@ class pimegaDetector : public ADDriver {
   asynStatus getTemperatureHighest(void);
   asynStatus configureAlignment(bool alignment_mode);
   asynStatus diagnostic(void);
+
+  Codec_t getCodec();
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)
