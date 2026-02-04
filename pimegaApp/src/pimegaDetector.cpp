@@ -193,7 +193,9 @@ void pimegaDetector::acqTask() {
        * modules is 0 */
       bool moduleError = false;
       uint64_t processedBackendCount;
-      processedBackendCount = pimega->acq_status_return.processedImageNum;
+      pss::acquisition::status acq_status = pss::acquisition::get_status(pimega);
+
+      processedBackendCount = acq_status.processedImageNum;
       /* For several Acquires with one backend Capture call, the number of
          images sent to backend X is a multiple of the number of images sent to
          the detector Y ( X = K x Y ). So the offset to establish the end of a
@@ -215,7 +217,7 @@ void pimegaDetector::acqTask() {
           /* Acquire and IOC status message management. Acquire still will wait
              for the images to be saved (if necessary) to go to 0 or will wait
              for index to receive the images or both */
-          if (pimega->acq_status_return.done != DONE_ACQ) {
+          if (acq_status.done != DONE_ACQ) {
             UPDATEIOCSTATUS("Not all images received. Waiting");
           } else if (indexEnableBool == true) {
             UPDATEIOCSTATUS("Sending frames to Index");
@@ -238,11 +240,11 @@ void pimegaDetector::acqTask() {
              to that of the Capture and server status message management block
            */
           if (pimega->acquireParam.numCapture != 0) {
-            if (pimega->acq_status_return.processedImageNum <
+            if (acq_status.processedImageNum <
                 (unsigned int)pimega->acquireParam.numCapture) {
               UPDATEIOCSTATUS("Waiting for trigger");
             } else if (autoSave == 1 &&
-                       processedBackendCount < pimega->acq_status_return.STATUS_SAVEDFRAMENUM) {
+                       processedBackendCount < acq_status.savedFrameNum) {
               UPDATEIOCSTATUS("Saving images..");
             } else if (indexEnableBool == true) {
               UPDATEIOCSTATUS("Sending frames to Index");
@@ -308,7 +310,6 @@ void pimegaDetector::finishAcq(int trigger, int &acquire, int &acquireStatus,
 
 void pimegaDetector::captureTask() {
   int status, adstatus, received_acq, autoSave, indexEnable;
-  bool moduleError;
   int capture = 0;
   int eventStatus = 0;
   uint64_t recievedBackendCount;
@@ -357,13 +358,13 @@ void pimegaDetector::captureTask() {
       }
     }
 
+    pss::acquisition::status acq_status = pss::acquisition::get_status(pimega);
+
     /* Added this delay for the thread not to hog the processor. */
     this->unlock();
     usleep(1000);
 
     if (capture) {
-      get_acqStatus_from_backend(pimega);
-      moduleError = false;
       recievedBackendCount = UINT64_MAX;
       recievedBackendCount = 0;
       /*Anamoly detection. Upon incorrect configuration the detector, a number
@@ -393,16 +394,7 @@ void pimegaDetector::captureTask() {
         backendStatus != 0 permits that the thread executes this snippet the
        last time when the NDFileCapture is set to 0 */
 
-    received_acq = 0;
-    for (int module = 0; module < pimega->max_num_modules; module++) {
-      if (received_acq == 0 ||
-          (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module] > received_acq) {
-        received_acq = (int)pimega->acq_status_return.STATUS_NOOFACQUISITIONS[module];
-        if (received_acq < (int)pimega->acq_status_return.processedImageNum) {
-          received_acq = (int)pimega->acq_status_return.processedImageNum;
-        }
-      }
-    }
+    received_acq = acq_status.noOfAcquisitionsComplete;
 
     this->lock();
     if (pimega->acquireParam.numCapture != 0 && capture) {
@@ -413,9 +405,9 @@ void pimegaDetector::captureTask() {
         UPDATESERVERSTATUS("Aborted");
       } else if (received_acq < (int)pimega->acquireParam.numCapture) {
         UPDATESERVERSTATUS("Waiting for images");
-      } else if (autoSave == 1 && pimega->acq_status_return.done != DONE_ACQ) {
+      } else if (autoSave == 1 && acq_status.done != DONE_ACQ) {
         UPDATESERVERSTATUS("Saving");
-      } else if ((int)pimega->acq_status_return.processedImageNum <
+      } else if ((int)acq_status.processedImageNum <
                  (int)pimega->acquireParam.numCapture) {
         UPDATESERVERSTATUS("Processing images");
       } else {
@@ -429,10 +421,6 @@ void pimegaDetector::captureTask() {
       }
     } else {
       UPDATESERVERSTATUS("Receiving images");
-    }
-    /* Errors reported by backend override previous messages. */
-    if (moduleError != false) {
-      UPDATESERVERSTATUS("Detector dropped frames");
     }
   }
 }
@@ -991,7 +979,8 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
   getParameter(ADAcquire, &acquireRunning);
 
   if (function == PimegaBackBuffer) {
-    *value = pimega->acq_status_return.STATUS_BUFFERUSED[0] * 100;
+    pss::acquisition::status acq_status = pss::acquisition::get_status(pimega);
+    *value = acq_status.bufferUsed[0] * 100;
   }
 
   else if (function == PimegaDacOutSense) {
@@ -1021,7 +1010,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   int function = pasynUser->reason;
   int status = 0;
-  int scanStatus, acquireRunning, autoSave, received_acq;
+  int scanStatus, acquireRunning, autoSave;
   int backendStatus;
   const char *paramName;
   getParamName(function, &paramName);
@@ -1031,34 +1020,23 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   getParameter(ADAcquire, &acquireRunning);
   getParameter(NDAutoSave, &autoSave);
 
-  const auto &acq_status = pimega->acq_status_return;
-
   if (function == PimegaBackendStats) {
-    received_acq = 0;
-    for (int module = 0; module < pimega->max_num_modules; module++) {
-      if (received_acq == 0 ||
-          (int)acq_status.STATUS_NOOFACQUISITIONS[module] > received_acq) {
-        received_acq = (int)acq_status.STATUS_NOOFACQUISITIONS[module];
-        if (received_acq < (int)acq_status.processedImageNum) {
-          received_acq = (int)acq_status.processedImageNum;
-        }
-      }
-    }
+    pss::acquisition::status acq_status = pss::acquisition::get_status(pimega);
 
     for (int module = 0; module < pimega->max_num_modules; module++) {
       setParameter(PimegaModuleLostFrameCount,
-                   (int)acq_status.STATUS_LOSTFRAMECNT[module], module);
+                   (int)acq_status.lostFrameCnt[module], module);
       setParameter(PimegaModuleRxFrameCount,
-                   (int)acq_status.STATUS_NOOFFRAMES[module], module);
+                   (int)acq_status.noOfFrames[module], module);
       setParameter(PimegaModuleAcquisitionCount,
-                   (int)acq_status.STATUS_NOOFACQUISITIONS[module], module);
+                   (int)acq_status.noOfAcquisitions[module], module);
       setParameter(PimegaModuleRdmaBufferUsage,
-                   (double)acq_status.STATUS_BUFFERUSED[module] * 100, module);
+                   (double)acq_status.bufferUsed[module] * 100, module);
     }
 
-    setParameter(ADNumImagesCounter, received_acq);
+    setParameter(ADNumImagesCounter, (int)acq_status.noOfAcquisitionsComplete);
     setParameter(PimegaProcessedImageCounter, (int)acq_status.processedImageNum);
-    setParameter(NDFileNumCaptured, (int)acq_status.STATUS_SAVEDFRAMENUM);
+    setParameter(NDFileNumCaptured, (int)acq_status.savedFrameNum);
 
     for (int i = 0; i < pimega->max_num_modules; i++) {
       callParamCallbacks(i);
@@ -1583,10 +1561,8 @@ void pimegaDetector::report(FILE *fp, int details) {
 
 asynStatus pimegaDetector::waitForBackendStatus(int status) {
   while (true) {
-    if (get_acqStatus_from_backend(pimega) != PIMEGA_SUCCESS)
-      return asynError;
-
-    int current_status = pimega->acq_status_return.STATUS_DONE;
+    pss::acquisition::status acq_status = pss::acquisition::get_status(pimega);
+    int current_status = acq_status.done;
 
     if (current_status == status)
       break;
@@ -1641,9 +1617,6 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   UPDATEIOCSTATUS("Starting acquisition");
   UPDATESERVERSTATUS("Configuring");
 
-  /* Clean up */
-  reset_acq_status_return(pimega);
-
   /* Create the full filename */
   createFileName(sizeof(fullFileName), fullFileName);
   setParameter(NDFullFileName, fullFileName);
@@ -1683,12 +1656,9 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   if (waitForBackendStatus(ACQUIRING) != asynSuccess) {
     UPDATEIOCSTATUS("Could not start acquisition");
 
-    if (get_acqStatus_from_backend(pimega) != PIMEGA_SUCCESS)
-      return asynError;
+    pss::acquisition::status acq_status = pss::acquisition::get_status(pimega);
 
-    auto current_status = pimega->acq_status_return.STATUS_DONE;
-
-    if (current_status == PERMISSION_DENIED) {
+    if (acq_status.done == PERMISSION_DENIED) {
       UPDATESERVERSTATUS("Permission denied to open file");
 
       send_stopAcquire_to_backend(pimega);
