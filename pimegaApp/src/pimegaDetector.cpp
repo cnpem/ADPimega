@@ -607,7 +607,7 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= imgChipID(value);
     strcat(ok_str, "Chip selected");
   } else if (function == PimegaPixelMode) {
-    status |= setOMRValue(OMR_CSM_SPM, value, function);
+    status |= setPixelMode((pimega_pixel_mode_t)value);
     strcat(ok_str, "Pixel mode set");
   } else if (function == PimegaContinuosRW) {
     status |= setOMRValue(OMR_CRW_SRW, value, function);
@@ -1791,6 +1791,28 @@ asynStatus pimegaDetector::setOMRValue(pimega_omr_t omr, int value, int paramete
   }
 
   setParameter(parameter, value);
+  return asynSuccess;
+}
+
+asynStatus pimegaDetector::setPixelMode(pimega_pixel_mode_t mode) {
+  int all_modules;
+
+  getParameter(PimegaAllModules, &all_modules);
+  int rc = PixelMode(pimega, mode, (pimega_send_to_all_t)all_modules);
+  if (rc != PIMEGA_SUCCESS) {
+    error("Unable to set pixel mode: %s\n", pimega_error_string(rc));
+    return asynError;
+  }
+
+  setParameter(PimegaPixelMode, (int)mode);
+
+  rc = get_read_counter(pimega);
+  if (rc != PIMEGA_SUCCESS) {
+    error("Unable to update read counter: %s\n", pimega_error_string(rc));
+    return asynError;
+  }
+
+  setParameter(PimegaReadCounter, (int)pimega->pimegaParam.read_counter);
   return asynSuccess;
 }
 

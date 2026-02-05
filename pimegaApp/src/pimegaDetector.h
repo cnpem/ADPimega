@@ -386,6 +386,7 @@ class pimegaDetector : public ADDriver {
   asynStatus sensorBias(float voltage);
   asynStatus readCounter(int counter);
   asynStatus senseDacSel(u_int8_t dac);
+  asynStatus setPixelMode(pimega_pixel_mode_t mode);
   // asynStatus imageMode(u_int8_t mode);
   asynStatus sendImage(void);
   asynStatus checkSensors(void);
