@@ -244,7 +244,7 @@ void pimegaDetector::acqTask() {
                 (unsigned int)pimega->acquireParam.numCapture) {
               UPDATEIOCSTATUS("Waiting for trigger");
             } else if (autoSave == 1 &&
-                       processedBackendCount < acq_status.savedFrameNum) {
+                       processedBackendCount < acq_status.savedAcquisitionNum) {
               UPDATEIOCSTATUS("Saving images..");
             } else if (indexEnableBool == true) {
               UPDATEIOCSTATUS("Sending frames to Index");
@@ -1036,7 +1036,7 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
 
     setParameter(ADNumImagesCounter, (int)acq_status.noOfAcquisitionsComplete);
     setParameter(PimegaProcessedImageCounter, (int)acq_status.processedImageNum);
-    setParameter(NDFileNumCaptured, (int)acq_status.savedFrameNum);
+    setParameter(NDFileNumCaptured, (int)acq_status.savedAcquisitionNum);
 
     for (int i = 0; i < pimega->max_num_modules; i++) {
       callParamCallbacks(i);
