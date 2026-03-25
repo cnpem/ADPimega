@@ -85,12 +85,3 @@ record(longin, "$(P)$(R)$(MODULE)RxAcquisitionCount_RBV") {
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))MODULE_RECEIVED_ACQUISITION_COUNT")
    field(SCAN, "I/O Intr")
 }
-
-record(ai, "$(P)$(R)$(MODULE)Backend_BufferUsed_RBV") {
-   field(DESC, "Backend RDMA buffer usage")
-   field(DTYP, "asynFloat64")
-   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))MODULE_RDMA_BUFFER")
-   field(SCAN, "I/O Intr")
-   field(PREC, "1")
-   field(EGU, "%")
-}

@@ -978,12 +978,7 @@ asynStatus pimegaDetector::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
 
   getParameter(ADAcquire, &acquireRunning);
 
-  if (function == PimegaBackBuffer) {
-    pss::acquisition::status acq_status = pss::acquisition::get_status(pimega);
-    *value = acq_status.modules[0].buffer_usage * 100;
-  }
-
-  else if (function == PimegaDacOutSense) {
+  if (function == PimegaDacOutSense) {
     if (acquireRunning == 1) {
       strncpy(pimega->error, "Stop current acquisition first", sizeof(pimega->error));
       status = asynError;
@@ -1032,13 +1027,12 @@ asynStatus pimegaDetector::readInt32(asynUser *pasynUser, epicsInt32 *value) {
                    (int)mod_status.acquired_frame_num, module);
       setParameter(PimegaModuleAcquisitionCount,
                    (int)mod_status.acquired_image_num, module);
-      setParameter(PimegaModuleRdmaBufferUsage,
-                   (double)mod_status.buffer_usage * 100, module);
     }
 
     setParameter(ADNumImagesCounter, (int)acq_status.acquired_image_num);
     setParameter(PimegaProcessedImageCounter, (int)acq_status.processed_image_num);
     setParameter(NDFileNumCaptured, (int)acq_status.saved_image_num);
+    setParameter(PimegaBackBuffer, (double)acq_status.buffer_usage * 100);
 
     for (int i = 0; i < pimega->max_num_modules; i++) {
       callParamCallbacks(i);
@@ -1396,7 +1390,6 @@ void pimegaDetector::createParameters(void) {
   createParam(pimegaModuleLostFrameCountString, asynParamInt32, &PimegaModuleLostFrameCount);
   createParam(pimegaModuleRxFrameCountString, asynParamInt32, &PimegaModuleRxFrameCount);
   createParam(pimegaModuleAcquisitionCountString, asynParamInt32, &PimegaModuleAcquisitionCount);
-  createParam(pimegaModuleRdmaBufferUsageString, asynParamFloat64, &PimegaModuleRdmaBufferUsage);
   createParam(pimegaBackendStatsString, asynParamInt32, &PimegaBackendStats);
   createParam(pimegaMetadataFieldString, asynParamOctet, &PimegaMetadataField);
   createParam(pimegaMetadataValueString, asynParamOctet, &PimegaMetadataValue);
@@ -1461,7 +1454,6 @@ asynStatus pimegaDetector::setDefaults(void) {
   setParameter(NDFileTemplate, "");
   setParameter(NDFullFileName, "");
   setParameter(NDFileWriteMessage, "");
-  setParameter(PimegaBackBuffer, 0.0);
   setParameter(ADImageMode, ADImageSingle);
   setParameter(PimegaProcessedImageCounter, 0);
 
@@ -1469,13 +1461,13 @@ asynStatus pimegaDetector::setDefaults(void) {
     setParameter(PimegaModuleLostFrameCount, 0, i);
     setParameter(PimegaModuleRxFrameCount, 0, i);
     setParameter(PimegaModuleAcquisitionCount, 0, i);
-    setParameter(PimegaModuleRdmaBufferUsage, 0.0, i);
     setParameter(PimegaModuleTemperatureHighest, 0.0, i);
     setParameter(PimegaModuleMPAvgTSensor, 0.0, i);
   }
 
   setParameter(NDFileNumCaptured, 0);
   setParameter(PimegaFrameProcessMode, 0);
+  setParameter(PimegaBackBuffer, 0.0);
 
   setParameter(PimegaModule, 10);
   setParameter(PimegaMedipixBoard, 2);

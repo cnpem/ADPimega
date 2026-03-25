@@ -174,7 +174,6 @@ typedef enum ioc_trigger_mode_t {
 #define pimegaModuleLostFrameCountString "MODULE_LOST_FRAME_COUNT"
 #define pimegaModuleRxFrameCountString "MODULE_RECEIVED_FRAME_COUNT"
 #define pimegaModuleAcquisitionCountString "MODULE_RECEIVED_ACQUISITION_COUNT"
-#define pimegaModuleRdmaBufferUsageString "MODULE_RDMA_BUFFER"
 #define pimegaBackendStatsString "BACKEND_STATS"
 #define pimegaMetadataFieldString "METADATA_FIELD"
 #define pimegaMetadataValueString "METADATA_VALUE"
@@ -308,7 +307,6 @@ class pimegaDetector : public ADDriver {
   int PimegaModuleLostFrameCount;
   int PimegaModuleRxFrameCount;
   int PimegaModuleAcquisitionCount;
-  int PimegaModuleRdmaBufferUsage;
   int PimegaBackendStats;
   int PimegaMetadataField;
   int PimegaMetadataValue;
