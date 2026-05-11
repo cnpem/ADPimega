@@ -4,8 +4,8 @@
  */
 
 #include "pimegaDetector.h"
-#include <bits/stdint-uintn.h>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <lib/zmq_message_broker.hpp>
