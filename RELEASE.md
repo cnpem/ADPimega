@@ -13,6 +13,12 @@ released versions.
   - Prevent this invalid number of images to be sent to the backend and leave
     it in an invalid state.
 
+### Fixed
+
+- Improve error handling when starting an acquisition (Henrique F. Simoes)
+  - When an improbable error occurs when setting the number of images to be
+    collected, correctly report that the acquisition failed.
+
 ## 2.6.0
 
 Users interested in changing pixel modes, diagnostic PVs for PIMEGA 450D(S) or

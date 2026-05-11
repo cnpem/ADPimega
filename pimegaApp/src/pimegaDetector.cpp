@@ -1640,7 +1640,9 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(PimegaAcqShmemEnable, &ShmemEnable);
   getParameter(PimegaIndexSendMode, &indexSendMode);
 
-  configureNumImages(static_cast<ioc_trigger_mode_t>(triggerMode));
+  asynStatus status = configureNumImages(static_cast<ioc_trigger_mode_t>(triggerMode));
+  if (status != asynSuccess)
+    return status;
 
   rc = update_backend_acqArgs(pimega, lfsr, autoSave, BoolAcqResetRDMA,
                                           pimega->acquireParam.numCapture, frameProcessMode);
