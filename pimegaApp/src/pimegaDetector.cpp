@@ -2268,16 +2268,20 @@ asynStatus pimegaDetector::debug(const std::string &method, const std::string &m
 }
 
 asynStatus pimegaDetector::configureNumImages(ioc_trigger_mode_t trigger_mode) {
+  int rc;
+
   if (trigger_mode == IOC_TRIGGER_MODE_ALIGNMENT) {
     const auto max_num_capture = std::numeric_limits<int32_t>::max();
-    set_numberExposures(pimega, max_num_capture);
+    rc = set_numberExposures(pimega, max_num_capture);
     pimega->acquireParam.numCapture = max_num_capture;
   } else {
     int numExposuresVar;
     getIntegerParam(ADNumExposures, &numExposuresVar);
-    set_numberExposures(pimega, numExposuresVar);
+    rc = set_numberExposures(pimega, numExposuresVar);
     getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
   }
+
+  return rc == PIMEGA_SUCCESS ? asynSuccess : asynError;
 }
 
 /* Code for iocsh registration */
