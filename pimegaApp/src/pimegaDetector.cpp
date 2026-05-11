@@ -290,7 +290,7 @@ void pimegaDetector::finishAcq(int trigger, int &acquire, int &acquireStatus,
 
   switch (trigger) {
     case IOC_TRIGGER_MODE_ALIGNMENT:
-      configureAlignment(false);
+      configureNumImages(false);
       PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Alignment stopped\n", __func__);
       UPDATEIOCSTATUS("Alignment stopped");
       break;
@@ -1639,7 +1639,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(PimegaAcqShmemEnable, &ShmemEnable);
   getParameter(PimegaIndexSendMode, &indexSendMode);
 
-  configureAlignment(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
+  configureNumImages(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, BoolAcqResetRDMA,
                                           pimega->acquireParam.numCapture, frameProcessMode);
@@ -2266,7 +2266,7 @@ asynStatus pimegaDetector::debug(const std::string &method, const std::string &m
   return asynSuccess;
 }
 
-asynStatus pimegaDetector::configureAlignment(bool alignment_mode) {
+asynStatus pimegaDetector::configureNumImages(bool alignment_mode) {
   int numExposuresVar;
   int max_num_capture = 2147483647;
   if (alignment_mode) {
