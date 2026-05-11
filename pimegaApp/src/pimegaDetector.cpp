@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <limits>
+
 #include <lib/zmq_message_broker.hpp>
 
 const NDDataType_t vis_ndarray_dtype = NDUInt32;
@@ -2267,7 +2269,7 @@ asynStatus pimegaDetector::debug(const std::string &method, const std::string &m
 
 asynStatus pimegaDetector::configureNumImages(bool alignment_mode) {
   int numExposuresVar;
-  int max_num_capture = 2147483647;
+  const auto max_num_capture = std::numeric_limits<int32_t>::max();
   if (alignment_mode) {
     set_numberExposures(pimega, max_num_capture);
     pimega->acquireParam.numCapture = max_num_capture;
