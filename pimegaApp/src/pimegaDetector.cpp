@@ -290,7 +290,6 @@ void pimegaDetector::finishAcq(int trigger, int &acquire, int &acquireStatus,
 
   switch (trigger) {
     case IOC_TRIGGER_MODE_ALIGNMENT:
-      configureNumImages(false);
       PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Alignment stopped\n", __func__);
       UPDATEIOCSTATUS("Alignment stopped");
       break;
