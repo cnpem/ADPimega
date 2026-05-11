@@ -2268,12 +2268,12 @@ asynStatus pimegaDetector::debug(const std::string &method, const std::string &m
 }
 
 asynStatus pimegaDetector::configureNumImages(bool alignment_mode) {
-  int numExposuresVar;
-  const auto max_num_capture = std::numeric_limits<int32_t>::max();
   if (alignment_mode) {
+    const auto max_num_capture = std::numeric_limits<int32_t>::max();
     set_numberExposures(pimega, max_num_capture);
     pimega->acquireParam.numCapture = max_num_capture;
   } else {
+    int numExposuresVar;
     getIntegerParam(ADNumExposures, &numExposuresVar);
     set_numberExposures(pimega, numExposuresVar);
     getParameter(NDFileNumCapture, &pimega->acquireParam.numCapture);
