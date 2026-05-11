@@ -400,7 +400,7 @@ class pimegaDetector : public ADDriver {
   asynStatus setTempMonitor(int enable);
   asynStatus getTemperatureStatus(void);
   asynStatus getTemperatureHighest(void);
-  asynStatus configureNumImages(bool alignment_mode);
+  asynStatus configureNumImages(ioc_trigger_mode_t trigger_mode);
 };
 
 #define NUM_pimega_PARAMS (&LAST_pimega_PARAM - &FIRST_pimega_PARAM + 1)

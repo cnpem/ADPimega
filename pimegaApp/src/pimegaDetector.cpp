@@ -1640,7 +1640,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   getParameter(PimegaAcqShmemEnable, &ShmemEnable);
   getParameter(PimegaIndexSendMode, &indexSendMode);
 
-  configureNumImages(triggerMode == IOC_TRIGGER_MODE_ALIGNMENT);
+  configureNumImages(static_cast<ioc_trigger_mode_t>(triggerMode));
 
   rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, BoolAcqResetRDMA,
                                           pimega->acquireParam.numCapture, frameProcessMode);
@@ -2267,8 +2267,8 @@ asynStatus pimegaDetector::debug(const std::string &method, const std::string &m
   return asynSuccess;
 }
 
-asynStatus pimegaDetector::configureNumImages(bool alignment_mode) {
-  if (alignment_mode) {
+asynStatus pimegaDetector::configureNumImages(ioc_trigger_mode_t trigger_mode) {
+  if (trigger_mode == IOC_TRIGGER_MODE_ALIGNMENT) {
     const auto max_num_capture = std::numeric_limits<int32_t>::max();
     set_numberExposures(pimega, max_num_capture);
     pimega->acquireParam.numCapture = max_num_capture;
