@@ -560,6 +560,15 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         strcat(ok_str, "Backend already stopped");
       }
     }
+  } else if (function == NDFileNumCapture) {
+    UPDATEIOCSTATUS("Setting number of images to save");
+    /*
+     * Don't allow to set zero (or a negative number of) images to be captured
+     * by the backend, as it doesn't properly handle this situation and will
+     * fail.
+     */
+    status = value >= 1 ? asynSuccess : asynError;
+    strcat(ok_str, "Number of images to save set");
   } else if (acquireRunning == 1) {
     strncpy(pimega->error, "Stop current acquisition first", sizeof(pimega->error));
     status = asynError;

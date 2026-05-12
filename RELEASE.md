@@ -5,6 +5,14 @@ ChangeLog](https://common-changelog.org) with minor tweaks, namely the use of
 "Unreleased" header, lack of references for each entry and lack of date on
 released versions.
 
+## Unreleased
+
+### Changed
+
+- Don't accept to capture zero images (Henrique F. Simoes)
+  - Prevent this invalid number of images to be sent to the backend and leave
+    it in an invalid state.
+
 ## 2.6.0
 
 Users interested in changing pixel modes, diagnostic PVs for PIMEGA 450D(S) or

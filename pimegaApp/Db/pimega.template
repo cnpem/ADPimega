@@ -56,7 +56,7 @@ record(ai, "$(P)$(R)TimeRemaining_RBV")
 record(longout, "$(P)$(R)NumCapture")
 {
 	field(DRVH, "2147483647")
-	field(DRVL, "0")	
+	field(DRVL, "1")
 }
 
 
