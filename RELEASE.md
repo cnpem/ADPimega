@@ -5,7 +5,11 @@ ChangeLog](https://common-changelog.org) with minor tweaks, namely the use of
 "Unreleased" header, lack of references for each entry and lack of date on
 released versions.
 
-## Unreleased
+## 2.6.0
+
+Users interested in changing pixel modes, diagnostic PVs for PIMEGA 450D(S) or
+a better reporting of the current number of acquired images should upgrade to
+this release.
 
 ### Changed
 
