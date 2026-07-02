@@ -14,7 +14,10 @@ released versions.
     it in an invalid state.
 - **Breaking**: Rename disabled sensors PVs (Henrique F. Simoes)
   - Rename them from `DisabledSensorsM<n>_RBV` to `M<n>:DisabledSensors_RBV`
-    where `<n>` is from 1 up to 4.
+    where `<n>` is the module number.
+- Export `DisabledSensors_RBV` based on the number of modules (Henrique F.
+  Simoes)
+  - Expose it for each module given the detector model instead of 4 modules.
 
 ## 2.6.0
 
