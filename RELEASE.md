@@ -12,6 +12,9 @@ released versions.
 - Don't accept to capture zero images (Henrique F. Simoes)
   - Prevent this invalid number of images to be sent to the backend and leave
     it in an invalid state.
+- **Breaking**: Rename disabled sensors PVs (Henrique F. Simoes)
+  - Rename them from `DisabledSensorsM<n>_RBV` to `M<n>:DisabledSensors_RBV`
+    where `<n>` is from 1 up to 4.
 
 ## 2.6.0
 

@@ -1116,7 +1116,7 @@ record(bo, "$(P)$(R)CheckSensors") {
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CHECK_SENSORS")
 }
 
-record(waveform, "$(P)$(R)DisabledSensorsM1_RBV")
+record(waveform, "$(P)$(R)M1:DisabledSensors_RBV")
 {
 	field(DESC, "Disabled Sensors Reaback")
     field(DTYP, "asynInt32ArrayIn")
@@ -1126,7 +1126,7 @@ record(waveform, "$(P)$(R)DisabledSensorsM1_RBV")
     field(SCAN, "I/O Intr")
 }
 
-record(waveform, "$(P)$(R)DisabledSensorsM2_RBV")
+record(waveform, "$(P)$(R)M2:DisabledSensors_RBV")
 {
 	field(DESC, "Disabled Sensors Reaback")
     field(DTYP, "asynInt32ArrayIn")
@@ -1136,7 +1136,7 @@ record(waveform, "$(P)$(R)DisabledSensorsM2_RBV")
     field(SCAN, "I/O Intr")
 }
 
-record(waveform, "$(P)$(R)DisabledSensorsM3_RBV")
+record(waveform, "$(P)$(R)M3:DisabledSensors_RBV")
 {
 	field(DESC, "Disabled Sensors Reaback")
     field(DTYP, "asynInt32ArrayIn")
@@ -1146,7 +1146,7 @@ record(waveform, "$(P)$(R)DisabledSensorsM3_RBV")
     field(SCAN, "I/O Intr")
 }
 
-record(waveform, "$(P)$(R)DisabledSensorsM4_RBV")
+record(waveform, "$(P)$(R)M4:DisabledSensors_RBV")
 {
 	field(DESC, "Disabled Sensors Reaback")
     field(DTYP, "asynInt32ArrayIn")
