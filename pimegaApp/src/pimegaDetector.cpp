@@ -1624,7 +1624,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   /* Create the full filename */
   createFileName(sizeof(fullFileName), fullFileName);
   setParameter(NDFullFileName, fullFileName);
-  rc = (asynStatus)set_file_name_template(pimega, fullFileName);
+  rc = set_file_name_template(pimega, fullFileName);
   if (rc != PIMEGA_SUCCESS) return asynError;
   getParameter(PimegaMedipixMode, &acqMode);
   getParameter(NDAutoSave, &autoSave);
@@ -1642,11 +1642,11 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
 
   configureNumImages(static_cast<ioc_trigger_mode_t>(triggerMode));
 
-  rc = (asynStatus)update_backend_acqArgs(pimega, lfsr, autoSave, BoolAcqResetRDMA,
+  rc = update_backend_acqArgs(pimega, lfsr, autoSave, BoolAcqResetRDMA,
                                           pimega->acquireParam.numCapture, frameProcessMode);
   if (rc != PIMEGA_SUCCESS) return asynError;
 
-  rc = (asynStatus)send_acqArgs_to_backend(pimega);
+  rc = send_acqArgs_to_backend(pimega);
   get_acquire_period(pimega);
   setParameter(ADAcquirePeriod, pimega->acquireParam.acquirePeriod);
   if (rc != PIMEGA_SUCCESS) {
