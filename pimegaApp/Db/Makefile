@@ -13,7 +13,6 @@ include $(TOP)/configure/CONFIG
 
 DB += module.template
 DB += pimega.template
-DB += NDFile.template
 
 DB += pimega45d.db
 DB += pimega135dl.db

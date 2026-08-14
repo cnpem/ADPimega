@@ -16,12 +16,6 @@
 ##  gdatag, template, pimega, $(PORT)_pimega, pimega detector
 
 include "ADBase.template"
-
-# ADPimega depends on a modified version of NDFile.template, which lies on
-# pimegaApp/Db, in order to export the PSS backend PVs. During the msi
-# processing step, the following include will work as expected because the
-# EPICS build system will first include the current and parent directories
-# (through the -I flag) before passing the ADCore's one.
 include "NDFile.template"
 
 ##########################################################################
