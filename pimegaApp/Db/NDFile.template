@@ -140,7 +140,7 @@ record(waveform, "$(P)$(R)FullFileName_RBV")
     field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))FULL_FILE_NAME")
     field(FTVL, "CHAR")
-    field(NELM, "256")
+    field(NELM, "512")
     field(SCAN, "I/O Intr")
 }
 
@@ -165,7 +165,7 @@ record(bi, "$(P)$(R)AutoSave_RBV")
 }
 
 # Write file
-record(bo, "$(P)$(R)WriteFile")
+record(busy, "$(P)$(R)WriteFile")
 {
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))WRITE_FILE")
@@ -260,7 +260,7 @@ record(mbbi, "$(P)$(R)FileWriteMode_RBV")
 }
 
 # Capture data
-record(bo, "$(P)$(R)Capture")
+record(busy, "$(P)$(R)Capture")
 {
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))CAPTURE")
@@ -299,7 +299,16 @@ record(longin, "$(P)$(R)NumCaptured_RBV")
 {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))NUM_CAPTURED")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "$(SCANRATE=I/O Intr)")
+}
+
+# Free capture buffer
+record(bo, "$(P)$(R)FreeCapture")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))FREE_CAPTURE")
+    field(ZNAM, "Done")
+    field(ONAM, "Free")
 }
 
 # Delete driver file flag
