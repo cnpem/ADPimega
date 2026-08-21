@@ -171,12 +171,16 @@ void pimegaDetector::acqTask() {
       setIntegerParam(ADAcquire, 0);
       acquire = 0;
       setIntegerParam(ADStatus, ADStatusAborted);
+      UPDATEIOCSTATUS("Acquisition stopped");
+      setDoubleParam(ADTimeRemaining, 0);
+      callParamCallbacks();
+
       if (acquireStatusError == 1) {
         acquireStatusError = 0;
         UPDATEIOCSTATUS(pimega->error);
         pimega->error[0] = '\0';
       }
-      callParamCallbacks();
+
       continue;
     }
 
@@ -549,11 +553,6 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
                      functionName);
 
         epicsEventSignal(this->stopCaptureEventId_);
-
-        UPDATEIOCSTATUS("Acquisition stopped");
-
-        setDoubleParam(ADTimeRemaining, 0);
-        callParamCallbacks();
 
         return asynSuccess;
       } else {
