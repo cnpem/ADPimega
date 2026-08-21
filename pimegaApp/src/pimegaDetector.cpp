@@ -163,6 +163,9 @@ void pimegaDetector::acqTask() {
                    functionName);
 
       stopAcquire();
+      PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Requesting the captureTask to stop\n",
+                   functionName);
+      signalAndWaitCaptureToStop();
 
       setShutter(0);
       setIntegerParam(ADAcquire, 0);
@@ -172,9 +175,6 @@ void pimegaDetector::acqTask() {
         acquireStatusError = 0;
         UPDATEIOCSTATUS(pimega->error);
         pimega->error[0] = '\0';
-      } else {
-        abort_save(pimega);
-        UPDATEIOCSTATUS("Stop send to the backend");
       }
       callParamCallbacks();
       continue;
@@ -354,6 +354,8 @@ void pimegaDetector::captureTask() {
 
         setIntegerParam(NDFileCapture, 0);
         callParamCallbacks();
+
+        stopCaptureCompletedEvent.trigger();
 
         continue;
       }
@@ -1599,12 +1601,6 @@ asynStatus pimegaDetector::startAcquire(void) {
 asynStatus pimegaDetector::stopAcquire() {
   stop_acquire(pimega);
 
-  if (send_stopAcquire_to_backend(pimega) != PIMEGA_SUCCESS)
-    return asynError;
-
-  if (waitForBackendStatus(DONE_ACQ) != asynSuccess)
-    return asynError;
-
   return asynSuccess;
 }
 
@@ -1678,6 +1674,49 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
 
   return asynSuccess;
 }
+
+/**
+ * Send a request for the captureTask to stop the backend and wait for it to
+ * effectively finish.
+ *
+ * This function must be called with the driver lock held.
+ */
+void pimegaDetector::signalAndWaitCaptureToStop() {
+  /**
+   * Move the NDFileCapture to zero to avoid a race condition where another
+   * acquisition is attempted before the captureTask effectively aborts the
+   * backend's current acquisition.
+   *
+   * We shouldn't call parameter callbacks just yet because we don't want to
+   * propagate as if the captureTask had stopped. We only want to have
+   * writeInt32 read the value 0 as the value for NDFileCapture if it
+   * processes in the meantime.
+   */
+  setIntegerParam(NDFileCapture, 0);
+
+  PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "Requesting captureTask to stop...\n");
+  epicsEventSignal(this->stopCaptureEventId_);
+
+  /* Unlock to let the captureTask process the request */
+  unlock();
+
+  PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "Waiting for captureTask to stop...\n");
+  this->stopCaptureCompletedEvent.wait();
+
+  /* Lock once again to preserve the invariant that the lock is held. */
+  PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "Waiting to grab the lock...\n");
+  lock();
+
+  /**
+   * Clean up pending any request to stop left because another thread requested
+   * before us. This avoids that a pending stop event affects the next
+   * acquisition attempt.
+   */
+  epicsEventTryWait(this->stopCaptureEventId_);
+
+  PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "Capture stopping completed.\n");
+}
+
 
 asynStatus pimegaDetector::dac_scan_tmp(pimega_dac_t dac) {
   int rc = 0;

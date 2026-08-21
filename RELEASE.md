@@ -9,6 +9,11 @@ released versions.
 
 ### Changed
 
+- Defer stopping the backend to `captureTask` (Henrique F. Simoes)
+  - Ensure the `captureTask` is always consistent with the backend state by
+    avoiding interactions directly to the backend in the `acqTask`. This
+    prevents deadlocks in the IOC when the `captureTask` and the backend state
+    diverge.
 - Don't accept to capture zero images (Henrique F. Simoes)
   - Prevent this invalid number of images to be sent to the backend and leave
     it in an invalid state.

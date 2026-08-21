@@ -331,6 +331,7 @@ class pimegaDetector : public ADDriver {
   epicsEventId stopAcquireEventId_;
   epicsEventId startCaptureEventId_;
   epicsEventId stopCaptureEventId_;
+  epicsEvent stopCaptureCompletedEvent;
 
   pimega_t *pimega;
   int maxSizeX;
@@ -368,6 +369,7 @@ class pimegaDetector : public ADDriver {
   asynStatus startAcquire(void);
   asynStatus stopAcquire();
   asynStatus startCaptureBackend(void);
+  void signalAndWaitCaptureToStop();
   asynStatus waitForBackendStatus(int);
 
   asynStatus dac_scan_tmp(pimega_dac_t dac);
