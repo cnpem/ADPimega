@@ -1607,7 +1607,7 @@ asynStatus pimegaDetector::startCaptureBackend(void) {
   int rc = 0;
   int acqMode, autoSave, lfsr, bulkProcessingEnum;
   int frameProcessMode;
-  char fullFileName[PIMEGA_MAX_FILENAME_LEN];
+  char fullFileName[PIMEGA_MAX_FILE_NAME];
   double acquirePeriod, acquireTime;
   int triggerMode;
   char IndexID[30] = "";

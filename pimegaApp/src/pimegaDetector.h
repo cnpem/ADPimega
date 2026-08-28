@@ -54,7 +54,6 @@
 #include <lib/zmq_message_broker.hpp>
 #include <pimega.h>
 
-#define PIMEGA_MAX_FILENAME_LEN 300
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from Labview */
 #define ASYN_POLL_TIME .01

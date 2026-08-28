@@ -23,6 +23,9 @@ released versions.
 - Improve error handling when starting an acquisition (Henrique F. Simoes)
   - When an improbable error occurs when setting the number of images to be
     collected, correctly report that the acquisition failed.
+- Use `libpimega` definition for maximum filename length (Henrique F. Simoes)
+  - Remove the hard limit of 300 bytes defined by ADPimega itself and use the
+    library supported limit instead.
 
 ## 2.6.0
 
