@@ -7,6 +7,14 @@ released versions.
 
 ## Unreleased
 
+## 2.6.1
+
+All users should upgrade to get changes that avoid deadlocks in the IOC when
+trying to (incorrectly) stop the acquisition or when starting an acquisition
+fails and that avoid moving the backend process to invalid states.
+Additionally, users interested in full file names larger than 256 bytes should
+upgrade to this release to benefit from the newer 512 limit.
+
 ### Changed
 
 - Defer stopping the backend to `captureTask` (Henrique F. Simoes)
