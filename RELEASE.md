@@ -17,6 +17,12 @@ released versions.
 - Don't accept to capture zero images (Henrique F. Simoes)
   - Prevent this invalid number of images to be sent to the backend and leave
     it in an invalid state.
+- **Breaking**: Rename disabled sensors PVs (Henrique F. Simoes)
+  - Rename them from `DisabledSensorsM<n>_RBV` to `M<n>:DisabledSensors_RBV`
+    where `<n>` is the module number.
+- Export `DisabledSensors_RBV` based on the number of modules (Henrique F.
+  Simoes)
+  - Expose it for each module given the detector model instead of 4 modules.
 
 ### Fixed
 

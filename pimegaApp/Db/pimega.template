@@ -1116,47 +1116,6 @@ record(bo, "$(P)$(R)CheckSensors") {
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CHECK_SENSORS")
 }
 
-record(waveform, "$(P)$(R)DisabledSensorsM1_RBV")
-{
-	field(DESC, "Disabled Sensors Reaback")
-    field(DTYP, "asynInt32ArrayIn")
-    field(INP,  "@asyn($(PORT),0,$(TIMEOUT)MODULE_DISABLED_SENSORS")
-    field(FTVL, "LONG")
-    field(NELM, "36")
-    field(SCAN, "I/O Intr")
-}
-
-record(waveform, "$(P)$(R)DisabledSensorsM2_RBV")
-{
-	field(DESC, "Disabled Sensors Reaback")
-    field(DTYP, "asynInt32ArrayIn")
-    field(INP,  "@asyn($(PORT),1,$(TIMEOUT)MODULE_DISABLED_SENSORS")
-    field(FTVL, "LONG")
-    field(NELM, "36")
-    field(SCAN, "I/O Intr")
-}
-
-record(waveform, "$(P)$(R)DisabledSensorsM3_RBV")
-{
-	field(DESC, "Disabled Sensors Reaback")
-    field(DTYP, "asynInt32ArrayIn")
-    field(INP,  "@asyn($(PORT),2,$(TIMEOUT)MODULE_DISABLED_SENSORS")
-    field(FTVL, "LONG")
-    field(NELM, "36")
-    field(SCAN, "I/O Intr")
-}
-
-record(waveform, "$(P)$(R)DisabledSensorsM4_RBV")
-{
-	field(DESC, "Disabled Sensors Reaback")
-    field(DTYP, "asynInt32ArrayIn")
-    field(INP,  "@asyn($(PORT),3,$(TIMEOUT)MODULE_DISABLED_SENSORS")
-    field(FTVL, "LONG")
-    field(NELM, "36")
-    field(SCAN, "I/O Intr")
-}
-
-
 record(bi,"$(P)$(R)SendDAC_Done_RBV") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_DAC_DONE")
