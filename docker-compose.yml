@@ -11,7 +11,7 @@ services:
       args:
         REPONAME: epics/modules/areaDetector/ADPimega
         BUILD_PACKAGES: libczmq-dev libjson-c-dev
-        BUILD_TAR_PACKAGES: http://download.lnls.br/packages/libpimega_2.7.0.0-1_amd64.tar.gz
+        BUILD_TAR_PACKAGES: http://download.lnls.br/packages/libpimega_2.8.0.0-1_amd64.tar.gz
         RUNTIME_PACKAGES: libxml2 libtiff5 libglib2.0-0 libjson-c5 libczmq4 libgomp1
-        RUNTIME_TAR_PACKAGES: http://download.lnls.br/packages/libpimega_2.7.0.0-1_amd64.tar.gz
+        RUNTIME_TAR_PACKAGES: http://download.lnls.br/packages/libpimega_2.8.0.0-1_amd64.tar.gz
         RUNDIR: /opt/epics/modules/areaDetector/ADPimega/iocs/pimegaIOC/iocBoot/iocPimega

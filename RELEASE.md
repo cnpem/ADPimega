@@ -17,6 +17,7 @@ released versions.
 - Don't accept to capture zero images (Henrique F. Simoes)
   - Prevent this invalid number of images to be sent to the backend and leave
     it in an invalid state.
+- Upgrade libpimega to 2.8.0.0 for bug fixes and other improvements
 
 ### Fixed
 
