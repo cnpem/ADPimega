@@ -102,3 +102,6 @@ dbLoadRecords("$(ADPIMEGA)/db/$(MODEL_NAME).db", "P=$(PREFIX), R=cam1:, PORT=$(P
 # Load asynRecord record
 dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=${PREFIX}, R=asyn1,PORT=$(PORT),ADDR=0,OMAX=256,IMAX=256")
 asynSetTraceMask($(PORT), 0, 0x00)
+
+# Use larger callback queue to account for the high number of PVs
+callbackSetQueueSize(5000)
