@@ -7,6 +7,12 @@ released versions.
 
 ## Unreleased
 
+### Fixed
+
+- Increase IOC callback queue size to 5000 (Henrique F. Simoes)
+  - Increase this queue size in the IOC shell templates to avoid overflows which
+    cause inconsistency between set-point and readback PVs.
+
 ## 2.6.1
 
 All users should upgrade to get changes that avoid deadlocks in the IOC when
