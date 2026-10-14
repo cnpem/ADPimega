@@ -7,6 +7,11 @@ released versions.
 
 ## Unreleased
 
+### Added
+
+- Add instance of BadPixel in plugin template (Henrique F. Simoes)
+  - Create it with the `BadPix1:` PV prefix.
+
 ## 2.6.1
 
 All users should upgrade to get changes that avoid deadlocks in the IOC when
