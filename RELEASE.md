@@ -19,6 +19,8 @@ released versions.
 
 - Enhance the list of plugin in template (Henrique F. Simoes)
   - Instantiate a BadPixel plugin with the `BadPix1:` PV prefix.
+  - Instantiate TIFF plugin to read dark and flatfield to the existing `Proc1:`
+    Process plugin.
 
 ### Removed
 
