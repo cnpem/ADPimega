@@ -15,6 +15,11 @@ released versions.
   - Generate smaller container images;
   - Support BSLZ4 compression in HDF5 plugin.
 
+### Added
+
+- Enhance the list of plugin in template (Henrique F. Simoes)
+  - Instantiate a BadPixel plugin with the `BadPix1:` PV prefix.
+
 ### Removed
 
 - Remove NDSSCPimega plugin instance from template (Henrique F. Simoes)
