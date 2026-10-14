@@ -28,6 +28,8 @@ epicsEnvSet("NELEMENTS", "7864320")
 
 < plugins.cmd
 
+< autosave.cmd
+
 iocInit()
 
 < post-init.cmd
