@@ -1,0 +1,11 @@
+file "ADBase_settings.req", P=$(P), R=$(R)
+file "NDFile_settings.req", P=$(P), R=$(R)
+
+$(P)$(R)ImgChipNumberID
+$(P)$(R)PimegaModule
+$(P)$(R)MedipixMode
+$(P)$(R)dac_defaults_files
+$(P)$(R)LoadEqualization
+$(P)$(R)AllModules
+$(P)$(R)MB_SendMode
+$(P)$(R)Distance

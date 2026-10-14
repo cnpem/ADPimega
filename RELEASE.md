@@ -22,6 +22,8 @@ released versions.
   - Instantiate TIFF plugin to read dark and flatfield to the existing `Proc1:`
     Process plugin.
   - Instantiate TimeSeries plugin to the existing `Attr1:` Attribute plugin.
+- Configure autosave module (Henrique F. Simoes)
+  - Define driver PVs to be saved
 
 ### Removed
 
