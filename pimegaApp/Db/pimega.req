@@ -1,0 +1,7 @@
+file "ADBase_settings.req", P=$(P), R=$(R)
+file "NDFile_settings.req", P=$(P), R=$(R)
+
+$(P)$(R)MedipixMode
+$(P)$(R)dac_defaults_files
+$(P)$(R)LoadEqualization
+$(P)$(R)Distance
