@@ -7,6 +7,14 @@ released versions.
 
 ## Unreleased
 
+### Changed
+
+- Upgrade to epics-in-docker v0.17.1 (Henrique F. Simoes)
+  - Upgrade to EPICS 7.0.10, to areaDetector 3.14, and upgrade other dependent
+    support modules;
+  - Generate smaller container images;
+  - Support BSLZ4 compression in HDF5 plugin.
+
 ### Removed
 
 - Remove NDSSCPimega plugin instance from template (Henrique F. Simoes)
