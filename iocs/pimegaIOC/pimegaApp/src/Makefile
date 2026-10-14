@@ -12,9 +12,6 @@ DBD +=  $(PROD_NAME).dbd
 $(PROD_NAME)_DBD += pimega.dbd
 #$(PROD_NAME)_DBD += drvAsynIPPort.dbd
 
-$(PROD_NAME)_LIBS += NDPluginSSCPimega
-$(PROD_NAME)_DBD += NDPluginSSCPimega.dbd
-
 # <name>_registerRecordDeviceDriver.cpp will be created from <name>.dbd
 $(PROD_NAME)_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
 
