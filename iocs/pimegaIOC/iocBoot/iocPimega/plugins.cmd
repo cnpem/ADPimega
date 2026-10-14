@@ -175,7 +175,3 @@ dbLoadRecords("NDAttributeN.template", "P=$(PREFIX),R=Attr1:8:,  PORT=ATTR1,ADDR
 # Create an FFT plugin
 NDFFTConfigure("FFT1", 3, 0, "$(PORT)", 0, 0, 0, 0, 0, 5)
 dbLoadRecords("NDFFT.template", "P=$(PREFIX), R=FFT1:, PORT=FFT1, ADDR=0, TIMEOUT=1, NDARRAY_PORT=$(PORT), NAME=FFT1, NCHANS=$(XSIZE)")
-
-# Configure NDSSCPimega for geometric restauration
-NDSSCPimegaConfigure("SSCPimega1", "$(QSIZE)", 0, "$(PORT)", 0, 0, 0)
-dbLoadRecords("$(NDSSCPIMEGA)/db/NDSSCPimega.template", "P=$(PREFIX), R=SSCPimega1:, PORT=SSCPimega1, ADDR=0, TIMEOUT=1, NDARRAY_PORT=$(PORT)")

@@ -7,6 +7,11 @@ released versions.
 
 ## Unreleased
 
+### Removed
+
+- Remove NDSSCPimega plugin instance from template (Henrique F. Simoes)
+  - This plugin is no longer maintained, and it shouldn't be used.
+
 ### Fixed
 
 - Increase IOC callback queue size to 5000 (Henrique F. Simoes)
