@@ -9,8 +9,10 @@ released versions.
 
 ### Added
 
-- Add instance of BadPixel in plugin template (Henrique F. Simoes)
-  - Create it with the `BadPix1:` PV prefix.
+- Enhance the list of plugin in template (Henrique F. Simoes)
+  - Instantiate a BadPixel plugin with the `BadPix1:` PV prefix.
+  - Instantiate TIFF plugin to read dark and flatfield to the existing `Proc1:`
+    Process plugin.
 
 ## 2.6.1
 
