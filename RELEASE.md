@@ -25,6 +25,9 @@ released versions.
 - Configure autosave module (Henrique F. Simoes)
   - Define driver PVs to be saved
   - Build example IOC with autosave support
+  - Add template to set it up in the example IOC
+    - Path to SAV files can be configured via `AUTOSAVE_PATH` environment
+      variable.
 
 ### Removed
 
