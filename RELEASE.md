@@ -24,6 +24,7 @@ released versions.
   - Instantiate TimeSeries plugin to the existing `Attr1:` Attribute plugin.
 - Configure autosave module (Henrique F. Simoes)
   - Define driver PVs to be saved
+  - Build example IOC with autosave support
 
 ### Removed
 
