@@ -1,0 +1,2 @@
+file "$(MODEL_NAME).req", P=$(P), R=cam1:
+file "plugins.req", P=$(P)
