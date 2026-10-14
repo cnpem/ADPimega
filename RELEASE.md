@@ -7,6 +7,14 @@ released versions.
 
 ## Unreleased
 
+### Changed
+
+- Upgrade to epics-in-docker v0.13.0 (Henrique F. Simoes)
+  - Upgrade to Debian 12, EPICS 7.0.8.1, and upgrade other EPICS support
+    modules;
+  - Generate smaller container images;
+  - Support BSLZ4 compression in HDF5 plugin.
+
 ### Removed
 
 - Remove NDSSCPimega plugin instance from template (Henrique F. Simoes)
