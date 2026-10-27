@@ -21,6 +21,7 @@ released versions.
   - Instantiate a BadPixel plugin with the `BadPix1:` PV prefix.
   - Instantiate TIFF plugin to read dark and flatfield to the existing `Proc1:`
     Process plugin.
+  - Instantiate TimeSeries plugin to the existing `Attr1:` Attribute plugin.
 
 ### Removed
 
