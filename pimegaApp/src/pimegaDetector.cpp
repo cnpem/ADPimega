@@ -753,9 +753,12 @@ asynStatus pimegaDetector::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       callParamCallbacks(i);
     }
 
-    PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Success - status=%d function=%s(%d), value=%d\n",
-                 functionName, status, paramName, function, value);
-    UPDATEIOCSTATUS(ok_str);
+    if (function != NDPoolPollStats) {
+      PIMEGA_PRINT(pimega, TRACE_MASK_FLOW, "%s: Success - status=%d function=%s(%d), value=%d\n",
+                   functionName, status, paramName, function, value);
+
+      UPDATEIOCSTATUS(ok_str);
+    }
   }
   return (asynStatus)status;
 }

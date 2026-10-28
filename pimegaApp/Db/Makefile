@@ -13,13 +13,20 @@ include $(TOP)/configure/CONFIG
 
 DB += module.template
 DB += pimega.template
+DB += pimega.req
 
 DB += pimega45d.db
+DB += pimega45d.req
 DB += pimega135dl.db
+DB += pimega135dl.req
 DB += pimega135d.db
+DB += pimega135d.req
 DB += pimega540d.db
+DB += pimega540d.req
 DB += pimega450d.db
+DB += pimega450d.req
 DB += pimega450ds.db
+DB += pimega450ds.req
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

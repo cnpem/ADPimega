@@ -7,6 +7,33 @@ released versions.
 
 ## Unreleased
 
+### Changed
+
+- Upgrade to epics-in-docker v0.17.1 (Henrique F. Simoes)
+  - Upgrade to EPICS 7.0.10, to areaDetector 3.14, and upgrade other dependent
+    support modules;
+  - Generate smaller container images;
+  - Support BSLZ4 compression in HDF5 plugin.
+
+### Added
+
+- Enhance the list of plugin in template (Henrique F. Simoes)
+  - Instantiate a BadPixel plugin with the `BadPix1:` PV prefix.
+  - Instantiate TIFF plugin to read dark and flatfield to the existing `Proc1:`
+    Process plugin.
+  - Instantiate TimeSeries plugin to the existing `Attr1:` Attribute plugin.
+- Configure autosave module (Henrique F. Simoes)
+  - Define driver PVs to be saved
+  - Build example IOC with autosave support
+  - Add template to set it up in the example IOC
+    - Path to SAV files can be configured via `AUTOSAVE_PATH` environment
+      variable.
+
+### Removed
+
+- Remove NDSSCPimega plugin instance from template (Henrique F. Simoes)
+  - This plugin is no longer maintained, and it shouldn't be used.
+
 ### Fixed
 
 - Increase IOC callback queue size to 5000 (Henrique F. Simoes)
