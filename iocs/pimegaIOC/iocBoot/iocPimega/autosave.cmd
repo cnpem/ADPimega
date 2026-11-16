@@ -34,3 +34,6 @@ set_requestfile_path("$(ADPIMEGA)", "db")
 
 save_restoreSet_status_prefix("$(PREFIX)")
 dbLoadRecords("$(AUTOSAVE)/db/save_restoreStatus.db", "P=$(PREFIX)")
+
+afterIocRunning "create_monitor_set('ioc.req', 30, 'P=$(PREFIX), MODEL_NAME=$(MODEL_NAME)')"
+afterIocRunning "set_savefile_name('ioc.req', '$(PREFIX).sav')"

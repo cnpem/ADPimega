@@ -9,9 +9,9 @@ released versions.
 
 ### Changed
 
-- Upgrade to epics-in-docker v0.13.0 (Henrique F. Simoes)
-  - Upgrade to Debian 12, EPICS 7.0.8.1, and upgrade other EPICS support
-    modules;
+- Upgrade to epics-in-docker v0.18.0 (Henrique F. Simoes)
+  - Upgrade to Debian 13, EPICS 7.0.10, to areaDetector 3.14, and upgrade other
+    dependent support modules;
   - Generate smaller container images;
   - Support BSLZ4 compression in HDF5 plugin.
 

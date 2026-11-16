@@ -23,5 +23,3 @@ epicsEnvSet("NELEMENTS", "9437184")
 < autosave.cmd
 
 iocInit()
-
-< post-init-autosave.cmd

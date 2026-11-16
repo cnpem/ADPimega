@@ -105,3 +105,5 @@ asynSetTraceMask($(PORT), 0, 0x00)
 
 # Use larger callback queue to account for the high number of PVs
 callbackSetQueueSize(5000)
+
+afterIocRunning "dbpf '$(PREFIX)cam1:PoolPollStats.SCAN' 0"
