@@ -10,10 +10,7 @@ PROD_IOC_Linux  += $(PROD_NAME)
 # <name>.dbd will be created from <name>Include.dbd
 DBD +=  $(PROD_NAME).dbd
 $(PROD_NAME)_DBD += pimega.dbd
-#$(PROD_NAME)_DBD += drvAsynIPPort.dbd
-
-$(PROD_NAME)_LIBS += NDPluginSSCPimega
-$(PROD_NAME)_DBD += NDPluginSSCPimega.dbd
+$(PROD_NAME)_DBD += asSupport.dbd
 
 # <name>_registerRecordDeviceDriver.cpp will be created from <name>.dbd
 $(PROD_NAME)_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
@@ -21,6 +18,7 @@ $(PROD_NAME)_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Mai
 # Add locally compiled object code
 PROD_LIBS += pimegaDetector
 PROD_LIBS += pimega
+PROD_LIBS += autosave
 
 
 include $(ADCORE)/ADApp/commonDriverMakefile

@@ -11,14 +11,14 @@ epicsEnvSet("PIMEGA_PORT", "60000")
 epicsEnvSet("FRAME_PORT", "6464")
 epicsEnvSet("COMMAND_PORT", "5412")
 
-epicsEnvSet("CALIBRATION_FILE", "/usr/local/etc/adpimega/pimega45d.ini")
-
 < pimega-template.cmd
 
 epicsEnvSet("NELEMENTS", "786432")
 
 < plugins.cmd
 
+< autosave.cmd
+
 iocInit()
 
-< post-init.cmd
+< post-init-autosave.cmd

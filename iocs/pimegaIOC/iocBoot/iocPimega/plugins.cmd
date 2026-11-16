@@ -72,7 +72,9 @@ dbLoadRecords("NDROIStatN.template",  "P=$(PREFIX),R=ROIStat1:8:,PORT=ROISTAT1,A
 # Create a processing plugin
 NDProcessConfigure("PROC1", $(QSIZE), 0, "$(PORT)", 0, 0, 0)
 dbLoadRecords("NDProcess.template",   "P=$(PREFIX),R=Proc1:,  PORT=PROC1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT)")
-
+# Create a TIFF file plugin to read dark and flatfield images into the processing plugin
+NDFileTIFFConfigure("PROC1TIFF", $(QSIZE), 0, "$(PORT)", 0)
+dbLoadRecords("NDFileTIFF.template", "P=$(PREFIX), R=Proc1:TIFF:, PORT=PROC1TIFF, ADDR=0, TIMEOUT=1, NDARRAY_PORT=$(PORT)")
 
 # Create 5 statistics plugins
 NDStatsConfigure("STATS1", $(QSIZE), 0, "$(PORT)", 0, 0, 0, 0, 0, $(MAX_THREADS=5))
@@ -171,11 +173,13 @@ dbLoadRecords("NDAttributeN.template", "P=$(PREFIX),R=Attr1:5:,  PORT=ATTR1,ADDR
 dbLoadRecords("NDAttributeN.template", "P=$(PREFIX),R=Attr1:6:,  PORT=ATTR1,ADDR=5,TIMEOUT=1,NCHANS=$(NCHANS)")
 dbLoadRecords("NDAttributeN.template", "P=$(PREFIX),R=Attr1:7:,  PORT=ATTR1,ADDR=6,TIMEOUT=1,NCHANS=$(NCHANS)")
 dbLoadRecords("NDAttributeN.template", "P=$(PREFIX),R=Attr1:8:,  PORT=ATTR1,ADDR=7,TIMEOUT=1,NCHANS=$(NCHANS)")
+NDTimeSeriesConfigure("ATTR1_TS", $(QSIZE), 0, "ATTR1", 1, 8)
+dbLoadRecords("NDTimeSeries.template",  "P=$(PREFIX), R=Attr1:TS:, PORT=ATTR1_TS, ADDR=0, TIMEOUT=1, NDARRAY_PORT=ATTR1, NDARRAY_ADDR=1, NCHANS=$(NCHANS), ENABLED=1")
 
 # Create an FFT plugin
 NDFFTConfigure("FFT1", 3, 0, "$(PORT)", 0, 0, 0, 0, 0, 5)
 dbLoadRecords("NDFFT.template", "P=$(PREFIX), R=FFT1:, PORT=FFT1, ADDR=0, TIMEOUT=1, NDARRAY_PORT=$(PORT), NAME=FFT1, NCHANS=$(XSIZE)")
 
-# Configure NDSSCPimega for geometric restauration
-NDSSCPimegaConfigure("SSCPimega1", "$(QSIZE)", 0, "$(PORT)", 0, 0, 0)
-dbLoadRecords("$(NDSSCPIMEGA)/db/NDSSCPimega.template", "P=$(PREFIX), R=SSCPimega1:, PORT=SSCPimega1, ADDR=0, TIMEOUT=1, NDARRAY_PORT=$(PORT)")
+# Create a bad pixel plugin
+NDBadPixelConfigure("BADPIX1", $(QSIZE), 0, "$(PORT)", 0, 0, 0, 0, 0, 5)
+dbLoadRecords("NDBadPixel.template", "P=$(PREFIX), R=BadPix1:, PORT=BADPIX1, ADDR=0, TIMEOUT=1, NDARRAY_PORT=$(PORT)")
